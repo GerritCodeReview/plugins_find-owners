@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "37e345bc_ed88963f",
+        "filename": "config.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1011123
+      },
+      "writtenOn": "Jan 31, 2017 3:29:27 PM",
+      "side": 1,
+      "message": "Do you intend for this documentation to be available from the plugin?   If so I think it needs to be under src/main/resources/Documentation/",
+      "revId": "b34ea780c30df3d8d35fe15e2b8f63e9a5361de4",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    }
+  ]
+}
