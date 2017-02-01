@@ -16,6 +16,24 @@
       "revId": "b34ea780c30df3d8d35fe15e2b8f63e9a5361de4",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa689e30_29d17cdc",
+        "filename": "config.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "Feb 1, 2017 9:53:55 AM",
+      "side": 1,
+      "message": "Yes, I will move them to the right location and upload new patch later, and also fix some marks like _ and *. Some of them showed up right in one .md viewer but not after converting to html.",
+      "parentUuid": "37e345bc_ed88963f",
+      "revId": "b34ea780c30df3d8d35fe15e2b8f63e9a5361de4",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
     }
   ]
 }
