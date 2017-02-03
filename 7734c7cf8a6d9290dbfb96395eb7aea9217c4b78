@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "498d8eae_baf30582",
+        "filename": "src/main/resources/Documentation/README.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1011123
+      },
+      "writtenOn": "Feb 2, 2017 5:26:31 PM",
+      "side": 1,
+      "message": "In this location it\u0027s better to name this file about.md so that it\u0027ll be shown in the proper place when the plugin is deployed in gerrit.\n\nI would suggest making a README.md in the root with minimal content, and a link to about.md in this location.",
+      "revId": "7734c7cf8a6d9290dbfb96395eb7aea9217c4b78",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    }
+  ]
+}
