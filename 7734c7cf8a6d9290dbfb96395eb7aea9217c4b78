@@ -16,6 +16,29 @@
       "revId": "7734c7cf8a6d9290dbfb96395eb7aea9217c4b78",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4e6e6e6d_7c8159af",
+        "filename": "src/main/resources/Documentation/build.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 1011323
+      },
+      "writtenOn": "Feb 2, 2017 9:09:03 PM",
+      "side": 1,
+      "message": "There is no Buck any more in the Gerrit tree on master.",
+      "range": {
+        "startLine": 4,
+        "startChar": 0,
+        "endLine": 5,
+        "endChar": 51
+      },
+      "revId": "7734c7cf8a6d9290dbfb96395eb7aea9217c4b78",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
     }
   ]
 }
