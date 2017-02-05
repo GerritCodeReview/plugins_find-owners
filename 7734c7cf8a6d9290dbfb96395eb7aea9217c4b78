@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1610b8b2_76edbaf5",
+        "filename": "src/main/resources/Documentation/README.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "Feb 4, 2017 8:30:28 PM",
+      "side": 1,
+      "message": "Now changed to a short about.md with other .md files.",
+      "parentUuid": "498d8eae_baf30582",
+      "revId": "7734c7cf8a6d9290dbfb96395eb7aea9217c4b78",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4e6e6e6d_7c8159af",
         "filename": "src/main/resources/Documentation/build.md",
         "patchSetId": 3
@@ -30,6 +48,30 @@
       "writtenOn": "Feb 2, 2017 9:09:03 PM",
       "side": 1,
       "message": "There is no Buck any more in the Gerrit tree on master.",
+      "range": {
+        "startLine": 4,
+        "startChar": 0,
+        "endLine": 5,
+        "endChar": 51
+      },
+      "revId": "7734c7cf8a6d9290dbfb96395eb7aea9217c4b78",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "60a5d71c_123b8c40",
+        "filename": "src/main/resources/Documentation/build.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "Feb 4, 2017 8:30:28 PM",
+      "side": 1,
+      "message": "Now switched to bazel.",
+      "parentUuid": "4e6e6e6d_7c8159af",
       "range": {
         "startLine": 4,
         "startChar": 0,
