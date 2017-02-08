@@ -1,0 +1,326 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "aa2c683b_7a528de5",
+        "filename": "src/main/resources/Documentation/about.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 1031607
+      },
+      "writtenOn": "Feb 8, 2017 3:36:00 AM",
+      "side": 1,
+      "message": "submission",
+      "range": {
+        "startLine": 6,
+        "startChar": 42,
+        "endLine": 6,
+        "endChar": 51
+      },
+      "revId": "a3f1802bdf5fee576aa4f6e95a56ee7e4660bbe2",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "74fcd044_3df01688",
+        "filename": "src/main/resources/Documentation/about.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1031607
+      },
+      "writtenOn": "Feb 8, 2017 3:36:00 AM",
+      "side": 1,
+      "message": "d",
+      "range": {
+        "startLine": 9,
+        "startChar": 35,
+        "endLine": 9,
+        "endChar": 36
+      },
+      "revId": "a3f1802bdf5fee576aa4f6e95a56ee7e4660bbe2",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "836bb081_fdf12269",
+        "filename": "src/main/resources/Documentation/about.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 1031607
+      },
+      "writtenOn": "Feb 8, 2017 3:36:00 AM",
+      "side": 1,
+      "message": "use * or 1. markdown lists\n\nas it is now, it looks bad  https://gerrit.googlesource.com/plugins/find-owners/+/refs/changes/16/95816/4/src/main/resources/Documentation/about.md",
+      "range": {
+        "startLine": 15,
+        "startChar": 0,
+        "endLine": 15,
+        "endChar": 3
+      },
+      "revId": "a3f1802bdf5fee576aa4f6e95a56ee7e4660bbe2",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "244b0be0_fa816ce9",
+        "filename": "src/main/resources/Documentation/config.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1031607
+      },
+      "writtenOn": "Feb 8, 2017 3:36:00 AM",
+      "side": 1,
+      "message": "why not \"Exempt-From-Owner-Approval: True\", same style as other footers?",
+      "range": {
+        "startLine": 55,
+        "startChar": 19,
+        "endLine": 55,
+        "endChar": 46
+      },
+      "revId": "a3f1802bdf5fee576aa4f6e95a56ee7e4660bbe2",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "21b8e7cb_7bf472c7",
+        "filename": "src/main/resources/Documentation/config.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 1031607
+      },
+      "writtenOn": "Feb 8, 2017 3:36:00 AM",
+      "side": 1,
+      "message": "tbh, i still don\u0027t understand what /2 means. But I really don\u0027t understand prolog, so maybe that\u0027s why.",
+      "range": {
+        "startLine": 63,
+        "startChar": 33,
+        "endLine": 63,
+        "endChar": 35
+      },
+      "revId": "a3f1802bdf5fee576aa4f6e95a56ee7e4660bbe2",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2ad921e8_d3897e8b",
+        "filename": "src/main/resources/Documentation/rest-api.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1031607
+      },
+      "writtenOn": "Feb 8, 2017 3:36:00 AM",
+      "side": 1,
+      "message": "Please, s/patch/revision\nto be in line with https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#revision-endpoints.",
+      "range": {
+        "startLine": 16,
+        "startChar": 4,
+        "endLine": 16,
+        "endChar": 9
+      },
+      "revId": "a3f1802bdf5fee576aa4f6e95a56ee7e4660bbe2",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3b392135_f17f6de5",
+        "filename": "src/main/resources/Documentation/rest-api.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1031607
+      },
+      "writtenOn": "Feb 8, 2017 3:36:00 AM",
+      "side": 1,
+      "message": "s/revision/owners_revision if you adopt my suggestion above :)",
+      "range": {
+        "startLine": 40,
+        "startChar": 4,
+        "endLine": 40,
+        "endChar": 12
+      },
+      "revId": "a3f1802bdf5fee576aa4f6e95a56ee7e4660bbe2",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5784aa01_7fd96da6",
+        "filename": "src/main/resources/Documentation/rest-api.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1031607
+      },
+      "writtenOn": "Feb 8, 2017 3:36:00 AM",
+      "side": 1,
+      "message": "usually called \"tip of change\u0027s destination branch\".\nalso, please mention that it might be outdated due to caching. I propose:\n\nis the revision where OWNERS files were searched. It is the tip of the given change\u0027s destination branch. However, due to caching this revision might be behind recent branches changes.",
+      "range": {
+        "startLine": 41,
+        "startChar": 13,
+        "endLine": 41,
+        "endChar": 16
+      },
+      "revId": "a3f1802bdf5fee576aa4f6e95a56ee7e4660bbe2",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "de1ea085_6c2637f7",
+        "filename": "src/main/resources/Documentation/rest-api.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1031607
+      },
+      "writtenOn": "Feb 8, 2017 3:36:00 AM",
+      "side": 1,
+      "message": "patchset number, and better revision, should be output in all cases, not just debug. This is because  /plugins/find-owners/change/\u003cid\u003e by default uses \"current\" revision, whatever it might be.",
+      "range": {
+        "startLine": 44,
+        "startChar": 52,
+        "endLine": 44,
+        "endChar": 68
+      },
+      "revId": "a3f1802bdf5fee576aa4f6e95a56ee7e4660bbe2",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "aea1f347_dc3e2d53",
+        "filename": "src/main/resources/Documentation/rest-api.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1031607
+      },
+      "writtenOn": "Feb 8, 2017 3:36:00 AM",
+      "side": 1,
+      "message": "patchset. as used in Gerrit.",
+      "range": {
+        "startLine": 44,
+        "startChar": 52,
+        "endLine": 44,
+        "endChar": 61
+      },
+      "revId": "a3f1802bdf5fee576aa4f6e95a56ee7e4660bbe2",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "45d8e2ba_f5244b6a",
+        "filename": "src/main/resources/Documentation/rest-api.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1031607
+      },
+      "writtenOn": "Feb 8, 2017 3:36:00 AM",
+      "side": 1,
+      "message": "where is the list of path/files taken from? Is this the dump of all owners info of the WHOLE project in given branch? Or only those which are touched by this change?",
+      "range": {
+        "startLine": 48,
+        "startChar": 13,
+        "endLine": 48,
+        "endChar": 41
+      },
+      "revId": "a3f1802bdf5fee576aa4f6e95a56ee7e4660bbe2",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "93132226_45186b1f",
+        "filename": "src/main/resources/Documentation/rest-api.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1031607
+      },
+      "writtenOn": "Feb 8, 2017 3:36:00 AM",
+      "side": 1,
+      "message": "and\n\nas it means both.",
+      "range": {
+        "startLine": 50,
+        "startChar": 35,
+        "endLine": 50,
+        "endChar": 37
+      },
+      "revId": "a3f1802bdf5fee576aa4f6e95a56ee7e4660bbe2",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ff25549b_ae85ae4e",
+        "filename": "src/main/resources/Documentation/rest-api.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1031607
+      },
+      "writtenOn": "Feb 8, 2017 3:36:00 AM",
+      "side": 1,
+      "message": "patchset",
+      "range": {
+        "startLine": 68,
+        "startChar": 72,
+        "endLine": 68,
+        "endChar": 81
+      },
+      "revId": "a3f1802bdf5fee576aa4f6e95a56ee7e4660bbe2",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "20996558_f2816f36",
+        "filename": "src/main/resources/Documentation/rest-api.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1031607
+      },
+      "writtenOn": "Feb 8, 2017 3:36:00 AM",
+      "side": 1,
+      "message": "nit: too long line",
+      "range": {
+        "startLine": 68,
+        "startChar": 78,
+        "endLine": 68,
+        "endChar": 81
+      },
+      "revId": "a3f1802bdf5fee576aa4f6e95a56ee7e4660bbe2",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    }
+  ]
+}
