@@ -22,6 +22,30 @@
       "revId": "8989428449d6b39aa9799eb489b65f1a70bda305",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "88df8351_c8b08900",
+        "filename": "src/main/resources/Documentation/rest-api.md",
+        "patchSetId": 5
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2017-02-08T21:57:38Z",
+      "side": 1,
+      "message": "Maybe we can accept both revision id string and patchset number later, like Gerrit REST APIs. It is confusing in Gerrit. For now, I will change back to \"patchset\" and accept numbers.",
+      "parentUuid": "6574f698_96ddcb1a",
+      "range": {
+        "startLine": 16,
+        "startChar": 32,
+        "endLine": 16,
+        "endChar": 38
+      },
+      "revId": "8989428449d6b39aa9799eb489b65f1a70bda305",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
     }
   ]
 }
