@@ -237,6 +237,24 @@
     },
     {
       "key": {
+        "uuid": "84d9d358_26eb451a",
+        "filename": "src/main/resources/Documentation/config.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 1031607
+      },
+      "writtenOn": "2017-02-08T20:58:09Z",
+      "side": 1,
+      "message": "Ack. Still, a more knowledgeable person than myself should review this file.",
+      "parentUuid": "0730e5e3_ab9c6402",
+      "revId": "a3f1802bdf5fee576aa4f6e95a56ee7e4660bbe2",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "2ad921e8_d3897e8b",
         "filename": "src/main/resources/Documentation/rest-api.md",
         "patchSetId": 4
@@ -513,6 +531,24 @@
         "endLine": 48,
         "endChar": 41
       },
+      "revId": "a3f1802bdf5fee576aa4f6e95a56ee7e4660bbe2",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "156c0dfe_cced7e2e",
+        "filename": "src/main/resources/Documentation/rest-api.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1031607
+      },
+      "writtenOn": "2017-02-08T20:58:09Z",
+      "side": 1,
+      "message": "thanks",
+      "parentUuid": "5547f3f7_72d3d1e4",
       "revId": "a3f1802bdf5fee576aa4f6e95a56ee7e4660bbe2",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": true

@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6574f698_96ddcb1a",
+        "filename": "src/main/resources/Documentation/rest-api.md",
+        "patchSetId": 5
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1031607
+      },
+      "writtenOn": "2017-02-08T20:58:09Z",
+      "side": 1,
+      "message": "in https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#revision-endpoints,\nit\u0027s usually not a number (i am not sure number even works), but actual hash of the commit.\n\nHowever, it\u0027s your plugin, so if you want to support both or just a number (then call it patchset as before, please), really feel free to disagree and do your way.",
+      "range": {
+        "startLine": 16,
+        "startChar": 32,
+        "endLine": 16,
+        "endChar": 38
+      },
+      "revId": "8989428449d6b39aa9799eb489b65f1a70bda305",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    }
+  ]
+}
