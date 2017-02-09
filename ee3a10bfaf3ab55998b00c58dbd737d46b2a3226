@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "46bb94ad_0a6e5a70",
+        "filename": "src/main/resources/Documentation/build.md",
+        "patchSetId": 6
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1034308
+      },
+      "writtenOn": "2017-02-09T22:40:35Z",
+      "side": 1,
+      "message": "Why is this 4 ticks?",
+      "range": {
+        "startLine": 46,
+        "startChar": 0,
+        "endLine": 46,
+        "endChar": 4
+      },
+      "revId": "ee3a10bfaf3ab55998b00c58dbd737d46b2a3226",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    }
+  ]
+}
