@@ -14,15 +14,6 @@ cd gerrit/plugins
 ln -s ../../find-owners .
 ```
 
-Put the external dependency Bazel build file into the Gerrit /plugins
-directory, replacing the existing empty one.
-
-```bash
-cd gerrit/plugins
-rm external_plugin_deps.bzl
-ln -s find-owners/external_plugin_deps.bzl .
-```
-
 From Gerrit source tree issue the command:
 
 ```bash
