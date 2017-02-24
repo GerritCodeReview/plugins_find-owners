@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "94fc2bc5_a1cf5c98",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Action.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2017-02-24T19:51:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "75e0d932_5d924065",
+      "range": {
+        "startLine": 111,
+        "startChar": 27,
+        "endLine": 111,
+        "endChar": 58
+      },
+      "revId": "aa04efc56ca678650c5e4e32aefa2e4a6ac35db1",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a1a4bfe0_24877fe3",
         "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Action.java",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2017-02-24T08:35:42Z",
       "side": 1,
       "message": "Owners",
+      "range": {
+        "startLine": 162,
+        "startChar": 31,
+        "endLine": 162,
+        "endChar": 37
+      },
+      "revId": "aa04efc56ca678650c5e4e32aefa2e4a6ac35db1",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e46ec18d_dd0986ee",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Action.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2017-02-24T19:51:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a1a4bfe0_24877fe3",
       "range": {
         "startLine": 162,
         "startChar": 31,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "6b7c7918_e0106b58",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Cache.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2017-02-24T19:51:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ad203ce_a4cb128d",
+      "range": {
+        "startLine": 40,
+        "startChar": 25,
+        "endLine": 40,
+        "endChar": 26
+      },
+      "revId": "aa04efc56ca678650c5e4e32aefa2e4a6ac35db1",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "afd355e8_7e814d3a",
         "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Checker.java",
         "patchSetId": 3
@@ -88,6 +160,24 @@
     },
     {
       "key": {
+        "uuid": "349c4f50_8ecece7d",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Checker.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2017-02-24T19:51:11Z",
+      "side": 1,
+      "message": "Me too. It is an idea in other plugins.",
+      "parentUuid": "afd355e8_7e814d3a",
+      "revId": "aa04efc56ca678650c5e4e32aefa2e4a6ac35db1",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c799d9ef_d8f29480",
         "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/OwnersDb.java",
         "patchSetId": 3
@@ -99,6 +189,30 @@
       "writtenOn": "2017-02-24T08:35:42Z",
       "side": 1,
       "message": "for a",
+      "range": {
+        "startLine": 226,
+        "startChar": 21,
+        "endLine": 226,
+        "endChar": 22
+      },
+      "revId": "aa04efc56ca678650c5e4e32aefa2e4a6ac35db1",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ec61c530_da54bb69",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/OwnersDb.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 226,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2017-02-24T19:51:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c799d9ef_d8f29480",
       "range": {
         "startLine": 226,
         "startChar": 21,
@@ -134,6 +248,30 @@
     },
     {
       "key": {
+        "uuid": "81a7e5a0_6ff5eb04",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/OwnersDb.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 237,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2017-02-24T19:51:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "76887349_e505e8a0",
+      "range": {
+        "startLine": 237,
+        "startChar": 32,
+        "endLine": 237,
+        "endChar": 33
+      },
+      "revId": "aa04efc56ca678650c5e4e32aefa2e4a6ac35db1",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2ab4d2f4_6641e28f",
         "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Util.java",
         "patchSetId": 3
@@ -151,6 +289,24 @@
     },
     {
       "key": {
+        "uuid": "28ddcc10_66fa818f",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Util.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2017-02-24T19:51:11Z",
+      "side": 1,
+      "message": "Done, added ignoreIOException, which is true only when getting OWNERS file content or the revision info of a refs/meta/config branch. Callers handle null return value too.",
+      "parentUuid": "2ab4d2f4_6641e28f",
+      "revId": "aa04efc56ca678650c5e4e32aefa2e4a6ac35db1",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fffd5286_fe66aeac",
         "filename": "src/main/resources/static/find-owners.js",
         "patchSetId": 3
@@ -162,6 +318,24 @@
       "writtenOn": "2017-02-24T08:35:42Z",
       "side": 1,
       "message": "Again, I am not sure if this is the behavior we really want.",
+      "revId": "aa04efc56ca678650c5e4e32aefa2e4a6ac35db1",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "436dc99b_3b202260",
+        "filename": "src/main/resources/static/find-owners.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2017-02-24T19:51:11Z",
+      "side": 1,
+      "message": "Yah, we can add such stronger rules later, maybe as a configurable feature.",
+      "parentUuid": "fffd5286_fe66aeac",
       "revId": "aa04efc56ca678650c5e4e32aefa2e4a6ac35db1",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": false
