@@ -34,6 +34,24 @@
       "revId": "47edb3d757acd3de64c0c19c8d2ff7c012b314bd",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d5220cfd_64967344",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Util.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1034308
+      },
+      "writtenOn": "2017-02-25T01:37:28Z",
+      "side": 1,
+      "message": "Doh, I missed the fall through to the null return (as in the other case too). Thanks for clarifying this.",
+      "parentUuid": "6aae209f_7d207c01",
+      "revId": "47edb3d757acd3de64c0c19c8d2ff7c012b314bd",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
     }
   ]
 }
