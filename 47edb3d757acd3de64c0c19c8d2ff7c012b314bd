@@ -16,6 +16,24 @@
       "revId": "47edb3d757acd3de64c0c19c8d2ff7c012b314bd",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6aae209f_7d207c01",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Util.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2017-02-25T01:31:05Z",
+      "side": 1,
+      "message": "This getHTTP does not throw exception, just return null for MalformedURLException and IOException. I found it easier to check for null in callers.",
+      "parentUuid": "2d198f39_06905610",
+      "revId": "47edb3d757acd3de64c0c19c8d2ff7c012b314bd",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
     }
   ]
 }
