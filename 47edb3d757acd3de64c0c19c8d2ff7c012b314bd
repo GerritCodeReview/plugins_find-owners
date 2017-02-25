@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2d198f39_06905610",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Util.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1034308
+      },
+      "writtenOn": "2017-02-25T01:09:45Z",
+      "side": 1,
+      "message": "You are missing a rethrow in the case where we are not ignoring the exception.",
+      "revId": "47edb3d757acd3de64c0c19c8d2ff7c012b314bd",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    }
+  ]
+}
