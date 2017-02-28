@@ -15,10 +15,14 @@
 package com.googlesource.gerrit.plugins.findowners;
 
 import static com.google.common.truth.Truth.assertThat;
+
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 
 /** Test Parser class */
+@RunWith(JUnit4.class)
 public class ParserTest {
   private MockedOwnersDb db;
 
@@ -27,7 +31,7 @@ public class ParserTest {
     db = new MockedOwnersDb();
   }
 
-  private String mockedTestDir() {
+  private static String mockedTestDir() {
     return "./d1/d2/";
   }
 
@@ -37,22 +41,22 @@ public class ParserTest {
     db.appendSavedData((result != null) ? (result + line) : line);
   }
 
-  private String testLineOwnerPath(String line, String s1) {
+  private static String testLineOwnerPath(String line, String s1) {
     return testLineOwnerPath(line, s1, mockedTestDir());
   }
 
-  private String testLineOwnerPath(String line, String s1, String s2) {
+  private static String testLineOwnerPath(String line, String s1, String s2) {
     // expected db.savedData created by testLine(line)
     // followed by call to addOwnerPathPair(s1, s2)
     return "s1:" + s1 + "\ns2:" + s2 + "\n" + line;
   }
 
-  private String testLineWarningMsg(String line) {
+  private static String testLineWarningMsg(String line) {
     // expected warning message created by testLine(line)
     return Parser.warningMsg("OWNERS", 3, "ignored", line);
   }
 
-  private String testLineErrorMsg(String line) {
+  private static String testLineErrorMsg(String line) {
     // expected error message created by testLine(line)
     return Parser.errorMsg("OWNERS", 3, "ignored unknown line", line);
   }
@@ -106,10 +110,10 @@ public class ParserTest {
                       "set noparent # comment"};
     for (String line : lines) {
       db.resetData();
-      assertThat(db.stopLooking.size()).isEqualTo(0);
+      assertThat(db.stopLooking).isEmpty();
       testLine(line);
-      assertThat(db.stopLooking.size()).isEqualTo(1);
-      assertThat(db.stopLooking.contains(mockedTestDir())).isEqualTo(true);
+      assertThat(db.stopLooking).hasSize(1);
+      assertThat(db.stopLooking.contains(mockedTestDir())).isTrue();
       assertThat(db.getSavedData()).isEqualTo(line);
     }
   }

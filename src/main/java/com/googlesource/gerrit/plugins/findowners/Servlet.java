@@ -18,6 +18,7 @@ import com.google.inject.servlet.ServletModule;
 
 /** Plugin HTTP Servlet module */
 public class Servlet extends ServletModule {
+  @Override
   protected void configureServlets() {
     serve("/change/*").with(GetChange.class);
   }

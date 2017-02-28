@@ -15,14 +15,18 @@
 package com.googlesource.gerrit.plugins.findowners;
 
 import static com.google.common.truth.Truth.assertThat;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.googlesource.gerrit.plugins.findowners.Util.String2String;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 
 /** Test Action class */
+@RunWith(JUnit4.class)
 public class ActionTest {
   private MockedServer server;
   private Action finder;
@@ -48,9 +52,9 @@ public class ActionTest {
         + "'path2owners':{}, 'owner2paths':{}, 'file2owners':{}, "
         + "'reviewers':[], 'owners':[], 'files':[ './README', "
         + "'./d1/test.c', './d2/t.txt' ] }";
-    String result = gs.toJson(obj).replaceAll(" ", "");
-    expected = expected.replaceAll(" ", "\n");
-    expected = expected.replaceAll("'", "\"");
+    String result = gs.toJson(obj).replace(" ", "");
+    expected = expected.replace(' ', '\n');
+    expected = expected.replace('\'', '\"');
     assertThat(result).isEqualTo(expected);
   }
 

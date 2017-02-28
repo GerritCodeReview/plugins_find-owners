@@ -14,6 +14,8 @@
 
 package com.googlesource.gerrit.plugins.findowners;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import com.google.gerrit.reviewdb.client.Account;
 import com.google.gerrit.reviewdb.client.Change;
 import com.google.gerrit.reviewdb.client.Change.Status;
@@ -143,7 +145,6 @@ class Server {
 
   /** Returns a map from reviewer email to vote value; uses Prolog engine. */
   String2Integer getVotes() {
-    ChangeData data = StoredValues.CHANGE_DATA.get(engine);
     ReviewDb db = StoredValues.REVIEW_DB.get(engine);
     String2Integer map = new String2Integer();
     AccountAccess ac = db.accounts();
@@ -153,7 +154,7 @@ class Server {
         try {
           Account a = ac.get(new Account.Id(id));
           String email = a.getPreferredEmail();
-          map.put(email, new Integer(p.getValue()));
+          map.put(email, Integer.valueOf(p.getValue()));
         } catch (OrmException e) {
           log.error("Cannot get email address of account id: " + id + " " + e);
         }
@@ -213,7 +214,7 @@ class Server {
           treeWalk.setRecursive(true);
           treeWalk.setFilter(PathFilter.create(file));
           if (treeWalk.next()) {
-            return new String(reader.open(treeWalk.getObjectId(0)).getBytes());
+            return new String(reader.open(treeWalk.getObjectId(0)).getBytes(), UTF_8);
           }
         }
       }
