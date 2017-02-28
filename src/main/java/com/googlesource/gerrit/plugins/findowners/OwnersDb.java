@@ -35,6 +35,7 @@ class OwnersDb {
 
   private int numOwners; // # of owners of all given files.
 
+  String key; // key to find this OwnersDb in a cache.
   String revision; // tip of branch revision, where OWENRS were found.
   String2StringSet dir2Globs; // (directory) => file globs in the directory
   String2StringSet owner2Paths; // (owner email) => owned dirs or file globs
@@ -44,6 +45,7 @@ class OwnersDb {
 
   private void init(Server s) {
     numOwners = -1;
+    key = "";
     revision = "";
     dir2Globs = new String2StringSet();
     owner2Paths = new String2StringSet();
@@ -152,7 +154,7 @@ class OwnersDb {
     StringSet owners = path2Owners.get(path);
     if (null != owners) {
       paths.add(path);
-      distances.add(new Integer(distance));
+      distances.add(distance);
       if (owners.contains("*")) {
         return true;
       }
@@ -221,6 +223,7 @@ class OwnersDb {
       Server s, String key, Repository repository, String url,
       String project, String branch, Collection<String> files) {
     init(s);
+    this.key = key;
     for (String fileName : files) {
       // Find OWNERS in fileName's directory and parent directories.
       // Stop looking for a parent directory if OWNERS has "set noparent".

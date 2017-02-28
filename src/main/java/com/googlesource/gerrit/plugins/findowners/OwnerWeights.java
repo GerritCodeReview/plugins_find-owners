@@ -95,7 +95,7 @@ class OwnerWeights {
 
   /** Sort keys in weights map by control levels, and return keys. */
   static List<String> sortKeys(Owner2Weights weights) {
-    ArrayList<String> keys = new ArrayList(weights.keySet());
+    List<String> keys = new ArrayList<>(weights.keySet());
     Collections.sort(keys, new WeightComparator(weights));
     return keys;
   }

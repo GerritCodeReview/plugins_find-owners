@@ -80,7 +80,7 @@ class Action implements UiAction<RevisionResource>,
 
   private JsonArray getOwners(OwnersDb db, Collection<String> files) {
     Owner2Weights weights = new Owner2Weights();
-    String2StringSet file2Owners = db.findOwners(files, weights);
+    db.findOwners(files, weights);
     JsonArray result = new JsonArray();
     StringSet emails = new StringSet();
     for (String key : OwnerWeights.sortKeys(weights)) {

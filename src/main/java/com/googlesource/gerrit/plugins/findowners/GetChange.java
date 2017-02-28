@@ -48,6 +48,7 @@ class GetChange extends HttpServlet {
   }
 
   private String2String parseParameters(HttpServletRequest req) {
+    @SuppressWarnings("unchecked")
     Map<String, String[]> map = req.getParameterMap();
     String2String params = new String2String();
     for (Map.Entry<String, String[]> entry : map.entrySet()) {
@@ -58,6 +59,7 @@ class GetChange extends HttpServlet {
     return params;
   }
 
+  @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse res)
       throws IOException {
     String reqURL = req.getRequestURL().toString();
