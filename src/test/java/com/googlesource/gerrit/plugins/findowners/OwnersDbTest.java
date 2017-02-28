@@ -15,16 +15,19 @@
 package com.googlesource.gerrit.plugins.findowners;
 
 import static com.google.common.truth.Truth.assertThat;
+
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 
 /** Test OwnersDb class */
+@RunWith(JUnit4.class)
 public class OwnersDbTest {
-  private MockedServer server;
 
   @Before
   public void setUp() {
-    server = new MockedServer();
+    new MockedServer();
   }
 
   @Test
@@ -33,7 +36,7 @@ public class OwnersDbTest {
   }
 
   @Test
-  public void addOwnerPathPairTest() {
+     public void addOwnerPathPairTest() {
     // TODO: test addOwnerPathPair
   }
 

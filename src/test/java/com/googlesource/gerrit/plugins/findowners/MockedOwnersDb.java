@@ -15,12 +15,16 @@
 package com.googlesource.gerrit.plugins.findowners;
 
 import static com.google.common.truth.Truth.assertThat;
+
 import com.googlesource.gerrit.plugins.findowners.Util.String2StringSet;
 import com.googlesource.gerrit.plugins.findowners.Util.StringSet;
 import java.util.Collection;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 
 /** Mocked OwnersDb to test Parser class */
+@RunWith(JUnit4.class)
 public class MockedOwnersDb extends OwnersDb {
   private String savedData;
   String2StringSet mockedFile2Owners;
@@ -61,11 +65,11 @@ public class MockedOwnersDb extends OwnersDb {
   @Test
   public void defaultTest() {
     // Trivial test of default OwnersDb members.
-    assertThat(revision).isEqualTo("");
+    assertThat(revision).isEmpty();
     assertThat(dir2Globs.size()).isEqualTo(0);
     assertThat(owner2Paths.size()).isEqualTo(0);
     assertThat(path2Owners.size()).isEqualTo(0);
-    assertThat(readDirs.size()).isEqualTo(0);
-    assertThat(stopLooking.size()).isEqualTo(0);
+    assertThat(readDirs).isEmpty();
+    assertThat(stopLooking).isEmpty();
   }
 }

@@ -14,11 +14,11 @@
 
 package com.googlesource.gerrit.plugins.findowners;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.googlesource.gerrit.plugins.findowners.Util.Owner2Weights;
-import com.googlesource.gerrit.plugins.findowners.Util.String2StringSet;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -94,7 +94,7 @@ class Util {
   /** Issues Gerrit REST API GET; decodes base64 content. */
   static String getHTTPBase64Content(String url) {
     String data = getHTTP(url, true);
-    return (null == data) ? "" : new String(Base64.getDecoder().decode(data));
+    return (null == data) ? "" : new String(Base64.getDecoder().decode(data), UTF_8);
   }
 
   static String getDirName(String path) {

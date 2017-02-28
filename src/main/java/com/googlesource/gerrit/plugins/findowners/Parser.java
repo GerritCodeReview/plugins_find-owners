@@ -16,8 +16,6 @@ package com.googlesource.gerrit.plugins.findowners;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Parse lines in an OWNERS file and put them into an OwnersDb.
@@ -39,8 +37,6 @@ import org.slf4j.LoggerFactory;
  *     matching glob. glob does not contain directory path.
  */
 class Parser {
-  private static final Logger log = LoggerFactory.getLogger(Parser.class);
-
   static final Pattern PatComment = Pattern.compile("^ *(#.*)?$");
   // TODO: have a more precise email address pattern.
   static final Pattern PatEmail =  // email address or a "*"

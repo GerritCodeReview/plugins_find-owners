@@ -15,6 +15,7 @@
 package com.googlesource.gerrit.plugins.findowners;
 
 import static com.google.common.truth.Truth.assertThat;
+
 import com.google.gerrit.reviewdb.client.Change.Status;
 import com.google.gerrit.server.change.RevisionResource;
 import com.google.gson.JsonArray;
@@ -22,10 +23,14 @@ import com.googlesource.gerrit.plugins.findowners.Util.String2Integer;
 import com.googlesource.gerrit.plugins.findowners.Util.String2String;
 import com.googlesource.gerrit.plugins.findowners.Util.StringSet;
 import java.util.Collection;
+import java.util.Collections;
 import org.eclipse.jgit.lib.Repository;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 
 /** Mocked server to test Action, Checker, OwnersDb classes. */
+@RunWith(JUnit4.class)
 public class MockedServer extends Server {
 
   int minOwnerVoteLevel;
@@ -54,9 +59,7 @@ public class MockedServer extends Server {
     exemptFromOwnerApproval = false;
     changedFiles = new StringSet();
     String[] sampleFiles = {"./README", "./d1/test.c", "./d2/t.txt"};
-    for (String file : sampleFiles) {
-      changedFiles.add(file);
-    }
+    Collections.addAll(changedFiles, sampleFiles);
     votes = new String2Integer();
     reviewers = new JsonArray();
     ownersDb = new MockedOwnersDb();

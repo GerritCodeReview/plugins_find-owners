@@ -15,28 +15,32 @@
 package com.googlesource.gerrit.plugins.findowners;
 
 import static com.google.common.truth.Truth.assertThat;
+
 import com.googlesource.gerrit.plugins.findowners.Util.Owner2Weights;
 import com.googlesource.gerrit.plugins.findowners.Util.String2Integer;
 import com.googlesource.gerrit.plugins.findowners.Util.String2String;
 import com.googlesource.gerrit.plugins.findowners.Util.String2StringSet;
 import com.googlesource.gerrit.plugins.findowners.Util.StringSet;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 
 /** Test Util class */
+@RunWith(JUnit4.class)
 public class UtilTest {
 
   @Test
   public void getOwner2WeightsTest() {
     Owner2Weights m = new Owner2Weights();
     assertThat(m.size()).isEqualTo(0);
-    assertThat(m.get("s1")).isEqualTo(null);
+    assertThat(m.get("s1")).isNull();
     OwnerWeights v1 = new OwnerWeights();
     OwnerWeights v2 = new OwnerWeights();
     m.put("s1", v1);
     assertThat(m.get("s1")).isEqualTo(v1);
     // compare OwnerWeights by reference
     assertThat(m.get("s1")).isNotEqualTo(v2);
-    assertThat(m.get("s2")).isEqualTo(null);
+    assertThat(m.get("s2")).isNull();
     assertThat(m.size()).isEqualTo(1);
   }
 
@@ -44,14 +48,14 @@ public class UtilTest {
   public void getString2IntegerTest() {
     String2Integer m = new String2Integer();
     assertThat(m.size()).isEqualTo(0);
-    assertThat(m.get("s1")).isEqualTo(null);
+    assertThat(m.get("s1")).isNull();
     Integer v1 = 3;
     Integer v2 = 3;
     m.put("s1", v1);
     assertThat(m.get("s1")).isEqualTo(v1);
     // compare Integer by value
     assertThat(m.get("s1")).isEqualTo(v2);
-    assertThat(m.get("s2")).isEqualTo(null);
+    assertThat(m.get("s2")).isNull();
     assertThat(m.size()).isEqualTo(1);
   }
 
@@ -59,14 +63,14 @@ public class UtilTest {
   public void getString2StringTest() {
     String2String m = new String2String();
     assertThat(m.size()).isEqualTo(0);
-    assertThat(m.get("s1")).isEqualTo(null);
+    assertThat(m.get("s1")).isNull();
     String v1 = "x";
     String v2 = "x";
     m.put("s1", v1);
     assertThat(m.get("s1")).isEqualTo(v1);
     // compare String by value
     assertThat(m.get("s1")).isEqualTo(v2);
-    assertThat(m.get("s2")).isEqualTo(null);
+    assertThat(m.get("s2")).isNull();
     assertThat(m.size()).isEqualTo(1);
   }
 
@@ -74,31 +78,31 @@ public class UtilTest {
   public void getString2StringSetTest() {
     String2StringSet m = new String2StringSet();
     assertThat(m.size()).isEqualTo(0);
-    assertThat(m.get("s1")).isEqualTo(null);
+    assertThat(m.get("s1")).isNull();
     StringSet v1 = new StringSet();
     StringSet v2 = new StringSet();
-    assertThat(v1.size()).isEqualTo(0);
+    assertThat(v1).isEmpty();
     v1.add("x");
     v1.add("y");
     v2.add("y");
     v2.add("x");
-    assertThat(v1.size()).isEqualTo(2);
+    assertThat(v1).hasSize(2);
     m.put("s1", v1);
     assertThat(m.get("s1")).isEqualTo(v1);
     // compare StringSet by value
     assertThat(m.get("s1")).isEqualTo(v2);
-    assertThat(m.get("s2")).isEqualTo(null);
+    assertThat(m.get("s2")).isNull();
     assertThat(m.size()).isEqualTo(1);
   }
 
   @Test
   public void addStringSetTest() {
     StringSet s = new StringSet();
-    assertThat(s.size()).isEqualTo(0);
+    assertThat(s).isEmpty();
     s.add("s1");
-    assertThat(s.contains("s1")).isEqualTo(true);
-    assertThat(s.contains("s2")).isEqualTo(false);
-    assertThat(s.size()).isEqualTo(1);
+    assertThat(s.contains("s1")).isTrue();
+    assertThat(s.contains("s2")).isFalse();
+    assertThat(s).hasSize(1);
   }
 
   @Test
@@ -160,10 +164,10 @@ public class UtilTest {
     String[] yesStrs = {"True", "1", "true", "TRUE", "yes"};
     String[] noStrs = {"", "False", "0", "false", "FALSE", "no", "other"};
     for (String s : yesStrs) {
-       assertThat(Util.parseBoolean(s)).isEqualTo(true);
+      assertThat(Util.parseBoolean(s)).isTrue();
     }
     for (String s : noStrs) {
-       assertThat(Util.parseBoolean(s)).isEqualTo(false);
+      assertThat(Util.parseBoolean(s)).isFalse();
     }
   }
 

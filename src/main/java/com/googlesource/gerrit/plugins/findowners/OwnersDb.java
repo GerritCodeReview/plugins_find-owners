@@ -152,7 +152,7 @@ class OwnersDb {
     StringSet owners = path2Owners.get(path);
     if (null != owners) {
       paths.add(path);
-      distances.add(new Integer(distance));
+      distances.add(Integer.valueOf(distance));
       if (owners.contains("*")) {
         return true;
       }
@@ -218,7 +218,7 @@ class OwnersDb {
   }
 
   private void init(
-      Server s, String key, Repository repository, String url,
+      Server s, String unusedKey, Repository repository, String url,
       String project, String branch, Collection<String> files) {
     init(s);
     for (String fileName : files) {
