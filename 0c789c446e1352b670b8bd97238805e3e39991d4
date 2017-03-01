@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9fabd791_d4c0184a",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/OwnerWeights.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1011123
+      },
+      "writtenOn": "2017-03-01T01:44:44Z",
+      "side": 1,
+      "message": "The type is not needed since Java 7.",
+      "range": {
+        "startLine": 98,
+        "startChar": 43,
+        "endLine": 98,
+        "endChar": 49
+      },
+      "revId": "0c789c446e1352b670b8bd97238805e3e39991d4",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    }
+  ]
+}
