@@ -70,6 +70,75 @@
       "revId": "0c789c446e1352b670b8bd97238805e3e39991d4",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "14fc13dd_15ad0c7f",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/OwnerWeights.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1001240
+      },
+      "writtenOn": "2017-03-01T05:17:16Z",
+      "side": 1,
+      "message": "List\u003cString\u003e\n\nYou can omit ArrayList on the left side.",
+      "range": {
+        "startLine": 98,
+        "startChar": 4,
+        "endLine": 98,
+        "endChar": 21
+      },
+      "revId": "0c789c446e1352b670b8bd97238805e3e39991d4",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "49c9a529_38c85ad6",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/OwnersDb.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 1001240
+      },
+      "writtenOn": "2017-03-01T05:17:16Z",
+      "side": 1,
+      "message": "Using Integer.valueOf is unnecessary. Just pass distance, the compiler will insert the Integer.valueOf invocation for you to convert from \"int\" to \"Integer\".",
+      "range": {
+        "startLine": 155,
+        "startChar": 20,
+        "endLine": 155,
+        "endChar": 45
+      },
+      "revId": "0c789c446e1352b670b8bd97238805e3e39991d4",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0af9c806_a1961f71",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/OwnersDb.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 221,
+      "author": {
+        "id": 1001240
+      },
+      "writtenOn": "2017-03-01T05:17:16Z",
+      "side": 1,
+      "message": "If its unused argument in a private method, just omit it?",
+      "range": {
+        "startLine": 221,
+        "startChar": 16,
+        "endLine": 221,
+        "endChar": 33
+      },
+      "revId": "0c789c446e1352b670b8bd97238805e3e39991d4",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
     }
   ]
 }
