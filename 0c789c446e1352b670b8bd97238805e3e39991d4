@@ -22,6 +22,30 @@
       "revId": "0c789c446e1352b670b8bd97238805e3e39991d4",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1cd1961c_245632f5",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/OwnerWeights.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2017-03-01T01:50:37Z",
+      "side": 1,
+      "message": "Google\u0027s Java coding style checker does not like assigning a generic ArrayList type to ArrayList\u003cString\u003e.",
+      "parentUuid": "9fabd791_d4c0184a",
+      "range": {
+        "startLine": 98,
+        "startChar": 43,
+        "endLine": 98,
+        "endChar": 49
+      },
+      "revId": "0c789c446e1352b670b8bd97238805e3e39991d4",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
     }
   ]
 }
