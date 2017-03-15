@@ -14,16 +14,24 @@
 
 package com.googlesource.gerrit.plugins.findowners;
 
-import com.googlesource.gerrit.plugins.findowners.Util.Owner2Weights;
-import com.googlesource.gerrit.plugins.findowners.Util.String2StringSet;
-import com.googlesource.gerrit.plugins.findowners.Util.StringSet;
+import static java.nio.charset.StandardCharsets.UTF_8;
+
+import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import org.eclipse.jgit.lib.ObjectReader;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.revwalk.RevTree;
+import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.treewalk.TreeWalk;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,40 +39,45 @@ import org.slf4j.LoggerFactory;
 class OwnersDb {
   private static final Logger log = LoggerFactory.getLogger(OwnersDb.class);
 
-  private Server server; // could be set to a mocked server in unit tests
+  private int numOwners = -1; // # of owners of all given files.
 
-  private int numOwners; // # of owners of all given files.
+  String key = ""; // key to find this OwnersDb in a cache.
+  String revision = ""; // tip of branch revision, where OWENRS were found.
+  Map<String, Set<String>> dir2Globs = new HashMap<>(); // directory to file globs in the directory
+  Map<String, Set<String>> owner2Paths = new HashMap<>(); // owner email to owned dirs or file globs
+  Map<String, Set<String>> path2Owners = new HashMap<>(); // dir or file glob to owner emails
+  Set<String> readDirs = new HashSet<>(); // directories in which we have checked OWNERS
+  Set<String> stopLooking = new HashSet<>(); // directories where OWNERS has "set noparent"
 
-  String revision; // tip of branch revision, where OWENRS were found.
-  String2StringSet dir2Globs; // (directory) => file globs in the directory
-  String2StringSet owner2Paths; // (owner email) => owned dirs or file globs
-  String2StringSet path2Owners; // (directory or file glob) => owner emails
-  StringSet readDirs; // directories in which we have checked OWNERS
-  StringSet stopLooking; // directories where OWNERS has "set noparent"
+  OwnersDb() {}
 
-  private void init(Server s) {
-    numOwners = -1;
-    revision = "";
-    dir2Globs = new String2StringSet();
-    owner2Paths = new String2StringSet();
-    path2Owners = new String2StringSet();
-    readDirs = new StringSet();
-    stopLooking = new StringSet();
-    server = (null != s) ? s : new Server();
-  }
-
-  OwnersDb(Server s) {
-    init(s);
-  }
-
-  OwnersDb(Server s, String key, Repository repository,
-           String branch, Collection<String> files) {
-    init(s, key, repository, null, null, branch, files);
-  }
-
-  OwnersDb(Server s, String key, String url, String project,
-           String branch, Collection<String> files) {
-    init(s, key, null, url, project, branch, files);
+  OwnersDb(String key, Repository repository, String branch, Collection<String> files) {
+    this.key = key;
+    for (String fileName : files) {
+      // Find OWNERS in fileName's directory and parent directories.
+      // Stop looking for a parent directory if OWNERS has "set noparent".
+      fileName = Util.normalizedFilePath(fileName);
+      String dir = Util.normalizedDirPath(fileName); // e.g. dir = ./d1/d2
+      while (!readDirs.contains(dir)) {
+        readDirs.add(dir);
+        String filePath = (dir + "/OWNERS").substring(2); // remove "./"
+        String content = getRepositoryFile(repository, branch, filePath);
+        if (content != null && !content.equals("")) {
+          addFile(dir + "/", dir + "/OWNERS", content.split("\\R+"));
+        }
+        if (stopLooking.contains(dir + "/") || !dir.contains("/")) {
+          break; // stop looking through parent directory
+        }
+        dir = Util.getDirName(dir); // go up one level
+      }
+    }
+    countNumOwners(files);
+    try {
+      revision = repository.getRef(branch).getObjectId().getName();
+    } catch (IOException e) {
+      log.error("Fail to get branch revision", e);
+      revision = "";
+    }
   }
 
   int getNumOwners() {
@@ -72,57 +85,54 @@ class OwnersDb {
   }
 
   private void countNumOwners(Collection<String> files) {
-    String2StringSet file2Owners = findOwners(files, null);
-    if (null != file2Owners) {
-      StringSet emails = new StringSet();
-      for (String key : file2Owners.keySet()) {
-        for (String owner : file2Owners.get(key)) {
-          emails.add(owner);
-        }
-      }
+    Map<String, Set<String>> file2Owners = findOwners(files, null);
+    if (file2Owners != null) {
+      Set<String> emails = new HashSet<>();
+      file2Owners.values().forEach(emails::addAll);
       numOwners = emails.size();
     } else {
       numOwners = owner2Paths.keySet().size();
     }
   }
 
-  private static void addToMap(String2StringSet map,
-                               String key, String value) {
-    if (null == map.get(key)) {
-      map.put(key, new StringSet());
-    }
-    map.get(key).add(value);
-  }
-
   void addOwnerPathPair(String owner, String path) {
-    addToMap(owner2Paths, owner, path);
-    addToMap(path2Owners, path, owner);
+    Util.addToMap(owner2Paths, owner, path);
+    Util.addToMap(path2Owners, path, owner);
     if (path.length() > 0 && path.charAt(path.length() - 1) != '/') {
-      addToMap(dir2Globs, Util.getDirName(path) + "/", path); // A file glob.
+      Util.addToMap(dir2Globs, Util.getDirName(path) + "/", path); // A file glob.
     }
   }
 
-  void addFile(String path, String file, String[] lines) {
-    int n = 0;
-    for (String line : lines) {
-      String error = Parser.parseLine(this, path, file, line, ++n);
-      if (null != error && server.getReportSyntaxError()) {
-        log.warn(error);
+  void addFile(String dirPath, String filePath, String[] lines) {
+    Parser.Result result = Parser.parseFile(dirPath, filePath, lines);
+    if (result.stopLooking) {
+      stopLooking.add(dirPath);
+    }
+    for (String owner : result.owner2paths.keySet()) {
+      for (String path : result.owner2paths.get(owner)) {
+        addOwnerPathPair(owner, path);
       }
+    }
+    if (Config.getReportSyntaxError()) {
+      result.warnings.forEach(w -> log.warn(w));
+      result.errors.forEach(w -> log.error(w));
     }
   }
 
   private void addOwnerWeights(
-      ArrayList<String> paths, ArrayList<Integer> distances,
-      String file, String2StringSet file2Owners, Owner2Weights map) {
+      ArrayList<String> paths,
+      ArrayList<Integer> distances,
+      String file,
+      Map<String, Set<String>> file2Owners,
+      Map<String, OwnerWeights> map) {
     for (int i = 0; i < paths.size(); i++) {
-      StringSet owners = path2Owners.get(paths.get(i));
-      if (null == owners) {
+      Set<String> owners = path2Owners.get(paths.get(i));
+      if (owners == null) {
         continue;
       }
       for (String name : owners) {
-        addToMap(file2Owners, file, name);
-        if (null == map) {
+        Util.addToMap(file2Owners, file, name);
+        if (map == null) {
           continue;
         }
         if (map.containsKey(name)) {
@@ -135,24 +145,23 @@ class OwnersDb {
   }
 
   /** Quick method to find owner emails of every file. */
-  String2StringSet findOwners(Collection<String> files) {
+  Map<String, Set<String>> findOwners(Collection<String> files) {
     return findOwners(files, null);
   }
 
   /** Returns owner emails of every file and set up ownerWeights. */
-  String2StringSet findOwners(Collection<String> files,
-                              Owner2Weights ownerWeights) {
+  Map<String, Set<String>> findOwners(
+      Collection<String> files, Map<String, OwnerWeights> ownerWeights) {
     return findOwners(files.toArray(new String[0]), ownerWeights);
   }
 
   /** Returns true if path has '*' owner. */
-  private boolean findStarOwner(String path, int distance,
-                                ArrayList<String> paths,
-                                ArrayList<Integer> distances) {
-    StringSet owners = path2Owners.get(path);
-    if (null != owners) {
+  private boolean findStarOwner(
+      String path, int distance, ArrayList<String> paths, ArrayList<Integer> distances) {
+    Set<String> owners = path2Owners.get(path);
+    if (owners != null) {
       paths.add(path);
-      distances.add(new Integer(distance));
+      distances.add(distance);
       if (owners.contains("*")) {
         return true;
       }
@@ -161,12 +170,12 @@ class OwnersDb {
   }
 
   /** Returns owner emails of every file and set up ownerWeights. */
-  String2StringSet findOwners(String[] files, Owner2Weights ownerWeights) {
+  Map<String, Set<String>> findOwners(String[] files, Map<String, OwnerWeights> ownerWeights) {
     // Returns a map of file to set of owner emails.
     // If ownerWeights is not null, add to it owner to distance-from-dir;
     // a distance of 1 is the lowest/closest possible distance
     // (which makes the subsequent math easier).
-    String2StringSet file2Owners = new String2StringSet();
+    Map<String, Set<String>> file2Owners = new HashMap<>();
     for (String fileName : files) {
       fileName = Util.normalizedFilePath(fileName);
       String dirPath = Util.normalizedDirPath(fileName);
@@ -175,13 +184,13 @@ class OwnersDb {
       FileSystem fileSystem = FileSystems.getDefault();
       // Collect all matched (path, distance) in all OWNERS files for
       // fileName. Add them only if there is no special "*" owner.
-      ArrayList<String> paths = new ArrayList<String>();
-      ArrayList<Integer> distances = new ArrayList<Integer>();
+      ArrayList<String> paths = new ArrayList<>();
+      ArrayList<Integer> distances = new ArrayList<>();
       boolean foundStar = false;
       while (true) {
         int savedSizeOfPaths = paths.size();
         if (dir2Globs.containsKey(dirPath + "/")) {
-          StringSet patterns = dir2Globs.get(dirPath + "/");
+          Set<String> patterns = dir2Globs.get(dirPath + "/");
           for (String pat : patterns) {
             PathMatcher matcher = fileSystem.getPathMatcher("glob:" + pat);
             if (matcher.matches(Paths.get(dirPath + "/" + baseName))) {
@@ -201,45 +210,33 @@ class OwnersDb {
         }
         if (foundStar // This file can be approved by anyone, no owner.
             || stopLooking.contains(dirPath + "/") // stop looking parent
-            || !dirPath.contains("/") /* root */ ) {
+            || !dirPath.contains("/") /* root */) {
           break;
         }
         if (paths.size() != savedSizeOfPaths) {
-          distance++;  // increase distance for each found OWNERS
+          distance++; // increase distance for each found OWNERS
         }
         dirPath = Util.getDirName(dirPath); // go up one level
       }
       if (!foundStar) {
-        addOwnerWeights(paths, distances, fileName,
-                        file2Owners, ownerWeights);
+        addOwnerWeights(paths, distances, fileName, file2Owners, ownerWeights);
       }
     }
     return file2Owners;
   }
 
-  private void init(
-      Server s, String key, Repository repository, String url,
-      String project, String branch, Collection<String> files) {
-    init(s);
-    for (String fileName : files) {
-      // Find OWNERS in fileName's directory and parent directories.
-      // Stop looking for a parent directory if OWNERS has "set noparent".
-      fileName = Util.normalizedFilePath(fileName);
-      String dir = Util.normalizedDirPath(fileName);
-      while (!readDirs.contains(dir)) {
-        readDirs.add(dir);
-        String content = server.getOWNERS(dir, repository, url,
-                                          project, branch);
-        if (null != content && !content.equals("")) {
-          addFile(dir + "/", dir + "/OWNERS", content.split("\\R+"));
-        }
-        if (stopLooking.contains(dir + "/") || !dir.contains("/")) {
-          break; // stop looking through parent directory
-        }
-        dir = Util.getDirName(dir); // go up one level
+  /** Returns file content or empty string; uses Repository. */
+  static String getRepositoryFile(Repository repo, String branch, String file) {
+    try (RevWalk revWalk = new RevWalk(repo)) {
+      RevTree tree = revWalk.parseCommit(repo.resolve(branch)).getTree();
+      ObjectReader reader = revWalk.getObjectReader();
+      TreeWalk treeWalk = TreeWalk.forPath(reader, file, tree);
+      if (treeWalk != null) {
+        return new String(reader.open(treeWalk.getObjectId(0)).getBytes(), UTF_8);
       }
+    } catch (IOException e) {
+      log.error("get file " + file, e);
     }
-    countNumOwners(files);
-    revision = server.getBranchRevision(repository, url, project, branch);
+    return "";
   }
 }

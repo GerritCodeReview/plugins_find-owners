@@ -14,75 +14,83 @@
 
 package com.googlesource.gerrit.plugins.findowners;
 
-import com.google.gerrit.extensions.annotations.PluginCanonicalWebUrl;
-import com.google.gerrit.extensions.restapi.RestModifyView;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.gerrit.extensions.restapi.BadRequestException;
+import com.google.gerrit.extensions.restapi.Response;
+import com.google.gerrit.extensions.restapi.RestReadView;
 import com.google.gerrit.extensions.webui.UiAction;
+import com.google.gerrit.reviewdb.client.Account;
+import com.google.gerrit.reviewdb.client.Change;
 import com.google.gerrit.reviewdb.client.Change.Status;
+import com.google.gerrit.reviewdb.server.ReviewDb;
 import com.google.gerrit.server.CurrentUser;
 import com.google.gerrit.server.IdentifiedUser;
+import com.google.gerrit.server.account.AccountCache;
+import com.google.gerrit.server.change.ChangeResource;
 import com.google.gerrit.server.change.RevisionResource;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
+import com.google.gerrit.server.git.GitRepositoryManager;
+import com.google.gerrit.server.query.change.ChangeData;
+import com.google.gwtorm.server.OrmException;
+import com.google.gwtorm.server.SchemaFactory;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
-import com.googlesource.gerrit.plugins.findowners.Util.Owner2Weights;
-import com.googlesource.gerrit.plugins.findowners.Util.String2String;
-import com.googlesource.gerrit.plugins.findowners.Util.String2StringSet;
-import com.googlesource.gerrit.plugins.findowners.Util.StringSet;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import org.eclipse.jgit.lib.Repository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /** Create and return OWNERS info when "Find Owners" button is clicked. */
-class Action implements UiAction<RevisionResource>,
-    RestModifyView<RevisionResource, Action.Input> {
+class Action implements RestReadView<RevisionResource>, UiAction<RevisionResource> {
 
   private static final Logger log = LoggerFactory.getLogger(Action.class);
 
-  private Provider<CurrentUser> user;  // is null if from HTTP request
-  private String url; // from REST request or client action call
-  private Server server;
+  private AccountCache accountCache;
+  private ChangeData.Factory changeDataFactory;
+  private GitRepositoryManager repoManager;
+  private Provider<CurrentUser> userProvider;
+  private SchemaFactory<ReviewDb> reviewDbProvider;
 
-  static class Input {
-    // Only the change number is required.
-    int    change;   // Revision change number
-    String debug;    // REST API parameter, 1, true/false, yes
-    String patchset; // REST API parameter, patchset number
-
-    Input(int change, String2String params) {
-      this.change = change;
-      debug = params.get("debug");
-      patchset = params.get("patchset");
-      // other keys in params are ignored
-    }
+  static class Parameters {
+    Boolean debug; // REST API "debug" parameter, or null
+    Integer patchset; // REST API "patchset" parameter, or null
   }
 
   @Inject
-  Action(@PluginCanonicalWebUrl String url, Provider<CurrentUser> user) {
-    this.url = Util.normalizeURL(url); // replace "http:///" with "http://"
-    int n = this.url.indexOf("/plugins/");
-    if (n > 0) { // remove suffix "plugins/find-owners/...."
-      this.url = this.url.substring(0, n + 1);
-    }
-    this.user = user;
-    server = new Server();
+  Action(
+      Provider<CurrentUser> userProvider,
+      SchemaFactory<ReviewDb> reviewDbProvider,
+      ChangeData.Factory changeDataFactory,
+      AccountCache accountCache,
+      GitRepositoryManager repoManager) {
+    this.userProvider = userProvider;
+    this.reviewDbProvider = reviewDbProvider;
+    this.changeDataFactory = changeDataFactory;
+    this.accountCache = accountCache;
+    this.repoManager = repoManager;
   }
 
-  /** Used by unit tests to set up mocked Server. */
-  void setServer(Server s) {
-    server = s;
-  }
+  @VisibleForTesting
+  Action() {}
 
   private String getUserName() {
-    return (null != user) ? user.get().getUserName() : "?";
+    if (userProvider != null && userProvider.get().getUserName() != null) {
+      return userProvider.get().getUserName();
+    }
+    return "?";
   }
 
-  private JsonArray getOwners(OwnersDb db, Collection<String> files) {
-    Owner2Weights weights = new Owner2Weights();
-    String2StringSet file2Owners = db.findOwners(files, weights);
-    JsonArray result = new JsonArray();
-    StringSet emails = new StringSet();
+  private List<String> getOwners(OwnersDb db, Collection<String> files) {
+    Map<String, OwnerWeights> weights = new HashMap<>();
+    db.findOwners(files, weights);
+    List<String> result = new ArrayList<>();
+    Set<String> emails = new HashSet<>();
     for (String key : OwnerWeights.sortKeys(weights)) {
       if (!emails.contains(key)) {
         result.add(key + " " + weights.get(key).encodeLevelCounts());
@@ -92,83 +100,118 @@ class Action implements UiAction<RevisionResource>,
     return result;
   }
 
-  private void addNamedMap(JsonObject obj, String name,
-                           Map<String, StringSet> map) {
-    JsonObject jsonMap = new JsonObject();
-    for (String key : Util.sort(map.keySet())) {
-      jsonMap.addProperty(key, String.join(" ", Util.sort(map.get(key))));
+  @Override
+  public Response<RestResult> apply(RevisionResource rev)
+      throws IOException, OrmException, BadRequestException {
+    return apply(rev.getChangeResource(), new Parameters());
+  }
+
+  // Used by both Action.apply and GetOwners.apply.
+  public Response<RestResult> apply(ChangeResource rsrc, Parameters params)
+      throws IOException, OrmException, BadRequestException {
+    try (ReviewDb reviewDb = reviewDbProvider.open()) {
+      return apply(reviewDb, rsrc, params);
     }
-    obj.add(name, jsonMap);
+  }
+
+  // Used by integration tests, because they do not have ReviewDb Provider.
+  public Response<RestResult> apply(ReviewDb reviewDb, ChangeResource rsrc, Parameters params)
+      throws IOException, OrmException, BadRequestException {
+    Change c = rsrc.getChange();
+    try (Repository repo = repoManager.openRepository(c.getProject())) {
+      ChangeData changeData = changeDataFactory.create(reviewDb, c);
+      return getChangeData(repo, params, changeData);
+    }
+  }
+
+  /** Returns reviewer emails got from ChangeData. */
+  static List<String> getReviewers(ChangeData changeData, AccountCache accountCache) {
+    List<String> result = new ArrayList<>();
+    try {
+      for (Account.Id id : changeData.reviewers().all()) {
+        Account account = accountCache.get(id).getAccount();
+        result.add(account.getPreferredEmail() + " []");
+      }
+    } catch (OrmException e) {
+      log.error("Exception", e);
+      result = new ArrayList<>();
+    }
+    return result;
+  }
+
+  /** Returns the current patchset number or the given patchsetNum if it is valid. */
+  static int getValidPatchsetNum(ChangeData changeData, Integer patchsetNum)
+      throws OrmException, BadRequestException {
+    int patchset = changeData.currentPatchSet().getId().get();
+    if (patchsetNum != null) {
+      if (patchsetNum < 1 || patchsetNum > patchset) {
+        throw new BadRequestException(
+            "Invalid patchset parameter: "
+                + patchsetNum
+                + "; must be 1"
+                + ((1 != patchset) ? (" to " + patchset) : ""));
+      }
+      return patchsetNum;
+    }
+    return patchset;
   }
 
   /** REST API to return owners info of a change. */
-  public JsonObject getChangeData(int change, String2String params) {
-    return apply(null, new Input(change, params));
-  }
+  public Response<RestResult> getChangeData(
+      Repository repository, Parameters params, ChangeData changeData)
+      throws OrmException, BadRequestException {
+    int patchset = getValidPatchsetNum(changeData, params.patchset);
+    OwnersDb db = Cache.getInstance().get(repository, changeData, patchset);
+    Collection<String> changedFiles = changeData.currentFilePaths();
+    Map<String, Set<String>> file2Owners = db.findOwners(changedFiles);
 
-  /** Called by the client "Find Owners" button. */
-  @Override
-  public JsonObject apply(RevisionResource rev, Input input) {
-    server.setChangeId(url, input.change);
-    String error = (null != server.error)
-        ? server.error : server.setPatchId(input.patchset);
-    if (null != error) {
-      JsonObject obj = new JsonObject();
-      obj.addProperty("error", error);
-      return obj;
-    }
-    OwnersDb db = server.getCachedOwnersDb();
-    Collection<String> changedFiles = server.getChangedFiles();
-    String2StringSet file2Owners = db.findOwners(changedFiles);
-
-    JsonObject obj = new JsonObject();
-    obj.addProperty(Config.MIN_OWNER_VOTE_LEVEL, server.getMinOwnerVoteLevel());
-    boolean addDebugMsg = (null != input.debug)
-        ? Util.parseBoolean(input.debug) : server.getAddDebugMsg();
-    obj.addProperty(Config.ADD_DEBUG_MSG, addDebugMsg);
-    obj.addProperty("change", input.change);
-    obj.addProperty("patchset", server.patchset);
-    obj.addProperty("owner_revision", db.revision);
-
+    Boolean addDebugMsg = (params.debug != null) ? params.debug : Config.getAddDebugMsg();
+    RestResult obj = new RestResult(Config.getMinOwnerVoteLevel(changeData), addDebugMsg);
+    obj.change = changeData.getId().get();
+    obj.patchset = patchset;
+    obj.ownerRevision = db.revision;
     if (addDebugMsg) {
-      JsonObject dbgMsgObj = new JsonObject();
-      dbgMsgObj.addProperty("user", getUserName());
-      dbgMsgObj.addProperty("project", server.project);
-      dbgMsgObj.addProperty("branch", server.branch);
-      dbgMsgObj.addProperty("server", url);
-      obj.add("dbgmsgs", dbgMsgObj);
-      addNamedMap(obj, "path2owners", db.path2Owners);
-      addNamedMap(obj, "owner2paths", db.owner2Paths);
+      obj.dbgmsgs.user = getUserName();
+      obj.dbgmsgs.project = changeData.change().getProject().get();
+      obj.dbgmsgs.branch = changeData.change().getDest().get();
+      obj.dbgmsgs.path2owners = Util.makeSortedMap(db.path2Owners);
+      obj.dbgmsgs.owner2paths = Util.makeSortedMap(db.owner2Paths);
     }
 
-    addNamedMap(obj, "file2owners", file2Owners);
-    obj.add("reviewers", server.getReviewers());
-    obj.add("owners", getOwners(db, changedFiles));
-    obj.add("files", Util.newJsonArrayFromStrings(changedFiles));
-    return obj;
+    obj.file2owners = Util.makeSortedMap(file2Owners);
+    obj.reviewers = getReviewers(changeData, accountCache);
+    obj.owners = getOwners(db, changedFiles);
+    obj.files = new ArrayList<>(changedFiles);
+    return Response.ok(obj);
   }
 
   @Override
   public Description getDescription(RevisionResource resource) {
-    int change = resource.getChange().getId().get();
-    server.setChangeId(url, change);
-    if (null == server.branch) {
-      log.error("Cannot get branch of change: " + change);
-      return null; // no "Find Owners" button
+    Change change = resource.getChangeResource().getChange();
+    try (ReviewDb reviewDb = reviewDbProvider.open();
+        Repository repo = repoManager.openRepository(change.getProject())) {
+      ChangeData changeData = changeDataFactory.create(reviewDb, change);
+      if (changeData.change().getDest().get() == null) {
+        log.error("Cannot get branch of change: " + changeData.getId().get());
+        return null; // no "Find Owners" button
+      }
+      OwnersDb db = Cache.getInstance().get(repo, changeData);
+      log.trace("getDescription db key = " + db.key);
+      Status status = resource.getChange().getStatus();
+      // Commit message is not used to enable/disable "Find Owners".
+      boolean needFindOwners =
+          userProvider != null
+              && userProvider.get() instanceof IdentifiedUser
+              && (db.getNumOwners() > 0)
+              && status != Status.ABANDONED
+              && status != Status.MERGED;
+      return new Description()
+          .setLabel("Find Owners")
+          .setTitle("Find owners to add to Reviewers list")
+          .setVisible(needFindOwners);
+    } catch (IOException | OrmException e) {
+      log.error("Exception", e);
+      throw new IllegalStateException(e);
     }
-    OwnersDb db = server.getCachedOwnersDb();
-    if (server.traceServerMsg()) {
-      log.info(server.genDebugMsg(db));
-    }
-    Status status = server.getStatus(resource);
-    // Commit message is not used to enable/disable "Find Owners".
-    boolean needFindOwners =
-        (null != user && user.get() instanceof IdentifiedUser)
-        && (db.getNumOwners() > 0)
-        && (status != Status.ABANDONED && status != Status.MERGED);
-    return new Description()
-        .setLabel("Find Owners")
-        .setTitle("Find owners to add to Reviewers list")
-        .setVisible(needFindOwners);
   }
 }

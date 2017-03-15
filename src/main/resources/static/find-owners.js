@@ -343,11 +343,9 @@ Gerrit.install(function(self) {
       getReviewers(changeId, popupWindow);
     }
     function callServer(callBack) {
-      // Use either the revision post API or plugin get API.
-      // Only pass changeId, let server get current patch set,
-      // project and branch info.
-      c.call({change: changeId}, showFindOwnersResults);
-      // self.get('change/' + changeId, showFindOwnersResults);
+      // Use the plugin REST API; pass only changeId;
+      // let server get current patch set, project and branch info.
+      Gerrit.get('changes/' + changeId + '/owners', showFindOwnersResults);
     }
     callServer(showFindOwnersResults);
   }

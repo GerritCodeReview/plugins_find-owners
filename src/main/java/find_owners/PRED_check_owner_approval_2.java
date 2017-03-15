@@ -21,17 +21,12 @@ import com.googlecode.prolog_cafe.lang.Predicate;
 import com.googlecode.prolog_cafe.lang.Prolog;
 import com.googlecode.prolog_cafe.lang.Term;
 import com.googlesource.gerrit.plugins.findowners.Checker;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
- * 'check_owner_approval'(+N, R) sets R to -1, 0, or 1,
- * if owner approval is missing, unneeded, or satisfied.
+ * 'check_owner_approval'(+N, R) sets R to -1, 0, or 1, if owner approval is missing, unneeded, or
+ * satisfied.
  */
 public class PRED_check_owner_approval_2 extends Predicate.P2 {
-
-  private static final Logger log =
-      LoggerFactory.getLogger(PRED_check_owner_approval_2.class);
 
   public PRED_check_owner_approval_2(Term a1, Term a2, Operation n) {
     arg1 = a1;

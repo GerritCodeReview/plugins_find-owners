@@ -15,15 +15,20 @@
 package com.googlesource.gerrit.plugins.findowners;
 
 import static com.google.common.truth.Truth.assertThat;
+
 import com.googlesource.gerrit.plugins.findowners.OwnerWeights.WeightComparator;
-import com.googlesource.gerrit.plugins.findowners.Util.Owner2Weights;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 
 /** Test OwnerWeights class */
+@RunWith(JUnit4.class)
 public class OwnerWeightsTest {
 
-  private OwnerWeights createOwnerWeights(int[] counts) {
+  private static OwnerWeights createOwnerWeights(int[] counts) {
     OwnerWeights obj = new OwnerWeights();
     for (int i = 0; i < counts.length; i++) {
       for (int j = 0; j < counts[i]; j++) {
@@ -65,7 +70,7 @@ public class OwnerWeightsTest {
     assertThat(objX2.encodeLevelCounts()).isEqualTo("[0+2+1]");
     assertThat(objX3.encodeLevelCounts()).isEqualTo("[0+2+3]");
     assertThat(objX4.encodeLevelCounts()).isEqualTo("[1+1+1]");
-    Owner2Weights map = new Owner2Weights();
+    Map<String, OwnerWeights> map = new HashMap<>();
     map.put("objX1", objX1);
     map.put("objX2", objX2);
     map.put("objX3", objX3);
@@ -80,11 +85,11 @@ public class OwnerWeightsTest {
     WeightComparator comp = new WeightComparator(map);
     // comp.compare(A,B) < 0, if A has order before B
     // comp.compare(A,B) > 0, if A has order after B
-    assertThat(comp.compare("objX1", "objX2") > 0).isEqualTo(true);
-    assertThat(comp.compare("objX3", "objX2") < 0).isEqualTo(true);
-    assertThat(comp.compare("objX3", "objX4") > 0).isEqualTo(true);
+    assertThat(comp.compare("objX1", "objX2")).isGreaterThan(0);
+    assertThat(comp.compare("objX3", "objX2")).isLessThan(0);
+    assertThat(comp.compare("objX3", "objX4")).isGreaterThan(0);
     assertThat(comp.compare("objX3", "objX3")).isEqualTo(0);
-    assertThat(comp.compare("objX4", "objX0") > 0).isEqualTo(true);
-    assertThat(comp.compare("objX0", "objX4") < 0).isEqualTo(true);
+    assertThat(comp.compare("objX4", "objX0")).isGreaterThan(0);
+    assertThat(comp.compare("objX0", "objX4")).isLessThan(0);
   }
 }

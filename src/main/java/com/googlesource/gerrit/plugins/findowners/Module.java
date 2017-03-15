@@ -14,25 +14,23 @@
 
 package com.googlesource.gerrit.plugins.findowners;
 
+import static com.google.gerrit.server.change.ChangeResource.CHANGE_KIND;
 import static com.google.gerrit.server.change.RevisionResource.REVISION_KIND;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.gerrit.extensions.annotations.Listen;
 import com.google.gerrit.extensions.annotations.PluginName;
 import com.google.gerrit.extensions.registration.DynamicSet;
 import com.google.gerrit.extensions.restapi.RestApiModule;
 import com.google.gerrit.extensions.webui.JavaScriptPlugin;
 import com.google.gerrit.extensions.webui.WebUiPlugin;
 import com.google.gerrit.rules.PredicateProvider;
-import com.google.gerrit.server.config.PluginConfig;
 import com.google.gerrit.server.config.PluginConfigFactory;
 import com.google.inject.AbstractModule;
 import com.google.inject.Inject;
 
 /** find-owners plugin module */
 public class Module extends AbstractModule {
-  /** Prolog Predicate Provider.  */
-  @Listen
+  /** Prolog Predicate Provider. */
   static class FindOwnersProvider implements PredicateProvider {
     @Override
     public ImmutableSet<String> getPackages() {
@@ -42,26 +40,25 @@ public class Module extends AbstractModule {
 
   @Inject
   public Module(@PluginName String pluginName, PluginConfigFactory config) {
-    // The 'true' parameter does not seem to reread gerrit.config on restart.
-    PluginConfig c = config.getFromGerritConfig(pluginName, true);
-    // TODO: get config parameters from plugin config file.
-    Config.setVariables(config,
-                        c.getBoolean(Config.ADD_DEBUG_MSG, false),
-                        c.getInt(Config.MIN_OWNER_VOTE_LEVEL, 1),
-                        c.getBoolean(Config.REPORT_SYNTAX_ERROR, false));
+    Config.setVariables(
+        config,
+        config.getFromGerritConfig(pluginName, true),
+        config.getGlobalPluginConfig(pluginName));
+    Cache.getInstance(); // Create a single Cache.
   }
 
   @Override
   protected void configure() {
-    install(new RestApiModule() {
-      @Override
-      protected void configure() {
-        post(REVISION_KIND, Config.PLUGIN_NAME).to(Action.class);
-      }
-    });
+    install(
+        new RestApiModule() {
+          @Override
+          protected void configure() {
+            get(CHANGE_KIND, "owners").to(GetOwners.class);
+            get(REVISION_KIND, Config.PLUGIN_NAME).to(Action.class);
+          }
+        });
     DynamicSet.bind(binder(), WebUiPlugin.class)
         .toInstance(new JavaScriptPlugin(Config.PLUGIN_NAME + ".js"));
-    DynamicSet.bind(binder(), PredicateProvider.class)
-        .to(FindOwnersProvider.class);
+    DynamicSet.bind(binder(), PredicateProvider.class).to(FindOwnersProvider.class);
   }
 }

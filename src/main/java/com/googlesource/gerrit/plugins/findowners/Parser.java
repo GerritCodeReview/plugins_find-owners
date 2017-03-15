@@ -14,15 +14,20 @@
 
 package com.googlesource.gerrit.plugins.findowners;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Parse lines in an OWNERS file and put them into an OwnersDb.
  *
- * <p>OWNERS file syntax:<pre>
+ * <p>OWNERS file syntax:
+ *
+ * <pre>
  * lines     := (\s* line? \s* "\n")*
  * line      := "set noparent"
  *           | "per-file" \s+ glob \s* "=" \s* directive
@@ -34,67 +39,83 @@ import org.slf4j.LoggerFactory;
  * glob      := [a-zA-Z0-9_-*?]+
  * comment   := "#" [^"\n"]*
  * </pre>
- * <p> The "file:" directive is not implemented yet.
- * <p> "per-file glob = directive" applies directive only to files
- *     matching glob. glob does not contain directory path.
+ *
+ * <p>The "file:" directive is not implemented yet.
+ *
+ * <p>"per-file glob = directive" applies directive only to files matching glob. glob does not
+ * contain directory path.
  */
 class Parser {
-  private static final Logger log = LoggerFactory.getLogger(Parser.class);
-
-  static final Pattern PatComment = Pattern.compile("^ *(#.*)?$");
+  static final Pattern patComment = Pattern.compile("^ *(#.*)?$");
   // TODO: have a more precise email address pattern.
-  static final Pattern PatEmail =  // email address or a "*"
+  static final Pattern patEmail = // email address or a "*"
       Pattern.compile("^ *([^ <>@]+@[^ <>@#]+|\\*) *(#.*)?$");
-  static final Pattern PatFile = Pattern.compile("^ *file:.*$");
-  static final Pattern PatNoParent =
-      Pattern.compile("^ *set +noparent(( |#).*)?$");
-  static final Pattern PatPerFile =
-      Pattern.compile("^ *per-file +([^= ]+) *= *([^ #]+).*$");
+  static final Pattern patFile = Pattern.compile("^ *file:.*$");
+  static final Pattern patNoParent = Pattern.compile("^ *set +noparent(( |#).*)?$");
+  static final Pattern patPerFile = Pattern.compile("^ *per-file +([^= ]+) *= *([^#]+).*$");
+
+  static class Result {
+    boolean stopLooking; // if this file contains set noparent
+    List<String> warnings; // warning messages
+    List<String> errors; // error messages
+    Map<String, Set<String>> owner2paths; // maps from owner email to pathGlobs
+
+    Result() {
+      stopLooking = false;
+      warnings = new ArrayList<>();
+      errors = new ArrayList<>();
+      owner2paths = new HashMap<>();
+    }
+  }
+
+  static Result parseFile(String dir, String file, String[] lines) {
+    Result result = new Result();
+    int n = 0;
+    for (String line : lines) {
+      Parser.parseLine(result, dir, file, line, ++n);
+    }
+    return result;
+  }
 
   /**
-   *  Parse a line in OWNERS file and add info to OwnersDb.
+   * Parse a line in OWNERS file and add info to OwnersDb.
    *
-   *  @param db   an OwnersDb to keep parsed info.
-   *  @param path the path of OWNERS file.
-   *  @param file the OWNERS file path.
-   *  @param line the source line.
-   *  @param num  the line number.
-   *  @return error message string or null.
+   * @param result a Result object to keep parsed info.
+   * @param dir the path to OWNERS file directory.
+   * @param file the OWNERS file path.
+   * @param line the source line.
+   * @param num the line number.
    */
-  static String parseLine(OwnersDb db, String path,
-                          String file, String line, int num) {
+  static void parseLine(Result result, String dir, String file, String line, int num) {
     // comment and file: directive are parsed but ignored.
-    if (PatNoParent.matcher(line).find()) {
-      db.stopLooking.add(path);
-      return null;
-    }
-    if (PatPerFile.matcher(line).find()) {
-      Matcher m = PatPerFile.matcher(line);
+    if (patNoParent.matcher(line).find()) {
+      result.stopLooking = true;
+    } else if (patPerFile.matcher(line).find()) {
+      Matcher m = patPerFile.matcher(line);
       m.find();
-      return parseDirective(db, path + m.group(1), file, m.group(2), num);
+      parseDirective(result, dir + m.group(1), file, m.group(2).trim(), num);
+    } else if (patFile.matcher(line).find()) {
+      result.warnings.add(warningMsg(file, num, "ignored", line));
+    } else if (patComment.matcher(line).find()) {
+      // ignore comment and empty lines.
+    } else {
+      parseDirective(result, dir, file, line, num);
     }
-    if (PatFile.matcher(line).find()) {
-      return warningMsg(file, num, "ignored", line);
-    }
-    // ignore comment and empty lines.
-    return (PatComment.matcher(line).find())
-        ? null : parseDirective(db, path, file, line, num);
   }
 
-  private static String parseDirective(OwnersDb db, String pathGlob,
-                                       String file, String line, int num) {
+  private static void parseDirective(
+      Result result, String pathGlob, String file, String line, int num) {
     // A directive is an email address or "*".
-    if (PatEmail.matcher(line).find()) {
-      Matcher m = PatEmail.matcher(line);
+    if (patEmail.matcher(line).find()) {
+      Matcher m = patEmail.matcher(line);
       m.find();
-      db.addOwnerPathPair(m.group(1), pathGlob);
-      return null;
+      Util.addToMap(result.owner2paths, m.group(1), pathGlob);
+    } else {
+      result.errors.add(errorMsg(file, num, "ignored unknown line", line));
     }
-    return errorMsg(file, num, "ignored unknown line", line);
   }
 
-  private static String createMsgLine(
-      String prefix, String file, int n, String msg, String line) {
+  private static String createMsgLine(String prefix, String file, int n, String msg, String line) {
     return prefix + file + ":" + n + ": " + msg + ": [" + line + "]";
   }
 

@@ -24,7 +24,6 @@ gerrit_plugin(
   manifest_entries = [
     'Gerrit-PluginName: find-owners',
     'Gerrit-ReloadMode: restart',
-    'Gerrit-HttpModule: com.googlesource.gerrit.plugins.findowners.Servlet',
     'Gerrit-Module: com.googlesource.gerrit.plugins.findowners.Module',
     'Implementation-Title: Find-Owners plugin',
     'Implementation-URL: https://gerrit.googlesource.com/plugins/find-owners',

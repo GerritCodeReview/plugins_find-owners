@@ -2,13 +2,13 @@ REST API to Get Owners Info
 ===========================
 
 Any Gerrit UI clients or tools can use the
-`plugins/find-owners/change/<id>` API to get
+`/changes/<id>/owners` API to get
 OWNERS information of a change.
 
 ### Request
 
 ```bash
-GET /plugins/find-owners/change/<id> HTTP/1.0
+GET /changes/<id>/owners HTTP/1.0
 ```
 
 The `<id>` is a Gerrit change ID. This API can have two parameters:
@@ -22,7 +22,7 @@ The `<id>` is a Gerrit change ID. This API can have two parameters:
 For example,
 
 ```bash
-http://.../plugins/find-owners/change/29?debug=true&patchset=3
+http://<gerrit_server>/changes/29/owners?debug=true&patchset=3
 ```
 
 ### Response
@@ -46,18 +46,23 @@ This API returns a JSON object with the following attributes:
    Due to caching this revision might be behind recent branches changes.
 
 * **dbgmsgs**: returned only when addDebugMsg is true,
-   a set of debugging messages including project name, branch name,
-   server address, etc.
+   a JSON object with the following members:
 
-* **path2owners**: returned only when addDebugMsg is true,
-   a map from directory path or file glob to a string of owner emails
-   separated by space. Note that `*` is a special owner email address.
-   It means that there is no owner and anyone can be the owner.
-   Included directories are those affected by the change revision.
+    * **user**: the change's creator.
 
-* **owner2paths**: returned only when addDebugMsg is true,
-   a map from owner email to directory path or file glob.
-   This is opposite to the path2owners map.
+    * **project**: the change's project name.
+
+    * **branch**: the change's destination brach name.
+
+    * **path2owners**:
+      a map from directory path or file glob to a string of owner emails
+      separated by space. Note that `*` is a special owner email address.
+      It means that there is no owner and anyone can be the owner.
+      Included directories are those affected by the change revision.
+
+    * **owner2paths**:
+      a map from owner email to directory path or file glob.
+      This is opposite to the path2owners map.
 
 * **file2owners**: a map from each file in the change patchset to
    the file owner emails, separated by space.

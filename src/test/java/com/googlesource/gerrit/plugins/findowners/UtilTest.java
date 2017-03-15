@@ -15,106 +15,93 @@
 package com.googlesource.gerrit.plugins.findowners;
 
 import static com.google.common.truth.Truth.assertThat;
-import com.googlesource.gerrit.plugins.findowners.Util.Owner2Weights;
-import com.googlesource.gerrit.plugins.findowners.Util.String2Integer;
-import com.googlesource.gerrit.plugins.findowners.Util.String2String;
-import com.googlesource.gerrit.plugins.findowners.Util.String2StringSet;
-import com.googlesource.gerrit.plugins.findowners.Util.StringSet;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 
 /** Test Util class */
+@RunWith(JUnit4.class)
 public class UtilTest {
 
   @Test
   public void getOwner2WeightsTest() {
-    Owner2Weights m = new Owner2Weights();
-    assertThat(m.size()).isEqualTo(0);
-    assertThat(m.get("s1")).isEqualTo(null);
+    Map<String, OwnerWeights> m = new HashMap<>();
+    assertThat(m).isEmpty();
+    assertThat(m.get("s1")).isNull();
     OwnerWeights v1 = new OwnerWeights();
     OwnerWeights v2 = new OwnerWeights();
     m.put("s1", v1);
     assertThat(m.get("s1")).isEqualTo(v1);
     // compare OwnerWeights by reference
     assertThat(m.get("s1")).isNotEqualTo(v2);
-    assertThat(m.get("s2")).isEqualTo(null);
-    assertThat(m.size()).isEqualTo(1);
+    assertThat(m.get("s2")).isNull();
+    assertThat(m).hasSize(1);
   }
 
   @Test
   public void getString2IntegerTest() {
-    String2Integer m = new String2Integer();
-    assertThat(m.size()).isEqualTo(0);
-    assertThat(m.get("s1")).isEqualTo(null);
+    Map<String, Integer> m = new HashMap<>();
+    assertThat(m).isEmpty();
+    assertThat(m.get("s1")).isNull();
     Integer v1 = 3;
     Integer v2 = 3;
     m.put("s1", v1);
     assertThat(m.get("s1")).isEqualTo(v1);
     // compare Integer by value
     assertThat(m.get("s1")).isEqualTo(v2);
-    assertThat(m.get("s2")).isEqualTo(null);
-    assertThat(m.size()).isEqualTo(1);
+    assertThat(m.get("s2")).isNull();
+    assertThat(m).hasSize(1);
   }
 
   @Test
   public void getString2StringTest() {
-    String2String m = new String2String();
-    assertThat(m.size()).isEqualTo(0);
-    assertThat(m.get("s1")).isEqualTo(null);
+    Map<String, String> m = new HashMap<>();
+    assertThat(m).isEmpty();
+    assertThat(m.get("s1")).isNull();
     String v1 = "x";
     String v2 = "x";
     m.put("s1", v1);
     assertThat(m.get("s1")).isEqualTo(v1);
     // compare String by value
     assertThat(m.get("s1")).isEqualTo(v2);
-    assertThat(m.get("s2")).isEqualTo(null);
-    assertThat(m.size()).isEqualTo(1);
+    assertThat(m.get("s2")).isNull();
+    assertThat(m).hasSize(1);
   }
 
   @Test
   public void getString2StringSetTest() {
-    String2StringSet m = new String2StringSet();
-    assertThat(m.size()).isEqualTo(0);
-    assertThat(m.get("s1")).isEqualTo(null);
-    StringSet v1 = new StringSet();
-    StringSet v2 = new StringSet();
-    assertThat(v1.size()).isEqualTo(0);
+    Map<String, Set<String>> m = new HashMap<>();
+    assertThat(m).isEmpty();
+    assertThat(m.get("s1")).isNull();
+    Set<String> v1 = new HashSet<>();
+    Set<String> v2 = new HashSet<>();
+    assertThat(v1).isEmpty();
     v1.add("x");
     v1.add("y");
     v2.add("y");
     v2.add("x");
-    assertThat(v1.size()).isEqualTo(2);
+    assertThat(v1).hasSize(2);
     m.put("s1", v1);
     assertThat(m.get("s1")).isEqualTo(v1);
-    // compare StringSet by value
+    // compare Set<String> by value
     assertThat(m.get("s1")).isEqualTo(v2);
-    assertThat(m.get("s2")).isEqualTo(null);
-    assertThat(m.size()).isEqualTo(1);
+    assertThat(m.get("s2")).isNull();
+    assertThat(m).hasSize(1);
   }
 
   @Test
   public void addStringSetTest() {
-    StringSet s = new StringSet();
-    assertThat(s.size()).isEqualTo(0);
+    Set<String> s = new HashSet<>();
+    assertThat(s).isEmpty();
     s.add("s1");
-    assertThat(s.contains("s1")).isEqualTo(true);
-    assertThat(s.contains("s2")).isEqualTo(false);
-    assertThat(s.size()).isEqualTo(1);
-  }
-
-  @Test
-  public void normalizeURLTest() {
-    String otherURL = "other:///something///else";
-    String normalOtherURL = "other://something///else";
-    String normalURL = "http://www.google.com:8080/plugins";
-    String badURL = "http:///www.google.com:8080/plugins";
-    String localURL = "http://localhost:8080/plugins";
-    String badLocalURL = "http:///localhost:8080/plugins";
-    // Allow other URL protocols, although we might need only http for now.
-    assertThat(Util.normalizeURL(otherURL)).isEqualTo(normalOtherURL);
-    assertThat(Util.normalizeURL(normalURL)).isEqualTo(normalURL);
-    assertThat(Util.normalizeURL(badURL)).isEqualTo(normalURL);
-    assertThat(Util.normalizeURL(localURL)).isEqualTo(localURL);
-    assertThat(Util.normalizeURL(badLocalURL)).isEqualTo(localURL);
+    assertThat(s.contains("s1")).isTrue();
+    assertThat(s.contains("s2")).isFalse();
+    assertThat(s).hasSize(1);
   }
 
   @Test
@@ -125,33 +112,30 @@ public class UtilTest {
     assertThat(Util.stripMagicPrefix(")]}'\nxyz")).isEqualTo("xyz");
   }
 
-  // TODO: use a mocked HTTP server to test:
-  //     getHTTP getHTTPJsonObject getHTTPJsonArray getHTTPBase64Content
-
   @Test
   public void getDirNameTest() {
-    String[] files = {"", "./d1/", "d1/d2/f1.c", "./d2/f2.c", "./d1" };
+    String[] files = {"", "./d1/", "d1/d2/f1.c", "./d2/f2.c", "./d1"};
     String[] dirs = {null, ".", "d1/d2", "./d2", "."};
     for (int i = 0; i < files.length; i++) {
-       assertThat(Util.getDirName(files[i])).isEqualTo(dirs[i]);
+      assertThat(Util.getDirName(files[i])).isEqualTo(dirs[i]);
     }
   }
 
   @Test
   public void normalizeFilePathTest() {
-    String[] files = {"", "./d1/", "d1/d2/f1.c", "d2/f2/", "d1" };
+    String[] files = {"", "./d1/", "d1/d2/f1.c", "d2/f2/", "d1"};
     String[] results = {"./", "./d1/", "./d1/d2/f1.c", "./d2/f2/", "./d1"};
     for (int i = 0; i < files.length; i++) {
-       assertThat(Util.normalizedFilePath(files[i])).isEqualTo(results[i]);
+      assertThat(Util.normalizedFilePath(files[i])).isEqualTo(results[i]);
     }
   }
 
   @Test
   public void normalizedDirPathTest() {
-    String[] files = {"", "./d1/", "d1/d2/f1.c", "./d2/f2.c", "./d1" };
+    String[] files = {"", "./d1/", "d1/d2/f1.c", "./d2/f2.c", "./d1"};
     String[] dirs = {null, ".", "./d1/d2", "./d2", "."};
     for (int i = 0; i < files.length; i++) {
-       assertThat(Util.normalizedDirPath(files[i])).isEqualTo(dirs[i]);
+      assertThat(Util.normalizedDirPath(files[i])).isEqualTo(dirs[i]);
     }
   }
 
@@ -160,20 +144,15 @@ public class UtilTest {
     String[] yesStrs = {"True", "1", "true", "TRUE", "yes"};
     String[] noStrs = {"", "False", "0", "false", "FALSE", "no", "other"};
     for (String s : yesStrs) {
-       assertThat(Util.parseBoolean(s)).isEqualTo(true);
+      assertThat(Util.parseBoolean(s)).isTrue();
     }
     for (String s : noStrs) {
-       assertThat(Util.parseBoolean(s)).isEqualTo(false);
+      assertThat(Util.parseBoolean(s)).isFalse();
     }
   }
 
   @Test
-  public void sortTest() {
-    // TODO: test Util.sort
-  }
-
-  @Test
-  public void newJsonArrayFromStringSetTest() {
-    // TODO: test Uril.newJsonArrayFromStringSet
+  public void makeSortedMapTest() {
+    // TODO: test Util.makeSortedMap
   }
 }
