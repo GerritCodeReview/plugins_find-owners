@@ -15,6 +15,7 @@
 package com.googlesource.gerrit.plugins.findowners;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.gerrit.extensions.annotations.PluginName;
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.Response;
 import com.google.gerrit.extensions.restapi.RestReadView;
@@ -28,6 +29,7 @@ import com.google.gerrit.server.IdentifiedUser;
 import com.google.gerrit.server.account.AccountCache;
 import com.google.gerrit.server.change.ChangeResource;
 import com.google.gerrit.server.change.RevisionResource;
+import com.google.gerrit.server.config.PluginConfigFactory;
 import com.google.gerrit.server.git.GitRepositoryManager;
 import com.google.gerrit.server.query.change.ChangeData;
 import com.google.gwtorm.server.OrmException;
@@ -64,6 +66,8 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
 
   @Inject
   Action(
+      @PluginName String pluginName,
+      PluginConfigFactory configFactory,
       Provider<CurrentUser> userProvider,
       SchemaFactory<ReviewDb> reviewDbProvider,
       ChangeData.Factory changeDataFactory,
@@ -74,6 +78,8 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
     this.changeDataFactory = changeDataFactory;
     this.accountCache = accountCache;
     this.repoManager = repoManager;
+    Config.setVariables(pluginName, configFactory);
+    Cache.getInstance(); // Create a single Cache.
   }
 
   @VisibleForTesting

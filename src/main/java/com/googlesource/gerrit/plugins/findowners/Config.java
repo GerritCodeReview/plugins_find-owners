@@ -46,10 +46,14 @@ class Config {
 
   private static final Logger log = LoggerFactory.getLogger(Config.class);
 
-  static void setVariables(
-      PluginConfigFactory conf, PluginConfig gc, org.eclipse.jgit.lib.Config pc) {
-    // Get config variables from pc, or from gc.
+  static void setVariables(String pluginName, PluginConfigFactory conf) {
+    if (conf == null) { // When called from integration tests.
+      return;
+    }
     config = conf;
+    PluginConfig gc = config.getFromGerritConfig(pluginName, true);
+    org.eclipse.jgit.lib.Config pc = config.getGlobalPluginConfig(pluginName);
+    // Get config variables from pc, or from gc.
     addDebugMsg =
         pc.getBoolean(SECTION, null, ADD_DEBUG_MSG, gc.getBoolean(Config.ADD_DEBUG_MSG, false));
     reportSyntaxError =

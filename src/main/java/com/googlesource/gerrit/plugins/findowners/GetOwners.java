@@ -14,6 +14,7 @@
 
 package com.googlesource.gerrit.plugins.findowners;
 
+import com.google.gerrit.extensions.annotations.PluginName;
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.Response;
 import com.google.gerrit.extensions.restapi.RestReadView;
@@ -21,6 +22,7 @@ import com.google.gerrit.reviewdb.server.ReviewDb;
 import com.google.gerrit.server.CurrentUser;
 import com.google.gerrit.server.account.AccountCache;
 import com.google.gerrit.server.change.ChangeResource;
+import com.google.gerrit.server.config.PluginConfigFactory;
 import com.google.gerrit.server.git.GitRepositoryManager;
 import com.google.gerrit.server.query.change.ChangeData;
 import com.google.gwtorm.server.OrmException;
@@ -36,7 +38,7 @@ import org.slf4j.LoggerFactory;
 public class GetOwners implements RestReadView<ChangeResource> {
   private static final Logger log = LoggerFactory.getLogger(GetOwners.class);
 
-  private Action action;
+  private final Action action;
 
   // "debug" could be true/yes/1 or false/no/0,
   // when not specified configuration variable "addDebugMsg" is used.
@@ -48,13 +50,22 @@ public class GetOwners implements RestReadView<ChangeResource> {
 
   @Inject
   GetOwners(
+      @PluginName String pluginName,
+      PluginConfigFactory configFactory,
       Provider<CurrentUser> userProvider,
       SchemaFactory<ReviewDb> reviewDbProvider,
       ChangeData.Factory dataFactory,
       AccountCache accountCache,
       GitRepositoryManager repoManager) {
     this.action =
-        new Action(userProvider, reviewDbProvider, dataFactory, accountCache, repoManager);
+        new Action(
+            pluginName,
+            configFactory,
+            userProvider,
+            reviewDbProvider,
+            dataFactory,
+            accountCache,
+            repoManager);
   }
 
   @Override

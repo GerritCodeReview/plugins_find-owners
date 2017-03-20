@@ -32,19 +32,17 @@ import com.google.inject.Inject;
 public class Module extends AbstractModule {
   /** Prolog Predicate Provider. */
   static class FindOwnersProvider implements PredicateProvider {
+
+    @Inject
+    public FindOwnersProvider(@PluginName String pluginName, PluginConfigFactory configFactory) {
+      Config.setVariables(pluginName, configFactory);
+      Cache.getInstance(); // Create a single Cache.
+    }
+
     @Override
     public ImmutableSet<String> getPackages() {
       return ImmutableSet.of(Config.PROLOG_NAMESPACE);
     }
-  }
-
-  @Inject
-  public Module(@PluginName String pluginName, PluginConfigFactory config) {
-    Config.setVariables(
-        config,
-        config.getFromGerritConfig(pluginName, true),
-        config.getGlobalPluginConfig(pluginName));
-    Cache.getInstance(); // Create a single Cache.
   }
 
   @Override

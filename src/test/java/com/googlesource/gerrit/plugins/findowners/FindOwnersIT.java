@@ -178,7 +178,8 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
     ChangeInfo changeInfo = newChangeInfo("test Action.apply");
     ChangeResource cr = parseChangeResource(changeInfo.changeId);
     Action.Parameters param = new Action.Parameters();
-    Action action = new Action(null, null, changeDataFactory, accountCache, repoManager);
+    Action action =
+        new Action("find-owners", null, null, null, changeDataFactory, accountCache, repoManager);
     Response<RestResult> response = action.apply(db, cr, param);
     RestResult result = response.value();
     verifyRestResult(result, 1, 1, changeInfo._number, false);
