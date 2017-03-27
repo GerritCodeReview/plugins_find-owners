@@ -52,12 +52,17 @@ class Config {
     }
     config = conf;
     PluginConfig gc = config.getFromGerritConfig(pluginName, true);
-    // Get config variables from the plugin section of gerrit.config
-    addDebugMsg = gc.getBoolean(ADD_DEBUG_MSG, false);
-    reportSyntaxError = gc.getBoolean(REPORT_SYNTAX_ERROR, false);
-    minOwnerVoteLevel = gc.getInt(MIN_OWNER_VOTE_LEVEL, 1);
-    maxCacheAge = gc.getInt(MAX_CACHE_AGE, 0);
-    maxCacheSize = gc.getInt(MAX_CACHE_SIZE, 1000);
+    org.eclipse.jgit.lib.Config pc = config.getGlobalPluginConfig(pluginName);
+    // Get config variables from pc, or from gc.
+    addDebugMsg =
+        pc.getBoolean(SECTION, null, ADD_DEBUG_MSG, gc.getBoolean(Config.ADD_DEBUG_MSG, false));
+    reportSyntaxError =
+        pc.getBoolean(
+            SECTION, null, REPORT_SYNTAX_ERROR, gc.getBoolean(REPORT_SYNTAX_ERROR, false));
+    minOwnerVoteLevel =
+        pc.getInt(SECTION, null, MIN_OWNER_VOTE_LEVEL, gc.getInt(MIN_OWNER_VOTE_LEVEL, 1));
+    maxCacheAge = pc.getInt(SECTION, null, MAX_CACHE_AGE, gc.getInt(MAX_CACHE_AGE, 0));
+    maxCacheSize = pc.getInt(SECTION, null, MAX_CACHE_SIZE, gc.getInt(MAX_CACHE_SIZE, 1000));
   }
 
   static boolean getAddDebugMsg() {
