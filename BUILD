@@ -41,6 +41,7 @@ junit_tests(
   tags = ['findowners'],
   deps = PLUGIN_DEPS + [
     ':find-owners-lib',
+    ':find-owners-prolog-rules',
     '//gerrit-acceptance-framework:lib',
   ],
 )
