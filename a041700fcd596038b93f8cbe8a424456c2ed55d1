@@ -22,6 +22,30 @@
       "revId": "a041700fcd596038b93f8cbe8a424456c2ed55d1",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "61842895_bfe278d1",
+        "filename": "src/test/java/com/googlesource/gerrit/plugins/findowners/PrologIT.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2017-03-31T17:05:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "56084aa6_08c855bd",
+      "range": {
+        "startLine": 42,
+        "startChar": 22,
+        "endLine": 42,
+        "endChar": 52
+      },
+      "revId": "a041700fcd596038b93f8cbe8a424456c2ed55d1",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
     }
   ]
 }
