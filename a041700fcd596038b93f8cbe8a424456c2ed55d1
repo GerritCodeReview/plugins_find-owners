@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "56084aa6_08c855bd",
+        "filename": "src/test/java/com/googlesource/gerrit/plugins/findowners/PrologIT.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1026112
+      },
+      "writtenOn": "2017-03-31T08:06:28Z",
+      "side": 1,
+      "message": "this reads a little uncommon. would \n\n  import find_owners.PRED_submit_rule_1;\n\n\nand then\n\n  term \u003d new PRED_submit_rule_1(null, null);\n\nalso work?",
+      "range": {
+        "startLine": 42,
+        "startChar": 22,
+        "endLine": 42,
+        "endChar": 52
+      },
+      "revId": "a041700fcd596038b93f8cbe8a424456c2ed55d1",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    }
+  ]
+}
