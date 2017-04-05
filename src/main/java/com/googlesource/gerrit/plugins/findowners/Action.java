@@ -201,16 +201,20 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
         log.error("Cannot get branch of change: " + changeData.getId().get());
         return null; // no "Find Owners" button
       }
-      OwnersDb db = Cache.getInstance().get(repo, changeData);
-      log.trace("getDescription db key = " + db.key);
       Status status = resource.getChange().getStatus();
       // Commit message is not used to enable/disable "Find Owners".
       boolean needFindOwners =
           userProvider != null
               && userProvider.get() instanceof IdentifiedUser
-              && (db.getNumOwners() > 0)
               && status != Status.ABANDONED
               && status != Status.MERGED;
+      // If alwaysShowButton is true, skip expensive owner lookup.
+      if (needFindOwners && !Config.getAlwaysShowButton()) {
+        // Show button only if some owner is found.
+        OwnersDb db = Cache.getInstance().get(repo, changeData);
+        log.trace("getDescription db key = " + db.key);
+        needFindOwners = needFindOwners && (db.getNumOwners() > 0);
+      }
       return new Description()
           .setLabel("Find Owners")
           .setTitle("Find owners to add to Reviewers list")
