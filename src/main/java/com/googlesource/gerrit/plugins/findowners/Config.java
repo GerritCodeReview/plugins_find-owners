@@ -33,6 +33,7 @@ class Config {
   static final String MAX_CACHE_AGE = "maxCacheAge"; // seconds to stay in cache
   static final String MAX_CACHE_SIZE = "maxCacheSize"; // number of OwnersDb in cache
   static final String REPORT_SYNTAX_ERROR = "reportSyntaxError";
+  static final String ALWAYS_SHOW_BUTTON = "alwaysShowButton"; // always show "Find Owners" button
   static final String PLUGIN_NAME = "find-owners";
   static final String PROLOG_NAMESPACE = "find_owners";
 
@@ -43,6 +44,7 @@ class Config {
   private static int maxCacheAge = 0;
   private static int maxCacheSize = 1000;
   private static boolean reportSyntaxError = false;
+  private static boolean alwaysShowButton = false;
 
   private static final Logger log = LoggerFactory.getLogger(Config.class);
 
@@ -55,6 +57,7 @@ class Config {
     // Get config variables from the plugin section of gerrit.config
     addDebugMsg = gc.getBoolean(ADD_DEBUG_MSG, false);
     reportSyntaxError = gc.getBoolean(REPORT_SYNTAX_ERROR, false);
+    alwaysShowButton = gc.getBoolean(ALWAYS_SHOW_BUTTON, false);
     minOwnerVoteLevel = gc.getInt(MIN_OWNER_VOTE_LEVEL, 1);
     maxCacheAge = gc.getInt(MAX_CACHE_AGE, 0);
     maxCacheSize = gc.getInt(MAX_CACHE_SIZE, 1000);
@@ -74,6 +77,10 @@ class Config {
 
   static boolean getReportSyntaxError() {
     return reportSyntaxError;
+  }
+
+  static boolean getAlwaysShowButton() {
+    return alwaysShowButton;
   }
 
   @VisibleForTesting
