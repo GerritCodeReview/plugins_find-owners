@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "83e48e7c_a1ec85e9",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Action.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2017-04-06T16:19:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e36cad54_5d6abc98",
+      "range": {
+        "startLine": 198,
+        "startChar": 8,
+        "endLine": 198,
+        "endChar": 74
+      },
+      "revId": "92a2afa575fb7e96e2477231d1b96920115d6c67",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "686e8d91_936a62f8",
         "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Action.java",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2017-04-06T07:58:32Z",
       "side": 1,
       "message": "nit: needFindOwners \u0026\u003d db.getNumOwners() \u003e 0;",
+      "range": {
+        "startLine": 216,
+        "startChar": 8,
+        "endLine": 216,
+        "endChar": 42
+      },
+      "revId": "92a2afa575fb7e96e2477231d1b96920115d6c67",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1a97b0d1_8c8c79f8",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Action.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 216,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2017-04-06T16:19:00Z",
+      "side": 1,
+      "message": "Done. needFindOwners must be true here, so just\n  needFindOwners \u003d  db.getNumOwners() \u003e 0;",
+      "parentUuid": "686e8d91_936a62f8",
       "range": {
         "startLine": 216,
         "startChar": 8,
