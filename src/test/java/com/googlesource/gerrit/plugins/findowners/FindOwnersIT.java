@@ -15,6 +15,7 @@
 package com.googlesource.gerrit.plugins.findowners;
 
 import static com.google.common.truth.Truth.assertThat;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.gerrit.acceptance.LightweightPluginDaemonTest;
 import com.google.gerrit.acceptance.PushOneCommit;
@@ -26,12 +27,23 @@ import com.google.gerrit.extensions.common.ChangeInfo;
 import com.google.gerrit.extensions.common.ChangeInput;
 import com.google.gerrit.extensions.restapi.Response;
 import com.google.gerrit.reviewdb.client.Account;
+import com.google.gerrit.reviewdb.client.Project;
+import com.google.gerrit.reviewdb.client.RefNames;
 import com.google.gerrit.server.change.ChangeResource;
+import com.google.gerrit.server.config.PluginConfigFactory;
+import com.google.inject.Inject;
+import org.eclipse.jgit.lib.ObjectLoader;
+import org.eclipse.jgit.revwalk.RevObject;
+import org.eclipse.jgit.revwalk.RevTree;
+import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.transport.RefSpec;
 import org.junit.Test;
 
 /** Test find-owners plugin API. */
 @TestPlugin(name = "find-owners", sysModule = "com.googlesource.gerrit.plugins.findowners.Module")
 public class FindOwnersIT extends LightweightPluginDaemonTest {
+
+  @Inject protected PluginConfigFactory configFactory;
 
   @Test
   public void getOwnersTest() throws Exception {
@@ -171,6 +183,63 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
   }
 
   @Test
+  public void ownersFileNameTest() throws Exception {
+    Config.setVariables("find-owners", configFactory);
+
+    // Default project: ....findowners.FindOwnersIT_ownersFileNameTest_project
+    Project.NameKey pA = createProject("Project_A");
+    Project.NameKey pB = createProject("Project_B");
+    switchProject(pA);
+    // Now project is: ....findowners.FindOwnersIT_ownersFileNameTest_Project_A
+    switchProject(pB);
+    // Now project is: ....findowners.FindOwnersIT_ownersFileNameTest_Project_B
+
+    // Add OWNERS and OWNERS.alpha file to Project_A.
+    switchProject(pA);
+    addFile("add OWNERS", "OWNERS", "per-file *.c=x@x\n"); // default owner x@x
+    addFile("add OWNERS.alpha", "OWNERS.alpha", "per-file *.c=a@a\n"); // alpha owner a@a
+    PushOneCommit.Result cA = createChange("add tA.c", "tA.c", "Hello A!");
+
+    // Add OWNERS and OWNERS.beta file to Project_B.
+    switchProject(pB);
+    addFile("add OWNERS", "OWNERS", "per-file *.c=y@y\n"); // default owner y@y
+    addFile("add OWNERS.beta", "OWNERS.beta", "per-file *.c=b@b\n"); // beta owner b@b
+    PushOneCommit.Result cB = createChange("add tB.c", "tB.c", "Hello B!");
+
+    // Default owners file name is "OWNERS".
+    assertThat(Config.getOwnersFileName(null)).isEqualTo("OWNERS");
+    assertThat(Config.getOwnersFileName(pA)).isEqualTo("OWNERS");
+    assertThat(Config.getOwnersFileName(pB)).isEqualTo("OWNERS");
+
+    assertThat(getOwnersResponse(cA)).contains("owners:[ x@x[1+0+0] ], files:[ tA.c ]");
+    assertThat(getOwnersResponse(cB)).contains("owners:[ y@y[1+0+0] ], files:[ tB.c ]");
+
+    // Change owners file name to "OWNERS.alpha" and "OWNERS.beta"
+    switchProject(pA);
+    setProjectConfig("ownersFileName", "OWNERS.alpha");
+    switchProject(pB);
+    setProjectConfig("ownersFileName", "OWNERS.beta");
+    assertThat(Config.getOwnersFileName(pA)).isEqualTo("OWNERS.alpha");
+    assertThat(Config.getOwnersFileName(pB)).isEqualTo("OWNERS.beta");
+    assertThat(getOwnersResponse(cA)).contains("owners:[ a@a[1+0+0] ], files:[ tA.c ]");
+    assertThat(getOwnersResponse(cB)).contains("owners:[ b@b[1+0+0] ], files:[ tB.c ]");
+
+    // Change back to OWNERS in Project_A
+    switchProject(pA);
+    setProjectConfig("ownersFileName", "OWNERS");
+    assertThat(Config.getOwnersFileName(pA)).isEqualTo("OWNERS");
+    assertThat(getOwnersResponse(cA)).contains("owners:[ x@x[1+0+0] ], files:[ tA.c ]");
+    assertThat(getOwnersResponse(cB)).contains("owners:[ b@b[1+0+0] ], files:[ tB.c ]");
+
+    // Change back to OWNERS.alpha in Project_B, but there is no OWNERS.alpha
+    switchProject(pB);
+    setProjectConfig("ownersFileName", "OWNERS.alpha");
+    assertThat(Config.getOwnersFileName(pB)).isEqualTo("OWNERS.alpha");
+    assertThat(getOwnersResponse(cA)).contains("owners:[ x@x[1+0+0] ], files:[ tA.c ]");
+    assertThat(getOwnersResponse(cB)).contains("owners:[], files:[ tB.c ]");
+  }
+
+  @Test
   public void actionApplyTest() throws Exception {
     Cache cache = Cache.getInstance().init(0, 10);
     assertThat(cache.size()).isEqualTo(0);
@@ -237,6 +306,42 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
 
   private void addFile(String subject, String file, String content) throws Exception {
     approveSubmit(createChange(subject, file, content));
+  }
+
+  private void switchProject(Project.NameKey p) throws Exception {
+    project = p;
+    testRepo = cloneProject(project);
+  }
+
+  private org.eclipse.jgit.lib.Config readProjectConfig() throws Exception {
+    git().fetch().setRefSpecs(new RefSpec("refs/meta/config:refs/meta/config")).call();
+    testRepo.reset(RefNames.REFS_CONFIG);
+    RevWalk rw = testRepo.getRevWalk();
+    RevTree tree = rw.parseTree(testRepo.getRepository().resolve("HEAD"));
+    RevObject obj = rw.parseAny(testRepo.get(tree, "project.config"));
+    ObjectLoader loader = rw.getObjectReader().open(obj);
+    String text = new String(loader.getCachedBytes(), UTF_8);
+    org.eclipse.jgit.lib.Config cfg = new org.eclipse.jgit.lib.Config();
+    cfg.fromText(text);
+    return cfg;
+  }
+
+  private void setProjectConfig(String var, String value) throws Exception {
+    org.eclipse.jgit.lib.Config cfg = readProjectConfig();
+    cfg.setString("plugin", "find-owners", var, value);
+    assertThat(cfg.getString("plugin", "find-owners", var)).isEqualTo(value);
+    PushOneCommit.Result commit =
+        pushFactory
+            .create(
+                db,
+                admin.getIdent(), // normal user cannot change refs/meta/config
+                testRepo,
+                "Update project config",
+                "project.config",
+                cfg.toText())
+            .to("refs/for/refs/meta/config");
+    commit.assertOkStatus();
+    approveSubmit(commit);
   }
 
   // Remove '"' and space; replace '\n' with ' '; ignore unpredictable "owner_revision".

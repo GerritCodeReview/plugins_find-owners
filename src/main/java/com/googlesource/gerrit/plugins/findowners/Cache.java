@@ -17,6 +17,7 @@ package com.googlesource.gerrit.plugins.findowners;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 import com.google.common.cache.CacheBuilder;
+import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.query.change.ChangeData;
 import com.google.gwtorm.server.OrmException;
 import java.util.Collection;
@@ -90,17 +91,23 @@ class Cache {
 
   /** Returns a cached or new OwnersDb, for the specified patchset. */
   OwnersDb get(Repository repository, ChangeData changeData, int patchset) throws OrmException {
+    Project.NameKey project = changeData.change().getProject();
     String branch = changeData.change().getDest().get();
     String dbKey = Cache.makeKey(changeData.getId().get(), patchset, branch);
     // TODO: get changed files of the given patchset?
-    return get(dbKey, repository, branch, changeData.currentFilePaths());
+    return get(dbKey, repository, project, branch, changeData.currentFilePaths());
   }
 
   /** Returns a cached or new OwnersDb, for the specified branch and changed files. */
-  OwnersDb get(String key, Repository repository, String branch, Collection<String> files) {
+  OwnersDb get(
+      String key,
+      Repository repository,
+      Project.NameKey project,
+      String branch,
+      Collection<String> files) {
     if (dbCache == null) { // Do not cache OwnersDb
       log.trace("Create new OwnersDb, key=" + key);
-      return new OwnersDb(key, repository, branch, files);
+      return new OwnersDb(key, repository, project, branch, files);
     }
     try {
       log.trace("Get from cash " + dbCache + ", key=" + key + ", cache size=" + dbCache.size());
@@ -110,12 +117,12 @@ class Cache {
             @Override
             public OwnersDb call() {
               log.trace("Create new OwnersDb, key=" + key);
-              return new OwnersDb(key, repository, branch, files);
+              return new OwnersDb(key, repository, project, branch, files);
             }
           });
     } catch (ExecutionException e) {
       log.error("Cache.get has exception: " + e);
-      return new OwnersDb(key, repository, branch, files);
+      return new OwnersDb(key, repository, project, branch, files);
     }
   }
 

@@ -26,16 +26,21 @@ import org.slf4j.LoggerFactory;
 
 /** find-owners configuration parameters */
 class Config {
-  // Name of config parameters and plugin.
-  static final String SECTION = "findowners"; // used in Plugin config file
+  // Name of config parameters.
   static final String ADD_DEBUG_MSG = "addDebugMsg";
-  static final String MIN_OWNER_VOTE_LEVEL = "minOwnerVoteLevel";
+  static final String ALWAYS_SHOW_BUTTON = "alwaysShowButton"; // always show "Find Owners" button
   static final String MAX_CACHE_AGE = "maxCacheAge"; // seconds to stay in cache
   static final String MAX_CACHE_SIZE = "maxCacheSize"; // number of OwnersDb in cache
+  static final String MIN_OWNER_VOTE_LEVEL = "minOwnerVoteLevel"; // default +1
+  static final String OWNERS_FILE_NAME = "ownersFileName"; // default "OWNERS"
   static final String REPORT_SYNTAX_ERROR = "reportSyntaxError";
-  static final String ALWAYS_SHOW_BUTTON = "alwaysShowButton"; // always show "Find Owners" button
+
+  // Name of plugin and namespace.
   static final String PLUGIN_NAME = "find-owners";
   static final String PROLOG_NAMESPACE = "find_owners";
+
+  // Default values.
+  private static final String DEFAULT_OWNERS_FILE_NAME = "OWNERS";
 
   // Global/plugin config parameters.
   private static PluginConfigFactory config = null;
@@ -81,6 +86,19 @@ class Config {
 
   static boolean getAlwaysShowButton() {
     return alwaysShowButton;
+  }
+
+  static String getOwnersFileName(Project.NameKey project) {
+    if (config != null && project != null) {
+      try {
+        return config
+            .getFromProjectConfigWithInheritance(project, PLUGIN_NAME)
+            .getString(OWNERS_FILE_NAME, DEFAULT_OWNERS_FILE_NAME);
+      } catch (NoSuchProjectException e) {
+        log.error("Cannot find project: " + project);
+      }
+    }
+    return DEFAULT_OWNERS_FILE_NAME;
   }
 
   @VisibleForTesting
