@@ -16,6 +16,7 @@ package com.googlesource.gerrit.plugins.findowners;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+import com.google.gerrit.reviewdb.client.Project;
 import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
@@ -51,8 +52,14 @@ class OwnersDb {
 
   OwnersDb() {}
 
-  OwnersDb(String key, Repository repository, String branch, Collection<String> files) {
+  OwnersDb(
+      String key,
+      Repository repository,
+      Project.NameKey project,
+      String branch,
+      Collection<String> files) {
     this.key = key;
+    String ownersFileName = Config.getOwnersFileName(project);
     for (String fileName : files) {
       // Find OWNERS in fileName's directory and parent directories.
       // Stop looking for a parent directory if OWNERS has "set noparent".
@@ -60,10 +67,10 @@ class OwnersDb {
       String dir = Util.normalizedDirPath(fileName); // e.g. dir = ./d1/d2
       while (!readDirs.contains(dir)) {
         readDirs.add(dir);
-        String filePath = (dir + "/OWNERS").substring(2); // remove "./"
+        String filePath = (dir + "/" + ownersFileName).substring(2); // remove "./"
         String content = getRepositoryFile(repository, branch, filePath);
         if (content != null && !content.equals("")) {
-          addFile(dir + "/", dir + "/OWNERS", content.split("\\R+"));
+          addFile(dir + "/", dir + "/" + ownersFileName, content.split("\\R+"));
         }
         if (stopLooking.contains(dir + "/") || !dir.contains("/")) {
           break; // stop looking through parent directory

@@ -61,6 +61,12 @@ When `find_owners:submit_rule(S)` or `find_owners:submit_filter(In,Out)`
 are applied, the default requirement is **+1** Code-Review
 vote from at least one owner of every changed file.
 
+## Default OWNERS file name
+
+This plugin finds owners in default OWNERS files.
+If a project has already used OWNERS files for other purpose,
+the "ownersFileName" parameter can be used to change the default.
+
 ## Example 0, call `submit_filter/2`
 
 The simplest configuration adds to `rules.pl` of the root
@@ -135,11 +141,22 @@ submit_filter(In, Out) :-
 
 ## Example 6, define `addDebugMsg`
 
-Add the following to global `gerrit.config`
-or a project's `project.config` file,
+Add the following to global `gerrit.config`,
 to debug the find-owners plugin.
 
 ```bash
 [plugin "find-owners"]
     addDebugMsg = true
+```
+
+## Example 7, change default OWNERS file name
+
+Add the following to global `gerrit.config`
+or a project's `project.config` file,
+to change the default "OWNERS" file name,
+e.g., to "OWNERS.android".
+
+```bash
+[plugin "find-owners"]
+    ownersFileName = OWNERS.android
 ```
