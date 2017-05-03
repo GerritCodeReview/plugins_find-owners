@@ -22,6 +22,30 @@
       "revId": "671cdee82a020885b5bd4569d69eb841baf85a67",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1f504721_b9f91c30",
+        "filename": "src/main/resources/static/find-owners.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2017-05-03T18:19:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "514b403e_77541b33",
+      "range": {
+        "startLine": 75,
+        "startChar": 49,
+        "endLine": 75,
+        "endChar": 71
+      },
+      "revId": "671cdee82a020885b5bd4569d69eb841baf85a67",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
     }
   ]
 }
