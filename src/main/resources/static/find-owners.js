@@ -66,10 +66,15 @@ Gerrit.install(function(self) {
       reviewerId = {};
       reviewerVote = {};
       reviewerList.forEach(function(reviewer) {
-        reviewerId[reviewer.email] = reviewer._account_id;
-        reviewerVote[reviewer.email] =
-            parseInt(reviewer.approvals['Code-Review']);
-        // The 'Code-Review' values could be " 0", "+1", "-1", "+2", etc.
+        if ('email' in reviewer && '_account_id' in reviewer) {
+          reviewerId[reviewer.email] = reviewer._account_id;
+          reviewerVote[reviewer.email] = 0;
+          if ('approvals' in reviewer && 'Code-Review' in reviewer.approvals) {
+            reviewerVote[reviewer.email] =
+                parseInt(reviewer.approvals['Code-Review']);
+            // The 'Code-Review' values could be "-2", "-1", " 0", "+1", "+2"
+          }
+        }
       });
     }
     function checkAddRemoveLists() {
