@@ -1,0 +1,188 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ababe56b_2b748641",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Config.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1026112
+      },
+      "writtenOn": "2017-05-03T07:00:00Z",
+      "side": 1,
+      "message": "this change seems to be out of the context of what was stated in the commit message. could it be separated into to a standalone change?",
+      "range": {
+        "startLine": 31,
+        "startChar": 22,
+        "endLine": 31,
+        "endChar": 40
+      },
+      "revId": "ed96f43a5f9feaa826f0beaa4e27143333857123",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fc03f9bb_1095c732",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Config.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1026112
+      },
+      "writtenOn": "2017-05-03T07:00:00Z",
+      "side": 1,
+      "message": "same as above",
+      "range": {
+        "startLine": 34,
+        "startChar": 22,
+        "endLine": 34,
+        "endChar": 42
+      },
+      "revId": "ed96f43a5f9feaa826f0beaa4e27143333857123",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "db081011_ea649fcb",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Config.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1026112
+      },
+      "writtenOn": "2017-05-03T07:00:00Z",
+      "side": 1,
+      "message": "(optional) This could also go into an enum that provides both the key and the default value:\n\n  enum StringConfigEntry {\n     OWNERS_FILE_NAME(\"ownersFileName\", \"OWNERS\"),\n     ADD_DEBUG_MESSAGE(\"key\", \"value\");\n\n    String key;\n    String defaultValue;\n\n    ConfigEntry(String key, String defaultValue) { \n      this.key\u003dkey;\n     this.defaultValue\u003dvalue;\n    }\n  }\n\nThen use it with:\n  StringConfigEntry.OWNERS_FILE_NAME.key\nand\n  StringConfigEntry.OWNERS_FILE_NAME.defaultValue\n\nWould only make sense if you expect to have more configurations in the future though, otherwise it adds too much boilerplate.",
+      "range": {
+        "startLine": 42,
+        "startChar": 0,
+        "endLine": 43,
+        "endChar": 66
+      },
+      "revId": "ed96f43a5f9feaa826f0beaa4e27143333857123",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f1757908_e140e145",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Config.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1026112
+      },
+      "writtenOn": "2017-05-03T07:00:00Z",
+      "side": 1,
+      "message": "check that the value you just read is not empty and not just a whitespace and return the default value if it is. otherwise you might get undesired side effects in OwnersDb",
+      "range": {
+        "startLine": 96,
+        "startChar": 13,
+        "endLine": 96,
+        "endChar": 22
+      },
+      "revId": "ed96f43a5f9feaa826f0beaa4e27143333857123",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7aad0476_aff3579e",
+        "filename": "src/main/resources/Documentation/config.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 1026112
+      },
+      "writtenOn": "2017-05-03T07:00:00Z",
+      "side": 1,
+      "message": "nit: unrelated change",
+      "range": {
+        "startLine": 144,
+        "startChar": 1,
+        "endLine": 144,
+        "endChar": 44
+      },
+      "revId": "ed96f43a5f9feaa826f0beaa4e27143333857123",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8fa0c43a_ebc5c9a6",
+        "filename": "src/test/java/com/googlesource/gerrit/plugins/findowners/FindOwnersIT.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1026112
+      },
+      "writtenOn": "2017-05-03T07:00:00Z",
+      "side": 1,
+      "message": "private",
+      "range": {
+        "startLine": 46,
+        "startChar": 10,
+        "endLine": 46,
+        "endChar": 19
+      },
+      "revId": "ed96f43a5f9feaa826f0beaa4e27143333857123",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "96ef4567_cc86558b",
+        "filename": "src/test/java/com/googlesource/gerrit/plugins/findowners/FindOwnersIT.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 189,
+      "author": {
+        "id": 1026112
+      },
+      "writtenOn": "2017-05-03T07:00:00Z",
+      "side": 1,
+      "message": "note: This is correct, but it might change anytime which would invalidate the comment. I would stick with the names you give to the projects in the comments or leave them out",
+      "range": {
+        "startLine": 189,
+        "startChar": 28,
+        "endLine": 189,
+        "endChar": 78
+      },
+      "revId": "ed96f43a5f9feaa826f0beaa4e27143333857123",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "24efb6b6_bea9f614",
+        "filename": "src/test/java/com/googlesource/gerrit/plugins/findowners/FindOwnersIT.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 312,
+      "author": {
+        "id": 1026112
+      },
+      "writtenOn": "2017-05-03T07:00:00Z",
+      "side": 1,
+      "message": "this is a bit risky as the variable is held in AbstractDaemonTest, so it could change, be renamed, be removed etc.\n\nI would recommend to remove this method and keep an instance of your current project/repo in the scope of your test method instead",
+      "range": {
+        "startLine": 312,
+        "startChar": 4,
+        "endLine": 312,
+        "endChar": 11
+      },
+      "revId": "ed96f43a5f9feaa826f0beaa4e27143333857123",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    }
+  ]
+}
