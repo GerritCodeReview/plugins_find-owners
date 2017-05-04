@@ -399,6 +399,30 @@
       "revId": "ed96f43a5f9feaa826f0beaa4e27143333857123",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1dcac4b5_4db3fe05",
+        "filename": "src/test/java/com/googlesource/gerrit/plugins/findowners/FindOwnersIT.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 312,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2017-05-04T17:06:33Z",
+      "side": 1,
+      "message": "Those variables have \u0027protected\u0027 visibility, so are the \"createChange\"  and other methods in AbstractDaemonTest.\nI think they are designed for integration test classes that derive from AbstractDaemonTest.",
+      "parentUuid": "e7910b6a_7fc374c4",
+      "range": {
+        "startLine": 312,
+        "startChar": 4,
+        "endLine": 312,
+        "endChar": 11
+      },
+      "revId": "ed96f43a5f9feaa826f0beaa4e27143333857123",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
     }
   ]
 }
