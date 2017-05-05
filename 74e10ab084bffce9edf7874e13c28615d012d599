@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6cda7c3b_f6e2bd22",
+        "filename": "src/test/java/com/googlesource/gerrit/plugins/findowners/FindOwnersIT.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 325,
+      "author": {
+        "id": 1026112
+      },
+      "writtenOn": "2017-05-05T08:56:28Z",
+      "side": 1,
+      "message": "nit: RefNames.REFS_CONFIG",
+      "range": {
+        "startLine": 325,
+        "startChar": 43,
+        "endLine": 325,
+        "endChar": 59
+      },
+      "revId": "74e10ab084bffce9edf7874e13c28615d012d599",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ddcf7fa3_fbaa4b92",
+        "filename": "src/test/java/com/googlesource/gerrit/plugins/findowners/FindOwnersIT.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 350,
+      "author": {
+        "id": 1026112
+      },
+      "writtenOn": "2017-05-05T08:56:28Z",
+      "side": 1,
+      "message": "RefNames.REFS_CONFIG",
+      "range": {
+        "startLine": 350,
+        "startChar": 26,
+        "endLine": 350,
+        "endChar": 42
+      },
+      "revId": "74e10ab084bffce9edf7874e13c28615d012d599",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    }
+  ]
+}

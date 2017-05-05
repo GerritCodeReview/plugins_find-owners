@@ -423,6 +423,30 @@
       "revId": "ed96f43a5f9feaa826f0beaa4e27143333857123",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dbd09b3f_51a73b13",
+        "filename": "src/test/java/com/googlesource/gerrit/plugins/findowners/FindOwnersIT.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 312,
+      "author": {
+        "id": 1026112
+      },
+      "writtenOn": "2017-05-05T08:56:28Z",
+      "side": 1,
+      "message": "Stephen is correct, this was what I wanted to say. Tweaking it for the purpose of reusing \"createChange\" and others seems OK. An alternative could be to use the createChange method that takes a repo as a parameter. Most methods in AbstractDaemonTest have a variant where you can specify all parameters yourself. Feel free to keep it like that though.",
+      "parentUuid": "1dcac4b5_4db3fe05",
+      "range": {
+        "startLine": 312,
+        "startChar": 4,
+        "endLine": 312,
+        "endChar": 11
+      },
+      "revId": "ed96f43a5f9feaa826f0beaa4e27143333857123",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
     }
   ]
 }
