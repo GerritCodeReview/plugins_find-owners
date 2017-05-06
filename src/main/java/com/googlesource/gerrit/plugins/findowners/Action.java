@@ -92,14 +92,14 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
     return "?";
   }
 
-  private List<String> getOwners(OwnersDb db, Collection<String> files) {
+  private List<OwnerInfo> getOwners(OwnersDb db, Collection<String> files) {
     Map<String, OwnerWeights> weights = new HashMap<>();
     db.findOwners(files, weights);
-    List<String> result = new ArrayList<>();
+    List<OwnerInfo> result = new ArrayList<>();
     Set<String> emails = new HashSet<>();
     for (String key : OwnerWeights.sortKeys(weights)) {
       if (!emails.contains(key)) {
-        result.add(key + " " + weights.get(key).encodeLevelCounts());
+        result.add(new OwnerInfo(key, weights.get(key).getLevelCounts()));
         emails.add(key);
       }
     }
@@ -136,7 +136,7 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
     try {
       for (Account.Id id : changeData.reviewers().all()) {
         Account account = accountCache.get(id).getAccount();
-        result.add(account.getPreferredEmail() + " []");
+        result.add(account.getPreferredEmail());
       }
     } catch (OrmException e) {
       log.error("Exception", e);

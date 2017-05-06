@@ -17,6 +17,7 @@ package com.googlesource.gerrit.plugins.findowners;
 import com.google.common.collect.Ordering;
 import java.io.File;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
@@ -46,10 +47,10 @@ class Util {
     return (s != null) && (s.equals("1") || s.equalsIgnoreCase("yes") || Boolean.parseBoolean(s));
   }
 
-  static SortedMap<String, String> makeSortedMap(Map<String, Set<String>> map) {
-    SortedMap<String, String> result = new TreeMap<>();
+  static SortedMap<String, List<String>> makeSortedMap(Map<String, Set<String>> map) {
+    SortedMap<String, List<String>> result = new TreeMap<>();
     for (String key : Ordering.natural().sortedCopy(map.keySet())) {
-      result.put(key, String.join(" ", Ordering.natural().sortedCopy(map.get(key))));
+      result.put(key, Ordering.natural().sortedCopy(map.get(key)));
     }
     return result;
   }

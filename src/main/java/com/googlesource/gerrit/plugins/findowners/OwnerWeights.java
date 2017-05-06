@@ -14,6 +14,7 @@
 
 package com.googlesource.gerrit.plugins.findowners;
 
+import com.google.common.collect.ImmutableList;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -62,6 +63,11 @@ class OwnerWeights {
   /** Return file counters as a compact string. */
   String encodeLevelCounts() {
     return "[" + countL1 + "+" + countL2 + "+" + countL3 + "]";
+  }
+
+  /** Return file counters as a list of integers. */
+  List<Integer> getLevelCounts() {
+    return ImmutableList.of(countL1, countL2, countL3);
   }
 
   OwnerWeights(String file, int level) {

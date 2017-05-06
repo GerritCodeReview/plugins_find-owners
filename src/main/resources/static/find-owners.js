@@ -176,7 +176,7 @@ Gerrit.install(function(self) {
     }
     function showFilesAndOwners(result, args) {
       var sortedOwners = result.owners.map(
-          function(line) { return line.split(' ')[0]; });
+          function(ownerInfo) { return ownerInfo.email; });
       var groups = {};
       // group name ==> {needReviewer, needApproval, owners}
       var groupSize = {};
@@ -249,7 +249,7 @@ Gerrit.install(function(self) {
           div.appendChild(nobr);
         }
         keys.forEach(function(key) {
-          var owners = groups[key].owners;
+          var owners = groups[key].owners; // string of owner emails
           var numFiles = groupSize[key];
           var item = HTML_BULLET + '&nbsp;<b>' + key + '</b>' +
               ((numFiles > 1) ? (' (' + numFiles + ' files):') : ':');
@@ -269,8 +269,11 @@ Gerrit.install(function(self) {
         div.innerHTML = '';
         div.style.display = 'inline';
         div.appendChild(strElement(title));
-        result.owners.sort().forEach(function(owner) {
-          var email = owner.split(' ')[0];
+        function compareOwnerInfo(o1, o2) {
+          return o1.email.localeCompare(o2.email);
+        }
+        result.owners.sort(compareOwnerInfo).forEach(function(ownerInfo) {
+          var email = ownerInfo.email;
           var vote = reviewerVote[email];
           if ((email in reviewerVote) && vote != 0) {
             email += ' <font color="' +
@@ -309,8 +312,8 @@ Gerrit.install(function(self) {
             ('minOwnerVoteLevel' in result ?
              result['minOwnerVoteLevel'] : 1);
         Object.keys(result.file2owners).sort().forEach(function(name) {
-          var owners = result.file2owners[name];
-          var splitOwners = owners.split(' ');
+          var splitOwners = result.file2owners[name];
+          var owners = splitOwners.join(' ');
           if (owners in owners2group) {
             groupSize[owners2group[owners]] += 1;
           } else {
