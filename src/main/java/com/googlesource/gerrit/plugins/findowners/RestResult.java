@@ -35,9 +35,9 @@ public class RestResult {
   String ownerRevision;
 
   DebugMessages dbgmsgs;
-  SortedMap<String, String> file2owners = new TreeMap<>();
+  SortedMap<String, List<String>> file2owners = new TreeMap<>();
   List<String> reviewers = new ArrayList<>();
-  List<String> owners = new ArrayList<>();
+  List<OwnerInfo> owners = new ArrayList<>();
   List<String> files = new ArrayList<>();
 
   RestResult(int voteLevel, boolean addDebugMsg) {
@@ -54,7 +54,17 @@ public class RestResult {
     String user;
     String project;
     String branch;
-    SortedMap<String, String> path2owners;
-    SortedMap<String, String> owner2paths;
+    SortedMap<String, List<String>> path2owners;
+    SortedMap<String, List<String>> owner2paths;
+  };
+
+  static class OwnerInfo {
+    String email;
+    List<Integer> weights;
+
+    OwnerInfo(String e, List<Integer> w) {
+      email = e;
+      weights = w;
+    }
   };
 }

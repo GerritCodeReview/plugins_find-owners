@@ -79,15 +79,20 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
     assertThat(getOwnersResponse(c2)).contains("owners:[], files:[ t.c ]");
     // Change of "t.c" file has owner after c1 is submitted.
     approveSubmit(c1);
-    assertThat(getOwnersResponse(c2)).contains("owners:[ a@a[1+0+0], x@x[1+0+0] ], files:[ t.c ]");
+    String ownerA = "{ email:a@a, weights:[ 1, 0, 0 ] }";
+    String ownerB = "{ email:b@b, weights:[ 1, 0, 0 ] }";
+    String ownerC = "{ email:c@c, weights:[ 1, 0, 0 ] }";
+    String ownerX = "{ email:x@x, weights:[ 1, 0, 0 ] }";
+    String ownersAX = "owners:[ " + ownerA + ", " + ownerX + " ]";
+    assertThat(getOwnersResponse(c2)).contains(ownersAX + ", files:[ t.c ]");
     // A submitted change gets owners info from current repository.
-    assertThat(getOwnersResponse(c1))
-        .contains("owners:[ a@a[1+0+0], x@x[1+0+0] ], files:[ OWNERS ]");
+    assertThat(getOwnersResponse(c1)).contains(ownersAX + ", files:[ OWNERS ]");
     // Check all fields in response.
     String expectedTail =
-        "path2owners:{ ./:a@ax@x }, owner2paths:{ a@a:./, x@x:./ } }"
-            + ", file2owners:{ ./t.c:a@ax@x }, reviewers:[], owners:[ "
-            + "a@a[1+0+0], x@x[1+0+0] ], files:[ t.c ] }";
+        "path2owners:{ ./:[ a@a, x@x ] }, owner2paths:{ a@a:[ ./ ], x@x:[ ./ ] } }"
+            + ", file2owners:{ ./t.c:[ a@a, x@x ] }, reviewers:[], "
+            + ownersAX
+            + ", files:[ t.c ] }";
     assertThat(getOwnersDebugResponse(c2)).contains(expectedTail);
   }
 
@@ -97,11 +102,15 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
     addFile("add OWNERS", "OWNERS", "per-file *.c=x@x\na@a\nc@c\nb@b\n");
     // Add "t.c" file, which has per-file owner x@x, not a@a, b@b, c@c.
     PushOneCommit.Result c2 = createChange("add t.c", "t.c", "Hello!");
-    assertThat(getOwnersResponse(c2)).contains("owners:[ x@x[1+0+0] ], files:[ t.c ]");
+    String ownerA = "{ email:a@a, weights:[ 1, 0, 0 ] }";
+    String ownerB = "{ email:b@b, weights:[ 1, 0, 0 ] }";
+    String ownerC = "{ email:c@c, weights:[ 1, 0, 0 ] }";
+    String ownerX = "{ email:x@x, weights:[ 1, 0, 0 ] }";
+    assertThat(getOwnersResponse(c2)).contains("owners:[ " + ownerX + " ], files:[ t.c ]");
     // Add "t.txt" file, which has new owners.
     PushOneCommit.Result c3 = createChange("add t.txt", "t.txt", "Test!");
     assertThat(getOwnersResponse(c3))
-        .contains("owners:[ a@a[1+0+0], b@b[1+0+0], c@c[1+0+0] ], files:[ t.txt ]");
+        .contains("owners:[ " + ownerA + ", " + ownerB + ", " + ownerC + " ], files:[ t.txt ]");
   }
 
   @Test
@@ -113,25 +122,30 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
     addFile("add d3/OWNERS", "d3/OWNERS", "b@b\nset noparent\n");
     // Add "t.c" file, which is not owned by subdirectory owners.
     PushOneCommit.Result c2 = createChange("add t.c", "t.c", "Hello!");
-    assertThat(getOwnersResponse(c2)).contains("owners:[ x@x[1+0+0] ], files:[ t.c ]");
+    String ownerA = "{ email:a@a, weights:[ 1, 0, 0 ] }";
+    String ownerX = "{ email:x@x, weights:[ 1, 0, 0 ] }";
+    assertThat(getOwnersResponse(c2)).contains("owners:[ " + ownerX + " ], files:[ t.c ]");
     // Add "d1/t.c" file, which is owned by ./d1 and root owners.
     PushOneCommit.Result c3 = createChange("add d1/t.c", "d1/t.c", "Hello!");
+    String ownerX010 = "{ email:x@x, weights:[ 0, 1, 0 ] }";
     assertThat(getOwnersResponse(c3))
-        .contains("owners:[ a@a[1+0+0], x@x[0+1+0] ], files:[ d1/t.c ]");
+        .contains("owners:[ " + ownerA + ", " + ownerX010 + " ], files:[ d1/t.c ]");
     // Add "d2/t.c" file, which is owned by ./d2 and root owners.
     PushOneCommit.Result c4 = createChange("add d2/t.c", "d2/t.c", "Hello!");
+    String ownerY = "{ email:y@y, weights:[ 1, 0, 0 ] }";
     assertThat(getOwnersResponse(c4))
-        .contains("owners:[ y@y[1+0+0], x@x[0+1+0] ], files:[ d2/t.c ]");
+        .contains("owners:[ " + ownerY + ", " + ownerX010 + " ], files:[ d2/t.c ]");
     // Add "d2/d1/t.c" file, which is owned by ./d2 and root owners.
     PushOneCommit.Result c5 = createChange("add d2/d1/t.c", "d2/d1/t.c", "Hello!");
     assertThat(getOwnersResponse(c5))
-        .contains("owners:[ y@y[1+0+0], x@x[0+1+0] ], files:[ d2/d1/t.c ]");
+        .contains("owners:[ " + ownerY + ", " + ownerX010 + " ], files:[ d2/d1/t.c ]");
     // Add "d3/t.c" file, which is owned only by ./d3 owners due to "set noparent".
     PushOneCommit.Result c6 = createChange("add d3/t.c", "d3/t.c", "Hello!");
-    assertThat(getOwnersResponse(c6)).contains("owners:[ b@b[1+0+0] ], files:[ d3/t.c ]");
+    String ownerB = "{ email:b@b, weights:[ 1, 0, 0 ] }";
+    assertThat(getOwnersResponse(c6)).contains("owners:[ " + ownerB + " ], files:[ d3/t.c ]");
     // Add "d3/d1/t.c" file, which is owned only by ./d3 owners due to "set noparent".
     PushOneCommit.Result c7 = createChange("add d3/d1/t.c", "d3/d1/t.c", "Hello!");
-    assertThat(getOwnersResponse(c7)).contains("owners:[ b@b[1+0+0] ], files:[ d3/d1/t.c ]");
+    assertThat(getOwnersResponse(c7)).contains("owners:[ " + ownerB + " ], files:[ d3/d1/t.c ]");
   }
 
   @Test
@@ -212,8 +226,10 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
     assertThat(Config.getOwnersFileName(pA)).isEqualTo("OWNERS");
     assertThat(Config.getOwnersFileName(pB)).isEqualTo("OWNERS");
 
-    assertThat(getOwnersResponse(cA)).contains("owners:[ x@x[1+0+0] ], files:[ tA.c ]");
-    assertThat(getOwnersResponse(cB)).contains("owners:[ y@y[1+0+0] ], files:[ tB.c ]");
+    String ownerX = "owners:[ { email:x@x, weights:[ 1, 0, 0 ] } ]";
+    String ownerY = "owners:[ { email:y@y, weights:[ 1, 0, 0 ] } ]";
+    assertThat(getOwnersResponse(cA)).contains(ownerX + ", files:[ tA.c ]");
+    assertThat(getOwnersResponse(cB)).contains(ownerY + ", files:[ tB.c ]");
 
     // Change owners file name to "OWNERS.alpha" and "OWNERS.beta"
     switchProject(pA);
@@ -222,21 +238,23 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
     setProjectConfig("ownersFileName", "OWNERS.beta");
     assertThat(Config.getOwnersFileName(pA)).isEqualTo("OWNERS.alpha");
     assertThat(Config.getOwnersFileName(pB)).isEqualTo("OWNERS.beta");
-    assertThat(getOwnersResponse(cA)).contains("owners:[ a@a[1+0+0] ], files:[ tA.c ]");
-    assertThat(getOwnersResponse(cB)).contains("owners:[ b@b[1+0+0] ], files:[ tB.c ]");
+    String ownerA = "owners:[ { email:a@a, weights:[ 1, 0, 0 ] } ]";
+    String ownerB = "owners:[ { email:b@b, weights:[ 1, 0, 0 ] } ]";
+    assertThat(getOwnersResponse(cA)).contains(ownerA + ", files:[ tA.c ]");
+    assertThat(getOwnersResponse(cB)).contains(ownerB + ", files:[ tB.c ]");
 
     // Change back to OWNERS in Project_A
     switchProject(pA);
     setProjectConfig("ownersFileName", "OWNERS");
     assertThat(Config.getOwnersFileName(pA)).isEqualTo("OWNERS");
-    assertThat(getOwnersResponse(cA)).contains("owners:[ x@x[1+0+0] ], files:[ tA.c ]");
-    assertThat(getOwnersResponse(cB)).contains("owners:[ b@b[1+0+0] ], files:[ tB.c ]");
+    assertThat(getOwnersResponse(cA)).contains(ownerX + ", files:[ tA.c ]");
+    assertThat(getOwnersResponse(cB)).contains(ownerB + ", files:[ tB.c ]");
 
     // Change back to OWNERS.alpha in Project_B, but there is no OWNERS.alpha
     switchProject(pB);
     setProjectConfig("ownersFileName", "OWNERS.alpha");
     assertThat(Config.getOwnersFileName(pB)).isEqualTo("OWNERS.alpha");
-    assertThat(getOwnersResponse(cA)).contains("owners:[ x@x[1+0+0] ], files:[ tA.c ]");
+    assertThat(getOwnersResponse(cA)).contains(ownerX + ", files:[ tA.c ]");
     assertThat(getOwnersResponse(cB)).contains("owners:[], files:[ tB.c ]");
 
     // Do not accept empty string or all-white-spaces for ownersFileName.

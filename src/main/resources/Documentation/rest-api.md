@@ -52,28 +52,29 @@ This API returns a JSON object with the following attributes:
 
     * **project**: the change's project name.
 
-    * **branch**: the change's destination brach name.
+    * **branch**: the change's destination branch name.
 
     * **path2owners**:
-      a map from directory path or file glob to a string of owner emails
-      separated by space. Note that `*` is a special owner email address.
+      a map from directory path or file glob to an array of owner emails.
+      Note that `*` is a special owner email address.
       It means that there is no owner and anyone can be the owner.
       Included directories are those affected by the change revision.
 
     * **owner2paths**:
-      a map from owner email to directory path or file glob.
+      a map from owner email to an array of directory path or file glob.
       This is opposite to the path2owners map.
 
-* **file2owners**: a map from each file in the change patchset to
-   the file owner emails, separated by space.
+* **file2owners**: a map from each file path in the change patchset to
+   an array of the file's owner emails.
 
-* **reviewers**: an array of current reviewer emails followed by
-   optional extra information that should be ignored for now.
+* **reviewers**: an array of current reviewer emails.
 
-* **owners**: an array of owner emails followed by the owner weights,
-   `[n1+n2+n3]`, which are the number of level 1, 2, 3+ controlled files.
-   This list of owners are the keys in the owner2paths map.
-   The array is sorted by owner weights.
+* **owners**: an array of owner info objects.
+   Each owner info object has "email" and "weights" attributes.
+   The weights attribute is an array of integers like [n1, n2, n3],
+   which are the number of level 1, 2, 3+ controlled files.
+   The email attributes are the keys in the owner2paths map.
+   This owners array is sorted by owner weights.
    Users should try to pick owners with more weights to review a change.
 
 * **files**: an alphabetically sorted files changed
