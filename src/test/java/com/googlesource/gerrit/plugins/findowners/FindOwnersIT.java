@@ -80,8 +80,6 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
     // Change of "t.c" file has owner after c1 is submitted.
     approveSubmit(c1);
     String ownerA = ownerJson("a@a");
-    String ownerB = ownerJson("b@b");
-    String ownerC = ownerJson("c@c");
     String ownerX = ownerJson("x@x");
     String ownersAX = "owners:[ " + ownerA + ", " + ownerX + " ]";
     assertThat(getOwnersResponse(c2)).contains(ownersAX + ", files:[ t.c ]");
