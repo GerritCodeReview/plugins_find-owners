@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "63acc79a_513ba751",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/OwnerWeights.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1026112
+      },
+      "writtenOn": "2017-05-09T07:22:59Z",
+      "side": 1,
+      "message": "ImmutableList.of(count1, ...)",
+      "range": {
+        "startLine": 70,
+        "startChar": 11,
+        "endLine": 70,
+        "endChar": 25
+      },
+      "revId": "683202b0ce6357d0e165b17c02032fa882dfbe32",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b2f6f5d3_5edaa1be",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/RestResult.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1026112
+      },
+      "writtenOn": "2017-05-09T07:22:59Z",
+      "side": 1,
+      "message": "This could go into it\u0027s own file",
+      "range": {
+        "startLine": 61,
+        "startChar": 0,
+        "endLine": 61,
+        "endChar": 26
+      },
+      "revId": "683202b0ce6357d0e165b17c02032fa882dfbe32",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c636da3e_55a7924e",
+        "filename": "src/test/java/com/googlesource/gerrit/plugins/findowners/FindOwnersIT.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 1026112
+      },
+      "writtenOn": "2017-05-09T07:22:59Z",
+      "side": 1,
+      "message": "nit: create two functions to reduce boilerplate\n\n  private String ownerJson(String email) {\n    return \"{ email:\" + email + \", weights:[ 1, 0, 0 ] }\"\n  }\n\n  private String ownerJson(String email, int weight1, int weight2, int weight3) {\n    // ...\n  }",
+      "revId": "683202b0ce6357d0e165b17c02032fa882dfbe32",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    }
+  ]
+}
