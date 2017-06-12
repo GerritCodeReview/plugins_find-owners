@@ -172,7 +172,7 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
   public void accountTest() throws Exception {
     String[] myTestEmails = {"abc@g.com", "abc+xyz@g.com", "xyz@g.com"};
     for (String email : myTestEmails) {
-      Account.Id id = accounts.create("User" + email, email, "FullName" + email).getId();
+      Account.Id id = accountCreator.create("User" + email, email, "FullName" + email).getId();
       // Action.getReviewers uses accountCache to get email address.
       assertThat(accountCache.get(id).getAccount().getPreferredEmail()).isEqualTo(email);
       // Checker.getVotes uses AccountAccess to get email address.
