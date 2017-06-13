@@ -13,7 +13,7 @@ prolog_cafe_library(
   srcs = glob(['src/main/prolog/*.pl']),
   deps = [
     ':find-owners-lib',
-    '//gerrit-server/src/main/prolog:common',
+    '//gerrit-server:prolog-common',
   ],
 )
 
