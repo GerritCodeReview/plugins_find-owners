@@ -14,12 +14,10 @@
 
 package com.googlesource.gerrit.plugins.findowners;
 
-import com.google.gerrit.reviewdb.client.Account;
 import com.google.gerrit.reviewdb.client.Change.Status;
 import com.google.gerrit.reviewdb.client.PatchSetApproval;
-import com.google.gerrit.reviewdb.server.AccountAccess;
-import com.google.gerrit.reviewdb.server.ReviewDb;
 import com.google.gerrit.rules.StoredValues;
+import com.google.gerrit.server.account.AccountCache;
 import com.google.gerrit.server.query.change.ChangeData;
 import com.google.gwtorm.server.OrmException;
 import com.googlecode.prolog_cafe.lang.Prolog;
@@ -50,18 +48,14 @@ public class Checker {
   }
 
   /** Returns a map from reviewer email to vote value. */
-  static Map<String, Integer> getVotes(ChangeData changeData) throws OrmException {
-    ReviewDb db = changeData.db();
+  static Map<String, Integer> getVotes(AccountCache accountCache, ChangeData changeData)
+      throws OrmException {
     Map<String, Integer> map = new HashMap<>();
-    AccountAccess ac = db.accounts();
     for (PatchSetApproval p : changeData.currentApprovals()) {
       if (p.getValue() != 0) {
-        Account.Id id = p.getAccountId();
-        try {
-          map.put(ac.get(id).getPreferredEmail(), Integer.valueOf(p.getValue()));
-        } catch (OrmException e) {
-          log.error("Cannot get email address of account id: " + id.get(), e);
-        }
+        map.put(
+            accountCache.get(p.getAccountId()).getAccount().getPreferredEmail(),
+            Integer.valueOf(p.getValue()));
       }
     }
     return map;
@@ -86,12 +80,12 @@ public class Checker {
   }
 
   /** Returns 1 if owner approval is found, -1 if missing, 0 if unneeded. */
-  int findApproval(OwnersDb db) throws OrmException {
+  int findApproval(AccountCache accountCache, OwnersDb db) throws OrmException {
     Map<String, Set<String>> file2Owners = db.findOwners(changeData.currentFilePaths());
     if (file2Owners.size() == 0) { // do not need owner approval
       return 0;
     }
-    Map<String, Integer> votes = getVotes(changeData);
+    Map<String, Integer> votes = getVotes(accountCache, changeData);
     for (Set<String> owners : file2Owners.values()) {
       if (!findOwnersInVotes(owners, votes)) {
         return -1;
@@ -103,9 +97,10 @@ public class Checker {
   /** Returns 1 if owner approval is found, -1 if missing, 0 if unneeded. */
   public static int findApproval(Prolog engine, int minVoteLevel) {
     try {
+      AccountCache accountCache = StoredValues.ACCOUNT_CACHE.get(engine);
       ChangeData changeData = StoredValues.CHANGE_DATA.get(engine);
       Repository repository = StoredValues.REPOSITORY.get(engine);
-      return new Checker(repository, changeData, minVoteLevel).findApproval();
+      return new Checker(repository, changeData, minVoteLevel).findApproval(accountCache);
     } catch (OrmException e) {
       log.error("Exception", e);
       return 0; // owner approval may or may not be required.
@@ -128,7 +123,7 @@ public class Checker {
     return (status == Status.ABANDONED || status == Status.MERGED);
   }
 
-  int findApproval() throws OrmException {
+  int findApproval(AccountCache accountCache) throws OrmException {
     if (isExemptFromOwnerApproval(changeData)) {
       return 0;
     }
@@ -142,6 +137,6 @@ public class Checker {
       minVoteLevel = Config.getMinOwnerVoteLevel(changeData);
     }
     log.trace("findApproval db key = " + db.key);
-    return findApproval(db);
+    return findApproval(accountCache, db);
   }
 }

@@ -30,6 +30,7 @@ import com.google.gerrit.extensions.restapi.Response;
 import com.google.gerrit.reviewdb.client.Account;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.reviewdb.client.RefNames;
+import com.google.gerrit.server.account.Accounts;
 import com.google.gerrit.server.change.ChangeResource;
 import com.google.gerrit.server.config.PluginConfigFactory;
 import com.google.inject.Inject;
@@ -45,6 +46,7 @@ import org.junit.Test;
 public class FindOwnersIT extends LightweightPluginDaemonTest {
 
   @Inject private PluginConfigFactory configFactory;
+  @Inject private Accounts accounts;
 
   @Test
   public void getOwnersTest() throws Exception {
@@ -175,8 +177,8 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
       Account.Id id = accountCreator.create("User" + email, email, "FullName" + email).getId();
       // Action.getReviewers uses accountCache to get email address.
       assertThat(accountCache.get(id).getAccount().getPreferredEmail()).isEqualTo(email);
-      // Checker.getVotes uses AccountAccess to get email address.
-      assertThat(db.accounts().get(id).getPreferredEmail()).isEqualTo(email);
+      // Checker.getVotes uses AccountCache to get email address.
+      assertThat(accounts.get(db, id).getPreferredEmail()).isEqualTo(email);
     }
   }
 
