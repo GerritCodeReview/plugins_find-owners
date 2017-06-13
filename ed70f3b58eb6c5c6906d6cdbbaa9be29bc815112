@@ -1,4 +1,74 @@
 {
   "pushCert": "certificate version 0.1\npusher A0D0EF51 1497366822 +0200\nnonce AH5c86Cfre3hoIBwgUDT98xEXhCfYYD2UI6uxF5+ReQklqG8ssxLTUH5e6Vat8TKtxY8MigfhlWD\n\n0000000000000000000000000000000000000000 ed70f3b58eb6c5c6906d6cdbbaa9be29bc815112 refs/for/master\n-----BEGIN PGP SIGNATURE-----\nVersion: GnuPG v1\n\niQEcBAABAgAGBQJZQAEmAAoJEFG1/Zeg0O9RNJQIALZ3jwBfPu7MJy5t6yWHS2c6\nza69IDvs3B+ROCDqU6a9PpdyWjBR64L5z176xrf2CFce0Vuih02ecVkRkQ73Tnz6\n999WPSF9tvLoz4jqkOctSeoJ4MivsYGVtaCfWOQNF9DPJpoNBJseEI1JVWnISTRb\nWkwBWORyj5MFFwl6DevDDhb8W3xmSzt3VUhN1Uod/lhW58bNI3Ey6GBUMRIvmvp6\nYxamoBe3fc4P15se4H+UL5dcxmvtiy2ptjOASULfE3zE/2Sf0qXRp+6Qw9vLWZ5q\nY1YFJUHBz/m0LvUMog8vAhIa/y8VFfpvvhMbFKDVFhFlEjjd8hoT/q+P+FdlThE\u003d\n\u003dSeEG\n-----END PGP SIGNATURE-----\n",
-  "comments": []
+  "comments": [
+    {
+      "key": {
+        "uuid": "68b7bc2a_b077b3b0",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Checker.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2017-06-13T22:14:58Z",
+      "side": 1,
+      "message": "pls delete unused import of Account",
+      "range": {
+        "startLine": 17,
+        "startChar": 17,
+        "endLine": 17,
+        "endChar": 18
+      },
+      "revId": "ed70f3b58eb6c5c6906d6cdbbaa9be29bc815112",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d75f2157_c6217b4e",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Checker.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2017-06-13T22:14:58Z",
+      "side": 1,
+      "message": "pls delete unused import of ReviewDb",
+      "range": {
+        "startLine": 20,
+        "startChar": 0,
+        "endLine": 20,
+        "endChar": 50
+      },
+      "revId": "ed70f3b58eb6c5c6906d6cdbbaa9be29bc815112",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "19bffa60_9a6c391d",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Checker.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2017-06-13T22:14:58Z",
+      "side": 1,
+      "message": "ac is not used; line 56 should be removed.",
+      "range": {
+        "startLine": 56,
+        "startChar": 0,
+        "endLine": 56,
+        "endChar": 37
+      },
+      "revId": "ed70f3b58eb6c5c6906d6cdbbaa9be29bc815112",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    }
+  ]
 }
