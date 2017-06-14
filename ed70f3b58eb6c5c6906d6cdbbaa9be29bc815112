@@ -26,6 +26,30 @@
     },
     {
       "key": {
+        "uuid": "418095f7_d3ccdd03",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Checker.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1003935
+      },
+      "writtenOn": "2017-06-14T06:12:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "68b7bc2a_b077b3b0",
+      "range": {
+        "startLine": 17,
+        "startChar": 17,
+        "endLine": 17,
+        "endChar": 18
+      },
+      "revId": "ed70f3b58eb6c5c6906d6cdbbaa9be29bc815112",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d75f2157_c6217b4e",
         "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Checker.java",
         "patchSetId": 1
@@ -49,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "e3f172f1_28206933",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Checker.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1003935
+      },
+      "writtenOn": "2017-06-14T06:12:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d75f2157_c6217b4e",
+      "range": {
+        "startLine": 20,
+        "startChar": 0,
+        "endLine": 20,
+        "endChar": 50
+      },
+      "revId": "ed70f3b58eb6c5c6906d6cdbbaa9be29bc815112",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "19bffa60_9a6c391d",
         "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Checker.java",
         "patchSetId": 1
@@ -60,6 +108,30 @@
       "writtenOn": "2017-06-13T22:14:58Z",
       "side": 1,
       "message": "ac is not used; line 56 should be removed.",
+      "range": {
+        "startLine": 56,
+        "startChar": 0,
+        "endLine": 56,
+        "endChar": 37
+      },
+      "revId": "ed70f3b58eb6c5c6906d6cdbbaa9be29bc815112",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4f2d500a_eec377ea",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Checker.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1003935
+      },
+      "writtenOn": "2017-06-14T06:12:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "19bffa60_9a6c391d",
       "range": {
         "startLine": 56,
         "startChar": 0,
