@@ -22,6 +22,7 @@ import com.google.gerrit.acceptance.LightweightPluginDaemonTest;
 import com.google.gerrit.acceptance.PushOneCommit;
 import com.google.gerrit.acceptance.RestResponse;
 import com.google.gerrit.acceptance.TestPlugin;
+import com.google.gerrit.extensions.api.accounts.EmailInput;
 import com.google.gerrit.extensions.api.changes.SubmitInput;
 import com.google.gerrit.extensions.client.ChangeStatus;
 import com.google.gerrit.extensions.common.ChangeInfo;
@@ -34,6 +35,8 @@ import com.google.gerrit.server.account.Accounts;
 import com.google.gerrit.server.change.ChangeResource;
 import com.google.gerrit.server.config.PluginConfigFactory;
 import com.google.inject.Inject;
+import java.util.Map;
+import java.util.Set;
 import org.eclipse.jgit.lib.ObjectLoader;
 import org.eclipse.jgit.revwalk.RevObject;
 import org.eclipse.jgit.revwalk.RevTree;
@@ -45,8 +48,8 @@ import org.junit.Test;
 @TestPlugin(name = "find-owners", sysModule = "com.googlesource.gerrit.plugins.findowners.Module")
 public class FindOwnersIT extends LightweightPluginDaemonTest {
 
-  @Inject private PluginConfigFactory configFactory;
   @Inject private Accounts accounts;
+  @Inject private PluginConfigFactory configFactory;
 
   @Test
   public void getOwnersTest() throws Exception {
@@ -172,13 +175,46 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
 
   @Test
   public void accountTest() throws Exception {
-    String[] myTestEmails = {"abc@g.com", "abc+xyz@g.com", "xyz@g.com"};
-    for (String email : myTestEmails) {
-      Account.Id id = accountCreator.create("User" + email, email, "FullName" + email).getId();
-      // Action.getReviewers uses accountCache to get email address.
-      assertThat(accountCache.get(id).getAccount().getPreferredEmail()).isEqualTo(email);
-      // Checker.getVotes uses AccountCache to get email address.
-      assertThat(accounts.get(db, id).getPreferredEmail()).isEqualTo(email);
+    String[] users = {"user1", "user2", "user3"};
+    String[] emails1 = {"abc@g.com", "abc+xyz@g.com", "xyz-team+review@g.com"};
+    String[] emails2 = {"abc@goog.com", "abc+xyz2@g.com", "xyz-team@goog.com"};
+    // Create accounts with given user name, first and second email addresses.
+    for (int i = 0; i < users.length; i++) {
+      Account.Id id = accountCreator.create(users[i], emails1[i], "FullName " + users[i]).getId();
+      EmailInput input = new EmailInput();
+      input.email = emails2[i];
+      input.noConfirmation = true;
+      gApi.accounts().id(users[i]).addEmail(input);
+    }
+    // Find accounts with given first and second email addresses.
+    // OwnersDb uses either accounts.byEmail or byEmails to get preferred email addresses.
+    Map<String, Set<Account.Id>> map1 = accounts.byEmails(emails1);
+    Map<String, Set<Account.Id>> map2 = accounts.byEmails(emails2);
+    for (int i = 0; i < users.length; i++) {
+      Set<Account.Id> ids1 = accounts.byEmail(emails1[i]);
+      Set<Account.Id> ids2 = accounts.byEmail(emails2[i]);
+      Set<Account.Id> ids3 = map1.get(emails1[i]);
+      Set<Account.Id> ids4 = map2.get(emails2[i]);
+      assertThat(ids1.size()).isEqualTo(1);
+      assertThat(ids2.size()).isEqualTo(1);
+      assertThat(ids3.size()).isEqualTo(1);
+      assertThat(ids4.size()).isEqualTo(1);
+      Account.Id id1 = ids1.iterator().next();
+      Account.Id id2 = ids2.iterator().next();
+      Account.Id id3 = ids3.iterator().next();
+      Account.Id id4 = ids4.iterator().next();
+      assertThat(id1).isEqualTo(id2); // Both emails should find the same account.
+      assertThat(id1).isEqualTo(id3);
+      assertThat(id1).isEqualTo(id4);
+      // Action.getReviewers and Checker.getVotes use accountCache to get email address.
+      assertThat(accountCache.get(id1).getAccount().getPreferredEmail()).isEqualTo(emails1[i]);
+    }
+    // Wrong or non-existing email address.
+    String[] wrongEmails = {"nobody", "@g.com", "nobody@g.com", "*"};
+    Map<String, Set<Account.Id>> email2ids = accounts.byEmails(wrongEmails);
+    for (String email : wrongEmails) {
+      assertThat(accounts.byEmail(email).size()).isEqualTo(0);
+      assertThat(email2ids.get(email).size()).isEqualTo(0);
     }
   }
 
@@ -275,7 +311,15 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
     ChangeResource cr = parseChangeResource(changeInfo.changeId);
     Action.Parameters param = new Action.Parameters();
     Action action =
-        new Action("find-owners", null, null, null, changeDataFactory, accountCache, repoManager);
+        new Action(
+            "find-owners",
+            null,
+            null,
+            null,
+            changeDataFactory,
+            accountCache,
+            accounts,
+            repoManager);
     Response<RestResult> response = action.apply(db, cr, param);
     RestResult result = response.value();
     verifyRestResult(result, 1, 1, changeInfo._number, false);
