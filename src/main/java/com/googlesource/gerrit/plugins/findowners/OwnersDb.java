@@ -16,7 +16,10 @@ package com.googlesource.gerrit.plugins.findowners;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+import com.google.gerrit.reviewdb.client.Account;
 import com.google.gerrit.reviewdb.client.Project;
+import com.google.gerrit.server.account.AccountCache;
+import com.google.gerrit.server.account.Accounts;
 import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
@@ -26,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.eclipse.jgit.lib.ObjectReader;
@@ -40,6 +44,8 @@ import org.slf4j.LoggerFactory;
 class OwnersDb {
   private static final Logger log = LoggerFactory.getLogger(OwnersDb.class);
 
+  private AccountCache accountCache;
+  private Accounts accounts;
   private int numOwners = -1; // # of owners of all given files.
 
   String key = ""; // key to find this OwnersDb in a cache.
@@ -49,15 +55,21 @@ class OwnersDb {
   Map<String, Set<String>> path2Owners = new HashMap<>(); // dir or file glob to owner emails
   Set<String> readDirs = new HashSet<>(); // directories in which we have checked OWNERS
   Set<String> stopLooking = new HashSet<>(); // directories where OWNERS has "set noparent"
+  Map<String, String> preferredEmails = new HashMap<>(); // owner email to preferred email
+  List<String> errors = new ArrayList<>(); // error messages
 
   OwnersDb() {}
 
   OwnersDb(
+      AccountCache accountCache,
+      Accounts accounts,
       String key,
       Repository repository,
       Project.NameKey project,
       String branch,
       Collection<String> files) {
+    this.accountCache = accountCache;
+    this.accounts = accounts;
     this.key = key;
     String ownersFileName = Config.getOwnersFileName(project);
     for (String fileName : files) {
@@ -110,14 +122,37 @@ class OwnersDb {
     }
   }
 
+  String getPreferredEmail(String owner) {
+    String email = preferredEmails.get(owner);
+    if (email == null) {
+      email = owner;
+      if (!owner.equals("*")) { // look up preferred email of owner
+        try {
+          Set<Account.Id> ids = accounts.byEmail(owner);
+          if (ids == null || ids.size() != 1) {
+            errors.add(owner);
+          } else {
+            email = accountCache.get(ids.iterator().next()).getAccount().getPreferredEmail();
+          }
+        } catch (Exception e) {
+          log.error("Fail to find preferred email of " + owner, e);
+          errors.add(owner);
+        }
+      }
+      preferredEmails.put(owner, email);
+    }
+    return email;
+  }
+
   void addFile(String dirPath, String filePath, String[] lines) {
     Parser.Result result = Parser.parseFile(dirPath, filePath, lines);
     if (result.stopLooking) {
       stopLooking.add(dirPath);
     }
     for (String owner : result.owner2paths.keySet()) {
+      String email = getPreferredEmail(owner);
       for (String path : result.owner2paths.get(owner)) {
-        addOwnerPathPair(owner, path);
+        addOwnerPathPair(email, path);
       }
     }
     if (Config.getReportSyntaxError()) {

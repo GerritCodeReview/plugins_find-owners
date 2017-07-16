@@ -1,6 +1,6 @@
 load("//lib/prolog:prolog.bzl", "prolog_cafe_library")
 load("//tools/bzl:junit.bzl", "junit_tests")
-load("//tools/bzl:plugin.bzl", "gerrit_plugin", "PLUGIN_DEPS")
+load("//tools/bzl:plugin.bzl", "gerrit_plugin", "PLUGIN_DEPS", "PLUGIN_TEST_DEPS")
 
 java_library(
   name = 'find-owners-lib',
@@ -39,9 +39,8 @@ junit_tests(
   srcs = glob(['src/test/java/**/*.java']),
   # resources = glob(['src/test/resources/**/*']),
   tags = ['findowners'],
-  deps = PLUGIN_DEPS + [
+  deps = PLUGIN_DEPS + PLUGIN_TEST_DEPS + [
     ':find-owners-lib',
     ':find-owners-prolog-rules',
-    '//gerrit-acceptance-framework:lib',
   ],
 )

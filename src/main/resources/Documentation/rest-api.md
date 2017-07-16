@@ -54,6 +54,8 @@ This API returns a JSON object with the following attributes:
 
     * **branch**: the change's destination branch name.
 
+    * **errors**: error messages from OWNERS files.
+
     * **path2owners**:
       a map from directory path or file glob to an array of owner emails.
       Note that `*` is a special owner email address.
