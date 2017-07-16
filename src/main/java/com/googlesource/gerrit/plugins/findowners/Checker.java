@@ -18,6 +18,7 @@ import com.google.gerrit.reviewdb.client.Change.Status;
 import com.google.gerrit.reviewdb.client.PatchSetApproval;
 import com.google.gerrit.rules.StoredValues;
 import com.google.gerrit.server.account.AccountCache;
+import com.google.gerrit.server.account.Accounts;
 import com.google.gerrit.server.query.change.ChangeData;
 import com.google.gwtorm.server.OrmException;
 import com.googlecode.prolog_cafe.lang.Prolog;
@@ -98,9 +99,10 @@ public class Checker {
   public static int findApproval(Prolog engine, int minVoteLevel) {
     try {
       AccountCache accountCache = StoredValues.ACCOUNT_CACHE.get(engine);
+      Accounts accounts = StoredValues.ACCOUNTS.get(engine);
       ChangeData changeData = StoredValues.CHANGE_DATA.get(engine);
       Repository repository = StoredValues.REPOSITORY.get(engine);
-      return new Checker(repository, changeData, minVoteLevel).findApproval(accountCache);
+      return new Checker(repository, changeData, minVoteLevel).findApproval(accountCache, accounts);
     } catch (OrmException e) {
       log.error("Exception", e);
       return 0; // owner approval may or may not be required.
@@ -123,13 +125,13 @@ public class Checker {
     return (status == Status.ABANDONED || status == Status.MERGED);
   }
 
-  int findApproval(AccountCache accountCache) throws OrmException {
+  int findApproval(AccountCache accountCache, Accounts accounts) throws OrmException {
     if (isExemptFromOwnerApproval(changeData)) {
       return 0;
     }
     // One update to a Gerrit change can call submit_rule or submit_filter
     // many times. So this function should use cached values.
-    OwnersDb db = Cache.getInstance().get(repository, changeData);
+    OwnersDb db = Cache.getInstance().get(accountCache, accounts, repository, changeData);
     if (db.getNumOwners() <= 0) {
       return 0;
     }
