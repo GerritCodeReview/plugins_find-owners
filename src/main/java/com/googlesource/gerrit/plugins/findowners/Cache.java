@@ -18,6 +18,8 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.gerrit.reviewdb.client.Project;
+import com.google.gerrit.server.account.AccountByEmailCache;
+import com.google.gerrit.server.account.AccountCache;
 import com.google.gerrit.server.query.change.ChangeData;
 import com.google.gwtorm.server.OrmException;
 import java.util.Collection;
@@ -85,21 +87,46 @@ class Cache {
   }
 
   /** Returns a cached or new OwnersDb, for the current patchset. */
-  OwnersDb get(Repository repo, ChangeData changeData) throws OrmException {
-    return get(repo, changeData, changeData.currentPatchSet().getId().get());
+  OwnersDb get(
+      AccountByEmailCache accountByEmailCache,
+      AccountCache accountCache,
+      Repository repo,
+      ChangeData changeData)
+      throws OrmException {
+    return get(
+        accountByEmailCache,
+        accountCache,
+        repo,
+        changeData,
+        changeData.currentPatchSet().getId().get());
   }
 
   /** Returns a cached or new OwnersDb, for the specified patchset. */
-  OwnersDb get(Repository repository, ChangeData changeData, int patchset) throws OrmException {
+  OwnersDb get(
+      AccountByEmailCache accountByEmailCache,
+      AccountCache accountCache,
+      Repository repository,
+      ChangeData changeData,
+      int patchset)
+      throws OrmException {
     Project.NameKey project = changeData.change().getProject();
     String branch = changeData.change().getDest().get();
     String dbKey = Cache.makeKey(changeData.getId().get(), patchset, branch);
     // TODO: get changed files of the given patchset?
-    return get(dbKey, repository, project, branch, changeData.currentFilePaths());
+    return get(
+        accountByEmailCache,
+        accountCache,
+        dbKey,
+        repository,
+        project,
+        branch,
+        changeData.currentFilePaths());
   }
 
   /** Returns a cached or new OwnersDb, for the specified branch and changed files. */
   OwnersDb get(
+      AccountByEmailCache accountByEmailCache,
+      AccountCache accountCache,
       String key,
       Repository repository,
       Project.NameKey project,
@@ -107,7 +134,8 @@ class Cache {
       Collection<String> files) {
     if (dbCache == null) { // Do not cache OwnersDb
       log.trace("Create new OwnersDb, key=" + key);
-      return new OwnersDb(key, repository, project, branch, files);
+      return new OwnersDb(
+          accountByEmailCache, accountCache, key, repository, project, branch, files);
     }
     try {
       log.trace("Get from cash " + dbCache + ", key=" + key + ", cache size=" + dbCache.size());
@@ -117,12 +145,14 @@ class Cache {
             @Override
             public OwnersDb call() {
               log.trace("Create new OwnersDb, key=" + key);
-              return new OwnersDb(key, repository, project, branch, files);
+              return new OwnersDb(
+                  accountByEmailCache, accountCache, key, repository, project, branch, files);
             }
           });
     } catch (ExecutionException e) {
       log.error("Cache.get has exception: " + e);
-      return new OwnersDb(key, repository, project, branch, files);
+      return new OwnersDb(
+          accountByEmailCache, accountCache, key, repository, project, branch, files);
     }
   }
 

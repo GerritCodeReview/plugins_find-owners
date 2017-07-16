@@ -54,6 +54,7 @@ public class RestResult {
     String user;
     String project;
     String branch;
+    List<String> errors;
     SortedMap<String, List<String>> path2owners;
     SortedMap<String, List<String>> owner2paths;
   };

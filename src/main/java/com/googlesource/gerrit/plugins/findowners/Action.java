@@ -26,6 +26,7 @@ import com.google.gerrit.reviewdb.client.Change.Status;
 import com.google.gerrit.reviewdb.server.ReviewDb;
 import com.google.gerrit.server.CurrentUser;
 import com.google.gerrit.server.IdentifiedUser;
+import com.google.gerrit.server.account.AccountByEmailCache;
 import com.google.gerrit.server.account.AccountCache;
 import com.google.gerrit.server.change.ChangeResource;
 import com.google.gerrit.server.change.RevisionResource;
@@ -53,6 +54,7 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
 
   private static final Logger log = LoggerFactory.getLogger(Action.class);
 
+  private AccountByEmailCache accountByEmailCache;
   private AccountCache accountCache;
   private ChangeData.Factory changeDataFactory;
   private GitRepositoryManager repoManager;
@@ -71,11 +73,13 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
       Provider<CurrentUser> userProvider,
       SchemaFactory<ReviewDb> reviewDbProvider,
       ChangeData.Factory changeDataFactory,
+      AccountByEmailCache accountByEmailCache,
       AccountCache accountCache,
       GitRepositoryManager repoManager) {
     this.userProvider = userProvider;
     this.reviewDbProvider = reviewDbProvider;
     this.changeDataFactory = changeDataFactory;
+    this.accountByEmailCache = accountByEmailCache;
     this.accountCache = accountCache;
     this.repoManager = repoManager;
     Config.setVariables(pluginName, configFactory);
@@ -167,7 +171,9 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
       Repository repository, Parameters params, ChangeData changeData)
       throws OrmException, BadRequestException {
     int patchset = getValidPatchsetNum(changeData, params.patchset);
-    OwnersDb db = Cache.getInstance().get(repository, changeData, patchset);
+    OwnersDb db =
+        Cache.getInstance()
+            .get(accountByEmailCache, accountCache, repository, changeData, patchset);
     Collection<String> changedFiles = changeData.currentFilePaths();
     Map<String, Set<String>> file2Owners = db.findOwners(changedFiles);
 
@@ -180,6 +186,7 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
       obj.dbgmsgs.user = getUserName();
       obj.dbgmsgs.project = changeData.change().getProject().get();
       obj.dbgmsgs.branch = changeData.change().getDest().get();
+      obj.dbgmsgs.errors = (db.errors.size() > 0) ? db.errors : null;
       obj.dbgmsgs.path2owners = Util.makeSortedMap(db.path2Owners);
       obj.dbgmsgs.owner2paths = Util.makeSortedMap(db.owner2Paths);
     }
@@ -211,7 +218,8 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
       if (needFindOwners && !Config.getAlwaysShowButton()) {
         needFindOwners = false; // Show button only if some owner is found.
         try (Repository repo = repoManager.openRepository(change.getProject())) {
-          OwnersDb db = Cache.getInstance().get(repo, changeData);
+          OwnersDb db =
+              Cache.getInstance().get(accountByEmailCache, accountCache, repo, changeData);
           log.trace("getDescription db key = " + db.key);
           needFindOwners = db.getNumOwners() > 0;
         }

@@ -20,6 +20,7 @@ import com.google.gerrit.extensions.restapi.Response;
 import com.google.gerrit.extensions.restapi.RestReadView;
 import com.google.gerrit.reviewdb.server.ReviewDb;
 import com.google.gerrit.server.CurrentUser;
+import com.google.gerrit.server.account.AccountByEmailCache;
 import com.google.gerrit.server.account.AccountCache;
 import com.google.gerrit.server.change.ChangeResource;
 import com.google.gerrit.server.config.PluginConfigFactory;
@@ -55,6 +56,7 @@ public class GetOwners implements RestReadView<ChangeResource> {
       Provider<CurrentUser> userProvider,
       SchemaFactory<ReviewDb> reviewDbProvider,
       ChangeData.Factory dataFactory,
+      AccountByEmailCache accountByEmailCache,
       AccountCache accountCache,
       GitRepositoryManager repoManager) {
     this.action =
@@ -64,6 +66,7 @@ public class GetOwners implements RestReadView<ChangeResource> {
             userProvider,
             reviewDbProvider,
             dataFactory,
+            accountByEmailCache,
             accountCache,
             repoManager);
   }

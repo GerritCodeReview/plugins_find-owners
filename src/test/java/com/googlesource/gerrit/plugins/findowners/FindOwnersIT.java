@@ -22,6 +22,7 @@ import com.google.gerrit.acceptance.LightweightPluginDaemonTest;
 import com.google.gerrit.acceptance.PushOneCommit;
 import com.google.gerrit.acceptance.RestResponse;
 import com.google.gerrit.acceptance.TestPlugin;
+import com.google.gerrit.extensions.api.accounts.EmailInput;
 import com.google.gerrit.extensions.api.changes.SubmitInput;
 import com.google.gerrit.extensions.client.ChangeStatus;
 import com.google.gerrit.extensions.common.ChangeInfo;
@@ -30,10 +31,11 @@ import com.google.gerrit.extensions.restapi.Response;
 import com.google.gerrit.reviewdb.client.Account;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.reviewdb.client.RefNames;
-import com.google.gerrit.server.account.Accounts;
+import com.google.gerrit.server.account.AccountByEmailCache;
 import com.google.gerrit.server.change.ChangeResource;
 import com.google.gerrit.server.config.PluginConfigFactory;
 import com.google.inject.Inject;
+import java.util.Set;
 import org.eclipse.jgit.lib.ObjectLoader;
 import org.eclipse.jgit.revwalk.RevObject;
 import org.eclipse.jgit.revwalk.RevTree;
@@ -45,8 +47,8 @@ import org.junit.Test;
 @TestPlugin(name = "find-owners", sysModule = "com.googlesource.gerrit.plugins.findowners.Module")
 public class FindOwnersIT extends LightweightPluginDaemonTest {
 
+  @Inject private AccountByEmailCache accountByEmailCache;
   @Inject private PluginConfigFactory configFactory;
-  @Inject private Accounts accounts;
 
   @Test
   public void getOwnersTest() throws Exception {
@@ -172,14 +174,35 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
 
   @Test
   public void accountTest() throws Exception {
-    String[] myTestEmails = {"abc@g.com", "abc+xyz@g.com", "xyz@g.com"};
-    for (String email : myTestEmails) {
-      Account.Id id = accountCreator.create("User" + email, email, "FullName" + email).getId();
-      // Action.getReviewers uses accountCache to get email address.
-      assertThat(accountCache.get(id).getAccount().getPreferredEmail()).isEqualTo(email);
-      // Checker.getVotes uses AccountCache to get email address.
-      assertThat(accounts.get(db, id).getPreferredEmail()).isEqualTo(email);
+    String[] users = {"user1", "user2", "user3"};
+    String[] myTestEmails = {"abc@g.com", "abc+xyz@g.com", "xyz-team+review@g.com"};
+    // Create account with given user name and email; add a secondary email address.
+    for (int i = 0; i < users.length; i++) {
+      String user = users[i];
+      String email = myTestEmails[i];
+      Account.Id id = accountCreator.create(user, email, "FullName" + email).getId();
+      EmailInput input = new EmailInput();
+      input.email = email + ".tw"; // secondary email
+      input.noConfirmation = true;
+      gApi.accounts().id(user).addEmail(input);
     }
+    // Find accounts with given email and secondary email addresses.
+    for (String email : myTestEmails) {
+      // OwnersDb uses accountByEmailCache to get preferred email addresses.
+      Set<Account.Id> byEmail1 = accountByEmailCache.get(email);
+      Set<Account.Id> byEmail2 = accountByEmailCache.get(email + ".tw");
+      assertThat(byEmail1.size()).isEqualTo(1);
+      assertThat(byEmail2.size()).isEqualTo(1);
+      Account.Id id1 = byEmail1.iterator().next();
+      Account.Id id2 = byEmail1.iterator().next();
+      assertThat(id1).isEqualTo(id2); // Both emails should find the same account.
+      // Action.getReviewers and Checker.getVotes use accountCache to get email address.
+      assertThat(accountCache.get(id1).getAccount().getPreferredEmail()).isEqualTo(email);
+    }
+    // Wrong or non-existing email address.
+    assertThat(accountByEmailCache.get("nobody").size()).isEqualTo(0);
+    assertThat(accountByEmailCache.get("@g.com").size()).isEqualTo(0);
+    assertThat(accountByEmailCache.get("nobody@g.com").size()).isEqualTo(0);
   }
 
   @Test
@@ -275,7 +298,15 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
     ChangeResource cr = parseChangeResource(changeInfo.changeId);
     Action.Parameters param = new Action.Parameters();
     Action action =
-        new Action("find-owners", null, null, null, changeDataFactory, accountCache, repoManager);
+        new Action(
+            "find-owners",
+            null,
+            null,
+            null,
+            changeDataFactory,
+            accountByEmailCache,
+            accountCache,
+            repoManager);
     Response<RestResult> response = action.apply(db, cr, param);
     RestResult result = response.value();
     verifyRestResult(result, 1, 1, changeInfo._number, false);
