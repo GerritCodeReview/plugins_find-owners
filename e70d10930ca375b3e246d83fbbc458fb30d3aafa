@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "59796a85_b8ab13da",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/OwnersDb.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 1003935
+      },
+      "writtenOn": "2017-07-19T13:05:20Z",
+      "side": 1,
+      "message": "[optional] accounts.byEmail is not limited to preferred emails, but checks all emails, so you may want to rename your method",
+      "range": {
+        "startLine": 131,
+        "startChar": 32,
+        "endLine": 131,
+        "endChar": 56
+      },
+      "revId": "e70d10930ca375b3e246d83fbbc458fb30d3aafa",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e09f878e_1510d4c3",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/OwnersDb.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 1003935
+      },
+      "writtenOn": "2017-07-19T13:05:20Z",
+      "side": 1,
+      "message": "With [1] there is now also a method, Accounts#byEmails(String...), that allows to lookup accounts for several emails at once. As explained in the commit message of [1] this method has better performance than calling Accounts#byEmail(String) in a loop. So you may consider to make use of this new method.\n\n[1] https://gerrit-review.googlesource.com/114273",
+      "range": {
+        "startLine": 152,
+        "startChar": 4,
+        "endLine": 153,
+        "endChar": 46
+      },
+      "revId": "e70d10930ca375b3e246d83fbbc458fb30d3aafa",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    }
+  ]
+}
