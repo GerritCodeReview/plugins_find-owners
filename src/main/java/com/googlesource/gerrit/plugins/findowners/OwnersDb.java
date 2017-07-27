@@ -125,9 +125,9 @@ class OwnersDb {
   }
 
   void addPreferredEmails(Set<String> ownerEmails) {
-    List<String> owners = new ArrayList<String>(ownerEmails);
+    List<String> owners = new ArrayList<>(ownerEmails);
     owners.removeIf(o -> preferredEmails.get(o) != null);
-    if (owners.size() > 0) {
+    if (!owners.isEmpty()) {
       String[] emails = new String[owners.size()];
       owners.toArray(emails);
       Multimap<String, Account.Id> email2ids = null;

@@ -32,7 +32,6 @@ import com.google.gerrit.extensions.restapi.Response;
 import com.google.gerrit.reviewdb.client.Account;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.reviewdb.client.RefNames;
-import com.google.gerrit.server.account.Accounts;
 import com.google.gerrit.server.change.ChangeResource;
 import com.google.gerrit.server.config.PluginConfigFactory;
 import com.google.inject.Inject;
@@ -48,7 +47,6 @@ import org.junit.Test;
 @TestPlugin(name = "find-owners", sysModule = "com.googlesource.gerrit.plugins.findowners.Module")
 public class FindOwnersIT extends LightweightPluginDaemonTest {
 
-  @Inject private Accounts accounts;
   @Inject private PluginConfigFactory configFactory;
 
   @Test
@@ -180,7 +178,7 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
     String[] emails2 = {"abc@goog.com", "abc+xyz2@g.com", "xyz-team@goog.com"};
     // Create accounts with given user name, first and second email addresses.
     for (int i = 0; i < users.length; i++) {
-      Account.Id id = accountCreator.create(users[i], emails1[i], "FullName " + users[i]).getId();
+      accountCreator.create(users[i], emails1[i], "FullName " + users[i]).getId();
       EmailInput input = new EmailInput();
       input.email = emails2[i];
       input.noConfirmation = true;
@@ -195,10 +193,10 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
       Collection<Account.Id> ids2 = accounts.byEmail(emails2[i]);
       Collection<Account.Id> ids3 = map1.get(emails1[i]);
       Collection<Account.Id> ids4 = map2.get(emails2[i]);
-      assertThat(ids1.size()).isEqualTo(1);
-      assertThat(ids2.size()).isEqualTo(1);
-      assertThat(ids3.size()).isEqualTo(1);
-      assertThat(ids4.size()).isEqualTo(1);
+      assertThat(ids1).hasSize(1);
+      assertThat(ids2).hasSize(1);
+      assertThat(ids3).hasSize(1);
+      assertThat(ids4).hasSize(1);
       Account.Id id1 = ids1.iterator().next();
       Account.Id id2 = ids2.iterator().next();
       Account.Id id3 = ids3.iterator().next();
@@ -213,8 +211,8 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
     String[] wrongEmails = {"nobody", "@g.com", "nobody@g.com", "*"};
     Multimap<String, Account.Id> email2ids = accounts.byEmails(wrongEmails);
     for (String email : wrongEmails) {
-      assertThat(accounts.byEmail(email).size()).isEqualTo(0);
-      assertThat(email2ids.get(email).size()).isEqualTo(0);
+      assertThat(accounts.byEmail(email)).isEmpty();
+      assertThat(email2ids.get(email)).isEmpty();
     }
   }
 
