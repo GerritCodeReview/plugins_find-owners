@@ -37,6 +37,7 @@ import com.google.gerrit.server.config.PluginConfigFactory;
 import com.google.inject.Inject;
 import java.util.Collection;
 import org.eclipse.jgit.lib.ObjectLoader;
+import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevObject;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
@@ -301,6 +302,20 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
   }
 
   @Test
+  public void authorDefaultVoteTest() throws Exception {
+    // CL author has default +1 owner vote.
+    addFile("add d1/OWNERS", "d1/OWNERS", user.email + "\n"); // d1 owned by user
+    addFile("add d2/OWNERS", "d2/OWNERS", admin.email + "\n"); // d2 owned by admin
+    // admin is the author of CLs created by createChange.
+    PushOneCommit.Result r1 = createChange("add d1/t.c", "d1/t.c", "Hello1");
+    PushOneCommit.Result r2 = createChange("add d2/t.c", "d2/t.c", "Hello2");
+    PushOneCommit.Result r3 = createChange("add d3/t.c", "d3/t.c", "Hello3");
+    assertThat(checkApproval(r1)).isEqualTo(-1); // owner is not change author
+    assertThat(checkApproval(r2)).isEqualTo(1); // owner is change author, default +1
+    assertThat(checkApproval(r3)).isEqualTo(0); // no owner is found in d3
+  }
+
+  @Test
   public void actionApplyTest() throws Exception {
     Cache cache = Cache.getInstance().init(0, 10);
     assertThat(cache.size()).isEqualTo(0);
@@ -423,6 +438,14 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
             .to("refs/for/" + REFS_CONFIG);
     commit.assertOkStatus();
     approveSubmit(commit);
+  }
+
+  private int checkApproval(PushOneCommit.Result r) throws Exception {
+    Repository repo = repoManager.openRepository(r.getChange().project());
+    Cache cache = Cache.getInstance().init(0, 0);
+    OwnersDb db = cache.get(accountCache, accounts, repo, r.getChange(), 1);
+    Checker c = new Checker(repo, r.getChange(), 1);
+    return c.findApproval(accountCache, db);
   }
 
   // Remove '"' and space; replace '\n' with ' '; ignore unpredictable "owner_revision".
