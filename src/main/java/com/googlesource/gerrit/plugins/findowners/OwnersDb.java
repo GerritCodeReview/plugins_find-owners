@@ -21,7 +21,6 @@ import com.google.gerrit.reviewdb.client.Account;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.account.AccountCache;
 import com.google.gerrit.server.account.Accounts;
-import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.PathMatcher;
@@ -33,6 +32,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectReader;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevTree;
@@ -74,31 +74,35 @@ class OwnersDb {
     this.key = key;
     preferredEmails.put("*", "*");
     String ownersFileName = Config.getOwnersFileName(project);
-    for (String fileName : files) {
-      // Find OWNERS in fileName's directory and parent directories.
-      // Stop looking for a parent directory if OWNERS has "set noparent".
-      fileName = Util.normalizedFilePath(fileName);
-      String dir = Util.normalizedDirPath(fileName); // e.g. dir = ./d1/d2
-      while (!readDirs.contains(dir)) {
-        readDirs.add(dir);
-        String filePath = (dir + "/" + ownersFileName).substring(2); // remove "./"
-        String content = getRepositoryFile(repository, branch, filePath);
-        if (content != null && !content.equals("")) {
-          addFile(dir + "/", dir + "/" + ownersFileName, content.split("\\R+"));
+    // Some hacked CL could have a target branch that is not created yet.
+    ObjectId id = getBranchId(repository, branch);
+    revision = "";
+    if (id != null) {
+      for (String fileName : files) {
+        // Find OWNERS in fileName's directory and parent directories.
+        // Stop looking for a parent directory if OWNERS has "set noparent".
+        fileName = Util.normalizedFilePath(fileName);
+        String dir = Util.normalizedDirPath(fileName); // e.g. dir = ./d1/d2
+        while (!readDirs.contains(dir)) {
+          readDirs.add(dir);
+          String filePath = (dir + "/" + ownersFileName).substring(2); // remove "./"
+          String content = getRepositoryFile(repository, id, filePath);
+          if (content != null && !content.equals("")) {
+            addFile(dir + "/", dir + "/" + ownersFileName, content.split("\\R+"));
+          }
+          if (stopLooking.contains(dir + "/") || !dir.contains("/")) {
+            break; // stop looking through parent directory
+          }
+          dir = Util.getDirName(dir); // go up one level
         }
-        if (stopLooking.contains(dir + "/") || !dir.contains("/")) {
-          break; // stop looking through parent directory
-        }
-        dir = Util.getDirName(dir); // go up one level
+      }
+      try {
+        revision = repository.getRef(branch).getObjectId().getName();
+      } catch (Exception e) {
+        log.error("Fail to get branch revision", e);
       }
     }
     countNumOwners(files);
-    try {
-      revision = repository.getRef(branch).getObjectId().getName();
-    } catch (IOException e) {
-      log.error("Fail to get branch revision", e);
-      revision = "";
-    }
   }
 
   int getNumOwners() {
@@ -282,16 +286,30 @@ class OwnersDb {
     return file2Owners;
   }
 
+  /** Returns ObjectId of the given branch, or null. */
+  private static ObjectId getBranchId(Repository repo, String branch) {
+    try {
+      ObjectId id = repo.resolve(branch);
+      if (id == null) {
+        log.error("cannot find branch " + branch);
+      }
+      return id;
+    } catch (Exception e) {
+      log.error("cannot find branch " + branch, e);
+    }
+    return null;
+  }
+
   /** Returns file content or empty string; uses Repository. */
-  static String getRepositoryFile(Repository repo, String branch, String file) {
+  private static String getRepositoryFile(Repository repo, ObjectId id, String file) {
     try (RevWalk revWalk = new RevWalk(repo)) {
-      RevTree tree = revWalk.parseCommit(repo.resolve(branch)).getTree();
+      RevTree tree = revWalk.parseCommit(id).getTree();
       ObjectReader reader = revWalk.getObjectReader();
       TreeWalk treeWalk = TreeWalk.forPath(reader, file, tree);
       if (treeWalk != null) {
         return new String(reader.open(treeWalk.getObjectId(0)).getBytes(), UTF_8);
       }
-    } catch (IOException e) {
+    } catch (Exception e) {
       log.error("get file " + file, e);
     }
     return "";
