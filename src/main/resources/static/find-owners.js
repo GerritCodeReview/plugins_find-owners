@@ -14,9 +14,9 @@
 
 Gerrit.install(function(self) {
   function onFindOwners(c) {
-    const HTML_ALL_HAVE_OWNER_APPROVAL =
-        '<b>All files have owner approval.</b><br>';
     const HTML_BULLET = '<small>&#x2605;</small>'; // a Black Star
+    const HTML_HAS_APPROVAL_HEADER =
+        '<hr><b>Files with +1 or +2 Code-Review vote from owners:</b><br>';
     const HTML_IS_EXEMPTED =
         '<b>This commit is exempted from owner approval.</b><br>';
     const HTML_NEED_REVIEWER_HEADER =
@@ -39,15 +39,18 @@ Gerrit.install(function(self) {
     const CHECKBOX_ID = 'FindOwners:CheckBox';
     const HEADER_DIV_ID = 'FindOwners:Header';
     const OWNERS_DIV_ID = 'FindOwners:Owners';
+    const HAS_APPROVAL_DIV_ID = 'FindOwners:HasApproval';
     const NEED_APPROVAL_DIV_ID = 'FindOwners:NeedApproval';
     const NEED_REVIEWER_DIV_ID = 'FindOwners:NeedReviewer';
 
     // Aliases to values in the context.
     const branch = c.change.branch;
     const changeId = c.change._number;
+    const changeOwner = c.change.owner;
     const message = c.revision.commit.message;
     const project = c.change.project;
 
+    var minVoteLevel = 1; // could be changed by server returned results.
     var reviewerId = {}; // map from a reviewer's email to account id.
     var reviewerVote = {}; // map from a reviewer's email to Code-Review vote.
 
@@ -76,6 +79,14 @@ Gerrit.install(function(self) {
           }
         }
       });
+      // Give CL author a default minVoteLevel vote.
+      if (changeOwner != null &&
+          'email' in changeOwner && '_account_id' in changeOwner &&
+          (!(changeOwner.email in reviewerId) ||
+           reviewerVote[changeOwner.email] == 0)) {
+        reviewerId[changeOwner.email] = changeOwner._account_id;
+        reviewerVote[changeOwner.email] = minVoteLevel;
+      }
     }
     function checkAddRemoveLists() {
       // Gerrit.post and delete are asynchronous.
@@ -121,7 +132,7 @@ Gerrit.install(function(self) {
         return (owner in reviewers || owner == '*');
       });
     }
-    function hasOwnerApproval(votes, minVoteLevel, owners) {
+    function hasOwnerApproval(votes, owners) {
       var foundApproval = false;
       for (var j = 0; j < owners.length; j++) {
         if (owners[j] in votes) {
@@ -129,7 +140,6 @@ Gerrit.install(function(self) {
           if (v < 0) {
             return false; // cannot have any negative vote
           }
-          // TODO: do not count if owners[j] is the patch committer.
           foundApproval |= v >= minVoteLevel;
         }
       }
@@ -164,6 +174,7 @@ Gerrit.install(function(self) {
       addKeyValue('changeId', changeId);
       addKeyValue('project', project);
       addKeyValue('branch', branch);
+      addKeyValue('changeOwner.email', changeOwner.email);
       addKeyValue('Gerrit.url', Gerrit.url());
       addKeyValue('self.url', self.url());
       showJsonLines(args, 'changeOwner', c.change.owner);
@@ -184,11 +195,14 @@ Gerrit.install(function(self) {
       var header = emptyDiv(HEADER_DIV_ID);
       var needReviewerDiv = emptyDiv(NEED_REVIEWER_DIV_ID);
       var needApprovalDiv = emptyDiv(NEED_APPROVAL_DIV_ID);
+      var hasApprovalDiv = emptyDiv(HAS_APPROVAL_DIV_ID);
       addApplyButton();
       var ownersDiv = emptyDiv(OWNERS_DIV_ID);
       var numCheckBoxes = 0;
       var owner2boxes = {}; // owner name ==> array of checkbox id
       var owner2email = {}; // owner name ==> email address
+      minVoteLevel =
+          ('minOwnerVoteLevel' in result ? result.minOwnerVoteLevel : 1);
 
       function addApplyButton() {
         var apply = c.button('Apply', {onclick: doApplyButton});
@@ -285,6 +299,7 @@ Gerrit.install(function(self) {
       function updateDivContent() {
         var groupNeedReviewer = [];
         var groupNeedApproval = [];
+        var groupHasApproval = [];
         numCheckBoxes = 0;
         owner2boxes = {};
         Object.keys(groups).sort().forEach(function(key) {
@@ -293,24 +308,21 @@ Gerrit.install(function(self) {
             groupNeedReviewer.push(key);
           } else if (g.needApproval) {
             groupNeedApproval.push(key);
+          } else {
+            groupHasApproval.push(key);
           }
         });
-        if (0 == groupNeedReviewer.length && 0 == groupNeedApproval.length) {
-          showDiv(header, HTML_ALL_HAVE_OWNER_APPROVAL);
-        } else {
-          showDiv(header, HTML_SELECT_REVIEWERS);
-          addGroupsToDiv(needReviewerDiv, groupNeedReviewer,
-                         HTML_NEED_REVIEWER_HEADER);
-          addGroupsToDiv(needApprovalDiv, groupNeedApproval,
-                         HTML_NEED_APPROVAL_HEADER);
-          addOwnersDiv(ownersDiv, HTML_OWNERS_HEADER);
-        }
+        showDiv(header, HTML_SELECT_REVIEWERS);
+        addGroupsToDiv(needReviewerDiv, groupNeedReviewer,
+                       HTML_NEED_REVIEWER_HEADER);
+        addGroupsToDiv(needApprovalDiv, groupNeedApproval,
+                       HTML_NEED_APPROVAL_HEADER);
+        addGroupsToDiv(hasApprovalDiv, groupHasApproval,
+                       HTML_HAS_APPROVAL_HEADER);
+        addOwnersDiv(ownersDiv, HTML_OWNERS_HEADER);
       }
       function createGroups() {
         var owners2group = {}; // owner list to group name
-        var minVoteLevel =
-            ('minOwnerVoteLevel' in result ?
-             result['minOwnerVoteLevel'] : 1);
         Object.keys(result.file2owners).sort().forEach(function(name) {
           var splitOwners = result.file2owners[name];
           var owners = splitOwners.join(' ');
@@ -321,7 +333,7 @@ Gerrit.install(function(self) {
             groupSize[name] = 1;
             var needReviewer = !hasOwnerReviewer(reviewerId, splitOwners);
             var needApproval = !needReviewer &&
-                !hasOwnerApproval(reviewerVote, minVoteLevel, splitOwners);
+                !hasOwnerApproval(reviewerVote, splitOwners);
             groups[name] = {
               'needReviewer': needReviewer,
               'needApproval': needApproval,
