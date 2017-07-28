@@ -49,7 +49,7 @@ public class Checker {
   }
 
   /** Returns a map from reviewer email to vote value. */
-  static Map<String, Integer> getVotes(AccountCache accountCache, ChangeData changeData)
+  Map<String, Integer> getVotes(AccountCache accountCache, ChangeData changeData)
       throws OrmException {
     Map<String, Integer> map = new HashMap<>();
     for (PatchSetApproval p : changeData.currentApprovals()) {
@@ -58,6 +58,12 @@ public class Checker {
             accountCache.get(p.getAccountId()).getAccount().getPreferredEmail(),
             Integer.valueOf(p.getValue()));
       }
+    }
+    // Give CL author a default minVoteLevel vote.
+    String author =
+        accountCache.get(changeData.change().getOwner()).getAccount().getPreferredEmail();
+    if (!map.containsKey(author) || map.get(author) == 0) {
+      map.put(author, minVoteLevel);
     }
     return map;
   }
@@ -69,8 +75,6 @@ public class Checker {
     for (String owner : owners) {
       if (votes.containsKey(owner)) {
         int v = votes.get(owner);
-        // TODO: Maybe add a configurable feature in the next version
-        // to exclude the committer's vote from the "foundApproval".
         foundApproval |= (v >= minVoteLevel);
         foundVeto |= (v < 0); // an owner's -1 vote is a veto
       } else if (owner.equals("*")) {
