@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "53e5fad2_a8f4214d",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Checker.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1034308
+      },
+      "writtenOn": "2017-08-03T06:42:09Z",
+      "side": 1,
+      "message": "Good to see this!",
+      "range": {
+        "startLine": 64,
+        "startChar": 70,
+        "endLine": 64,
+        "endChar": 87
+      },
+      "revId": "2c6358e5f0b90a2a50692a6f14946489de76295b",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    }
+  ]
+}
