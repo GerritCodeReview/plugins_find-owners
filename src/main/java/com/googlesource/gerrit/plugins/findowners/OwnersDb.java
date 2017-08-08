@@ -20,7 +20,7 @@ import com.google.common.collect.Multimap;
 import com.google.gerrit.reviewdb.client.Account;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.account.AccountCache;
-import com.google.gerrit.server.account.Accounts;
+import com.google.gerrit.server.account.Emails;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.PathMatcher;
@@ -46,7 +46,7 @@ class OwnersDb {
   private static final Logger log = LoggerFactory.getLogger(OwnersDb.class);
 
   private AccountCache accountCache;
-  private Accounts accounts;
+  private Emails emails;
   private int numOwners = -1; // # of owners of all given files.
 
   String key = ""; // key to find this OwnersDb in a cache.
@@ -63,14 +63,14 @@ class OwnersDb {
 
   OwnersDb(
       AccountCache accountCache,
-      Accounts accounts,
+      Emails emails,
       String key,
       Repository repository,
       Project.NameKey project,
       String branch,
       Collection<String> files) {
     this.accountCache = accountCache;
-    this.accounts = accounts;
+    this.emails = emails;
     this.key = key;
     preferredEmails.put("*", "*");
     String ownersFileName = Config.getOwnersFileName(project);
@@ -132,15 +132,15 @@ class OwnersDb {
     List<String> owners = new ArrayList<>(ownerEmails);
     owners.removeIf(o -> preferredEmails.get(o) != null);
     if (!owners.isEmpty()) {
-      String[] emails = new String[owners.size()];
-      owners.toArray(emails);
+      String[] ownerEmailsAsArray = new String[owners.size()];
+      owners.toArray(ownerEmailsAsArray);
       Multimap<String, Account.Id> email2ids = null;
       try {
-        email2ids = accounts.byEmails(emails);
+        email2ids = emails.getAccountsFor(ownerEmailsAsArray);
       } catch (Exception e) {
         log.error("accounts.byEmails failed with exception: ", e);
       }
-      for (String owner : emails) {
+      for (String owner : ownerEmailsAsArray) {
         String email = owner;
         try {
           if (email2ids == null) {

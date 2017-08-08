@@ -21,7 +21,7 @@ import com.google.gerrit.extensions.restapi.RestReadView;
 import com.google.gerrit.reviewdb.server.ReviewDb;
 import com.google.gerrit.server.CurrentUser;
 import com.google.gerrit.server.account.AccountCache;
-import com.google.gerrit.server.account.Accounts;
+import com.google.gerrit.server.account.Emails;
 import com.google.gerrit.server.change.ChangeResource;
 import com.google.gerrit.server.config.PluginConfigFactory;
 import com.google.gerrit.server.git.GitRepositoryManager;
@@ -57,7 +57,7 @@ public class GetOwners implements RestReadView<ChangeResource> {
       SchemaFactory<ReviewDb> reviewDbProvider,
       ChangeData.Factory dataFactory,
       AccountCache accountCache,
-      Accounts accounts,
+      Emails emails,
       GitRepositoryManager repoManager) {
     this.action =
         new Action(
@@ -67,7 +67,7 @@ public class GetOwners implements RestReadView<ChangeResource> {
             reviewDbProvider,
             dataFactory,
             accountCache,
-            accounts,
+            emails,
             repoManager);
   }
 

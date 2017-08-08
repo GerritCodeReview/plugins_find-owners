@@ -32,6 +32,7 @@ import com.google.gerrit.extensions.restapi.Response;
 import com.google.gerrit.reviewdb.client.Account;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.reviewdb.client.RefNames;
+import com.google.gerrit.server.account.Emails;
 import com.google.gerrit.server.change.ChangeResource;
 import com.google.gerrit.server.config.PluginConfigFactory;
 import com.google.inject.Inject;
@@ -48,6 +49,7 @@ import org.junit.Test;
 @TestPlugin(name = "find-owners", sysModule = "com.googlesource.gerrit.plugins.findowners.Module")
 public class FindOwnersIT extends LightweightPluginDaemonTest {
 
+  @Inject private Emails emails;
   @Inject private PluginConfigFactory configFactory;
 
   @Test
@@ -186,12 +188,12 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
       gApi.accounts().id(users[i]).addEmail(input);
     }
     // Find accounts with given first and second email addresses.
-    // OwnersDb uses either accounts.byEmail or byEmails to get preferred email addresses.
-    Multimap<String, Account.Id> map1 = accounts.byEmails(emails1);
-    Multimap<String, Account.Id> map2 = accounts.byEmails(emails2);
+    // OwnersDb uses either emails.getAccountFor or getAccountsFor to get preferred email addresses.
+    Multimap<String, Account.Id> map1 = emails.getAccountsFor(emails1);
+    Multimap<String, Account.Id> map2 = emails.getAccountsFor(emails2);
     for (int i = 0; i < users.length; i++) {
-      Collection<Account.Id> ids1 = accounts.byEmail(emails1[i]);
-      Collection<Account.Id> ids2 = accounts.byEmail(emails2[i]);
+      Collection<Account.Id> ids1 = emails.getAccountFor(emails1[i]);
+      Collection<Account.Id> ids2 = emails.getAccountFor(emails2[i]);
       Collection<Account.Id> ids3 = map1.get(emails1[i]);
       Collection<Account.Id> ids4 = map2.get(emails2[i]);
       assertThat(ids1).hasSize(1);
@@ -210,9 +212,9 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
     }
     // Wrong or non-existing email address.
     String[] wrongEmails = {"nobody", "@g.com", "nobody@g.com", "*"};
-    Multimap<String, Account.Id> email2ids = accounts.byEmails(wrongEmails);
+    Multimap<String, Account.Id> email2ids = emails.getAccountsFor(wrongEmails);
     for (String email : wrongEmails) {
-      assertThat(accounts.byEmail(email)).isEmpty();
+      assertThat(emails.getAccountFor(email)).isEmpty();
       assertThat(email2ids.get(email)).isEmpty();
     }
   }
@@ -331,7 +333,7 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
             null,
             changeDataFactory,
             accountCache,
-            accounts,
+            emails,
             repoManager);
     Response<RestResult> response = action.apply(db, cr, param);
     RestResult result = response.value();
@@ -443,7 +445,7 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
   private int checkApproval(PushOneCommit.Result r) throws Exception {
     Repository repo = repoManager.openRepository(r.getChange().project());
     Cache cache = Cache.getInstance().init(0, 0);
-    OwnersDb db = cache.get(accountCache, accounts, repo, r.getChange(), 1);
+    OwnersDb db = cache.get(accountCache, emails, repo, r.getChange(), 1);
     Checker c = new Checker(repo, r.getChange(), 1);
     return c.findApproval(accountCache, db);
   }
