@@ -13,23 +13,58 @@
 // limitations under the License.
 
 Gerrit.install(function(self) {
-  function onFindOwners(c) {
+  var pageDiv = document.createElement('div');
+  document.body.appendChild(pageDiv);
+  function hideFindOwnersPage() {
+    pageDiv.style.visibility = 'hidden';
+  }
+  function popupFindOwnersPage(change, revision, onSubmit) {
+    const COMMON_PAGE_STYLE =
+        'visibility: hidden;' +
+        'background: rgba(200, 200, 200, 0.95);' +
+        'border: 3px solid;' +
+        'border-color: #c8c8c8;' +
+        'border-radius: 3px;' +
+        'position: fixed;' +
+        'z-index: 100;' +
+        'overflow: auto;' +
+        'padding: 5px;';
+    const LARGE_PAGE_STYLE = Gerrit.css(
+        COMMON_PAGE_STYLE + 'top:5%;left:10%;height:90%;width:80%;'
+        );
+    const SMALL_PAGE_STYLE = Gerrit.css(
+        COMMON_PAGE_STYLE + 'top:10%;left:25%;height:auto;width:50%;'
+        );
+    const BUTTON_STYLE = Gerrit.css(
+        'background-color: #4d90fe;' +
+        'border: 2px solid;' +
+        'border-color: #4d90fe;' +
+        'margin: 2px 10px 2px 10px;' +
+        'text-align: center;' +
+        'font-size: 8pt;' +
+        'font-weight: bold;' +
+        'color: #fff;' +
+        '-webkit-border-radius: 2px;' +
+        'cursor: pointer;'
+        );
     const HTML_BULLET = '<small>&#x2605;</small>'; // a Black Star
     const HTML_HAS_APPROVAL_HEADER =
         '<hr><b>Files with +1 or +2 Code-Review vote from owners:</b><br>';
     const HTML_IS_EXEMPTED =
-        '<b>This commit is exempted from owner approval.</b><br>';
+        '<b>This commit is exempted from owner approval.</b>';
     const HTML_NEED_REVIEWER_HEADER =
         '<hr><b>Files without owner reviewer:</b><br>';
     const HTML_NEED_APPROVAL_HEADER =
         '<hr><b>Files without Code-Review vote from an owner:</b><br>';
     const HTML_NO_OWNER =
-        '<b>No owner was found for changed files.</b><br>';
+        '<b>No owner was found for changed files.</b>';
+    const HTML_ONSUBMIT_HEADER =
+        '<b>WARNING: Need owner approval vote before submit.</b><hr>';
     const HTML_OWNERS_HEADER = '<hr><b>Owners in alphabetical order:</b><br>';
     const HTML_SELECT_REVIEWERS =
         '<b>Check the box before owner names to select reviewers, ' +
         'then click the "Apply" button.' +
-        '</b><br><small>Each file needs at least one owner. ' +
+        '</b><br><small>Each file needs at least one owner code review vote. ' +
         'Owners listed after a file are ordered by their importance. ' +
         '(Or declare "<b><span style="font-size:80%;">' +
         'Exempt-From-Owner-Approval:</span></b> ' +
@@ -44,11 +79,11 @@ Gerrit.install(function(self) {
     const NEED_REVIEWER_DIV_ID = 'FindOwners:NeedReviewer';
 
     // Aliases to values in the context.
-    const branch = c.change.branch;
-    const changeId = c.change._number;
-    const changeOwner = c.change.owner;
-    const message = c.revision.commit.message;
-    const project = c.change.project;
+    const branch = change.branch;
+    const changeId = change._number;
+    const changeOwner = change.owner;
+    const message = revision.commit.message;
+    const project = change.project;
 
     var minVoteLevel = 1; // could be changed by server returned results.
     var reviewerId = {}; // map from a reviewer's email to account id.
@@ -59,6 +94,9 @@ Gerrit.install(function(self) {
     var removeList = []; // remain emails to remove from reviewers
     var needRefresh = false; // true if to refresh after checkAddRemoveLists
 
+    function showFindOwnersPage() {
+      pageDiv.style.visibility = 'visible';
+    }
     function getElement(id) {
       return document.getElementById(id);
     }
@@ -116,7 +154,7 @@ Gerrit.install(function(self) {
           return;
         }
       }
-      c.hide();
+      hideFindOwnersPage();
       if (needRefresh) {
         needRefresh = false;
         Gerrit.refresh();
@@ -157,27 +195,40 @@ Gerrit.install(function(self) {
       e.innerHTML = s;
       return e;
     }
+    function br() {
+      return document.createElement('br');
+    }
+    function hr() {
+      return document.createElement('hr');
+    }
+    function newButton(name, action) {
+      var b = document.createElement('button');
+      b.appendChild(document.createTextNode(name));
+      b.className = BUTTON_STYLE;
+      b.onclick = action;
+      return b;
+    }
     function showJsonLines(args, key, obj) {
       showBoldKeyValueLines(args, key, JSON.stringify(obj, null, 2));
     }
     function showBoldKeyValueLines(args, key, value) {
-      args.push(c.hr(), strElement('<b>' + key + '</b>:'), c.br());
+      args.push(hr(), strElement('<b>' + key + '</b>:'), br());
       value.split('\n').forEach(function(line) {
-        args.push(c.msg(line), c.br());
+        args.push(strElement(line), br());
       });
     }
     function showDebugMessages(result, args) {
       function addKeyValue(key, value) {
         args.push(strElement('<b>' + key + '</b>: ' + value + '<br>'));
       }
-      args.push(c.hr());
+      args.push(hr());
       addKeyValue('changeId', changeId);
       addKeyValue('project', project);
       addKeyValue('branch', branch);
       addKeyValue('changeOwner.email', changeOwner.email);
       addKeyValue('Gerrit.url', Gerrit.url());
       addKeyValue('self.url', self.url());
-      showJsonLines(args, 'changeOwner', c.change.owner);
+      showJsonLines(args, 'changeOwner', change.owner);
       showBoldKeyValueLines(args, 'commit.message', message);
       showJsonLines(args, 'Client reviewers Ids', reviewerId);
       showJsonLines(args, 'Client reviewers Votes', reviewerVote);
@@ -197,6 +248,7 @@ Gerrit.install(function(self) {
       var needApprovalDiv = emptyDiv(NEED_APPROVAL_DIV_ID);
       var hasApprovalDiv = emptyDiv(HAS_APPROVAL_DIV_ID);
       addApplyButton();
+      args.push(newButton('Cancel', hideFindOwnersPage));
       var ownersDiv = emptyDiv(OWNERS_DIV_ID);
       var numCheckBoxes = 0;
       var owner2boxes = {}; // owner name ==> array of checkbox id
@@ -205,7 +257,7 @@ Gerrit.install(function(self) {
           ('minOwnerVoteLevel' in result ? result.minOwnerVoteLevel : 1);
 
       function addApplyButton() {
-        var apply = c.button('Apply', {onclick: doApplyButton});
+        var apply = newButton('Apply', doApplyButton);
         apply.id = APPLY_BUTTON_ID;
         apply.style.display = 'none';
         args.push(apply);
@@ -251,7 +303,8 @@ Gerrit.install(function(self) {
             owner2boxes[name] = [];
           }
           owner2boxes[name].push(id);
-          var box = c.checkbox();
+          var box = document.createElement('input');
+          box.type = 'checkbox';
           box.checked = (ownerEmail in reviewerId);
           box.id = id;
           box.value = name;
@@ -276,7 +329,7 @@ Gerrit.install(function(self) {
           }
           div.appendChild(strElement(item));
           sortedOwners.reduce(add2list, []).forEach(addOwner);
-          div.appendChild(c.br());
+          div.appendChild(br());
         });
       }
       function addOwnersDiv(div, title) {
@@ -312,7 +365,8 @@ Gerrit.install(function(self) {
             groupHasApproval.push(key);
           }
         });
-        showDiv(header, HTML_SELECT_REVIEWERS);
+        showDiv(header,
+                (onSubmit ? HTML_ONSUBMIT_HEADER : '') + HTML_SELECT_REVIEWERS);
         addGroupsToDiv(needReviewerDiv, groupNeedReviewer,
                        HTML_NEED_REVIEWER_HEADER);
         addGroupsToDiv(needApprovalDiv, groupNeedApproval,
@@ -345,20 +399,32 @@ Gerrit.install(function(self) {
       updateDivContent();
     }
     function showFindOwnersResults(result) {
+      function showSmallPage(file2owners, args) {
+        var text = isExemptedFromOwnerApproval() ? HTML_IS_EXEMPTED :
+            (Object.keys(file2owners).length <= 0 ? HTML_NO_OWNER : null);
+        if (text == null) {
+          return false;
+        }
+        pageDiv.className = SMALL_PAGE_STYLE;
+        args.push(strElement(text));
+        args.push(newButton('OK', hideFindOwnersPage));
+        return true;
+      }
       function popupWindow(reviewerList) {
         setupReviewersMap(reviewerList);
         var args = [];
-        if (isExemptedFromOwnerApproval()) {
-          args.push(strElement(HTML_IS_EXEMPTED));
-        } else if (Object.keys(result.file2owners).length <= 0) {
-          args.push(strElement(HTML_NO_OWNER));
-        } else {
+        if (!showSmallPage(result.file2owners, args)) {
+          pageDiv.className = LARGE_PAGE_STYLE;
           showFilesAndOwners(result, args);
         }
         if (result.addDebugMsg) {
           showDebugMessages(result, args);
         }
-        c.popup(c.div.apply(this, args));
+        while (pageDiv.firstChild) {
+          pageDiv.removeChild(pageDiv.firstChild);
+        }
+        args.forEach(function(e) { pageDiv.appendChild(e); });
+        showFindOwnersPage();
       }
       getReviewers(changeId, popupWindow);
     }
@@ -367,7 +433,36 @@ Gerrit.install(function(self) {
       // let server get current patch set, project and branch info.
       Gerrit.get('changes/' + changeId + '/owners', showFindOwnersResults);
     }
+    event.stopPropagation();
     callServer(showFindOwnersResults);
   }
+  function onFindOwners(context) {
+    popupFindOwnersPage(context.change, context.revision, false);
+  }
+  function onSubmit(change, revision) {
+    const OWNER_REVIEW_LABEL = 'Owner-Review-Vote';
+    if (change.labels.hasOwnProperty(OWNER_REVIEW_LABEL)) {
+      // Pop up Find Owners page; do not submit.
+      popupFindOwnersPage(change, revision, true);
+      return false;
+    }
+    return true; // Okay to submit.
+  }
+  function onClick(e) {
+    if (pageDiv.style.visibility != 'hidden') {
+      var x = event.clientX;
+      var y = event.clientY;
+      var rect = pageDiv.getBoundingClientRect();
+      if (x < rect.left || x >= rect.left + rect.width ||
+          y < rect.top || y >= rect.top + rect.height) {
+        hideFindOwnersPage();
+      }
+    }
+  }
+  // When the "Find Owners" button is clicked, call onFindOwners.
   self.onAction('revision', 'find-owners', onFindOwners);
+  // When the "Submit" button is clicked, call onSubmit.
+  self.on('submitchange', onSubmit);
+  // Clicks outside the pop up window should close the window.
+  document.body.addEventListener('click', onClick);
 });

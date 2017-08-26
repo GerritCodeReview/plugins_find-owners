@@ -50,7 +50,12 @@ create_owner_approval_label(0, label(X, may(_))) :-
   owner_approved(X), !.
 create_owner_approval_label(N, label(X, ok(user(1)))) :-
   N > 0, owner_approved(X), !.
-create_owner_approval_label(_, label(X, need(_))) :-
+% If owner approval is required and missing,
+% use the owner_approval_missing(X) label and may(_) state to
+% enable the Submit button. Front-end JavaScript should check
+% the label and then block the submit or suggest users to
+% add "Exempt-From-Owner-Approval:" to the commit message.
+create_owner_approval_label(_, label(X, may(_))) :-
   owner_approval_missing(X).
 
 has_owner_approval_label([label(X, _)|_]) :- owner_approval_label(X).

@@ -36,10 +36,13 @@ is needed or missing.
   `label('Owner-Approved', ok(user(1)))` is added.
 * If a change needs owner approval, but some changed file has no *owner*
   +1 vote or has negative *owner* vote,
-  `label('Owner-Review-Vote', need(_))` is added.
-  This will make a change *not-submittable*.
-  The change author should add missing *owners* to the
-  reviewers list and/or ask for those owner's +1 Code-Review votes.
+  `label('Owner-Review-Vote', may(_))` is added.
+  This will show the label but not disable the Submit button.
+  When a user clicks on the Submit button,
+  a window will pop up and ask the user to
+  (1) add missing *owners* to the reviewers list and/or
+      ask for owner's +1 Code-Review votes, or
+  (2) add `Exempt-From-Owner-Approval:` to the commit message.
   The **`Find Owners`** button is useful in this situation to find
   the missing *owners* or +1 votes of any changed files.
 
