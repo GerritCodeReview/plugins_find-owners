@@ -89,8 +89,7 @@ class Cache {
   /** Returns a cached or new OwnersDb, for the current patchset. */
   OwnersDb get(AccountCache accountCache, Emails emails, Repository repo, ChangeData changeData)
       throws OrmException {
-    return get(
-        accountCache, emails, repo, changeData, changeData.currentPatchSet().getId().get());
+    return get(accountCache, emails, repo, changeData, changeData.currentPatchSet().getId().get());
   }
 
   /** Returns a cached or new OwnersDb, for the specified patchset. */
