@@ -100,8 +100,39 @@ Gerrit.install(function(self) {
     function getElement(id) {
       return document.getElementById(id);
     }
+    function httpGet(url, callback) {
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', url);
+      xhr.onreadystatechange = function() {
+        if (xhr.readyState == XMLHttpRequest.DONE) {
+          // skip special characters ")]}'\n"
+          callback(!!xhr.responseText ?
+                   JSON.parse(xhr.responseText.substring(5)) : {});
+        }
+      };
+      xhr.send();
+    }
+    function httpError(msg, callback) {
+      console.log('UNIMPLEMENTED: ' + msg);
+      callback();
+    }
+    function gerritGet(url, callback) {
+      (!!Gerrit.get) ? Gerrit.get(url, callback) :
+          ((!!self.get) ? self.get('/../..' + url, callback) :
+              httpGet(url, callback));
+    }
+    function gerritPost(url, data, callback) {
+      (!!Gerrit.post) ? Gerrit.post(url, data, callback) :
+          ((!!self.post) ? self.post('/../..' + url, data, callback) :
+              httpError('POST ' + url, callback));
+    }
+    function gerritDelete(url, callback) {
+      (!!Gerrit.delete) ? Gerrit.delete(url, callback) :
+          ((!!self.delete) ? self.delete('/../..' + url, callback) :
+              httpError('DELETE ' + url, callback));
+    }
     function getReviewers(change, callBack) {
-      Gerrit.get('changes/' + change + '/reviewers', callBack);
+      gerritGet('/changes/' + change + '/reviewers', callBack);
     }
     function setupReviewersMap(reviewerList) {
       reviewerId = {};
@@ -137,9 +168,9 @@ Gerrit.install(function(self) {
           // Gerrit core UI shows the error dialog and does not provide
           // a way for plugins to handle the error yet.
           needRefresh = true;
-          Gerrit.post('changes/' + changeId + '/reviewers',
-                      {'reviewer': email},
-                      checkAddRemoveLists);
+          gerritPost('/changes/' + changeId + '/reviewers',
+                     {'reviewer': email},
+                     checkAddRemoveLists);
           return;
         }
       }
@@ -148,16 +179,16 @@ Gerrit.install(function(self) {
         if (email in reviewerId) {
           removeList = removeList.slice(i + 1, removeList.length);
           needRefresh = true;
-          Gerrit.delete('changes/' + changeId +
-                        '/reviewers/' + reviewerId[email],
-                        checkAddRemoveLists);
+          gerritDelete('/changes/' + changeId +
+                       '/reviewers/' + reviewerId[email],
+                       checkAddRemoveLists);
           return;
         }
       }
       hideFindOwnersPage();
       if (needRefresh) {
         needRefresh = false;
-        Gerrit.refresh();
+        (!!Gerrit.refresh) ? Gerrit.refresh() : location.reload();
       }
       callServer(showFindOwnersResults);
     }
@@ -431,7 +462,7 @@ Gerrit.install(function(self) {
     function callServer(callBack) {
       // Use the plugin REST API; pass only changeId;
       // let server get current patch set, project and branch info.
-      Gerrit.get('changes/' + changeId + '/owners', showFindOwnersResults);
+      gerritGet('/changes/' + changeId + '/owners', showFindOwnersResults);
     }
     event.stopPropagation();
     callServer(showFindOwnersResults);
@@ -460,7 +491,11 @@ Gerrit.install(function(self) {
     }
   }
   // When the "Find Owners" button is clicked, call onFindOwners.
-  self.onAction('revision', 'find-owners', onFindOwners);
+  if (!!self.onAction) { // PolyGerrit does not have self.onAction
+    self.onAction('revision', 'find-owners', onFindOwners);
+  } else {
+    console.log('WARNING, no handler for the Find Owners button');
+  }
   // When the "Submit" button is clicked, call onSubmit.
   self.on('submitchange', onSubmit);
   // Clicks outside the pop up window should close the window.
