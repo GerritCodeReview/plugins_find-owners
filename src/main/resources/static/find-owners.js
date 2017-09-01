@@ -13,13 +13,18 @@
 // limitations under the License.
 
 Gerrit.install(function(self) {
+  // If context.popup API exists and popup content is small,
+  // use the API and set useContextPopup,
+  // otherwise, use pageDiv and set its visibility.
+  var useContextPopup = false;
   var pageDiv = document.createElement('div');
   document.body.appendChild(pageDiv);
   function hideFindOwnersPage() {
     pageDiv.style.visibility = 'hidden';
   }
-  function popupFindOwnersPage(change, revision, onSubmit) {
-    const COMMON_PAGE_STYLE =
+  function popupFindOwnersPage(context, change, revision, onSubmit) {
+    const PADDING = 5;
+    const LARGE_PAGE_STYLE = Gerrit.css(
         'visibility: hidden;' +
         'background: rgba(200, 200, 200, 0.95);' +
         'border: 3px solid;' +
@@ -28,12 +33,7 @@ Gerrit.install(function(self) {
         'position: fixed;' +
         'z-index: 100;' +
         'overflow: auto;' +
-        'padding: 5px;';
-    const LARGE_PAGE_STYLE = Gerrit.css(
-        COMMON_PAGE_STYLE + 'top:5%;left:10%;height:90%;width:80%;'
-        );
-    const SMALL_PAGE_STYLE = Gerrit.css(
-        COMMON_PAGE_STYLE + 'top:10%;left:25%;height:auto;width:50%;'
+        'padding: ' + PADDING + 'px;'
         );
     const BUTTON_STYLE = Gerrit.css(
         'background-color: #4d90fe;' +
@@ -51,7 +51,7 @@ Gerrit.install(function(self) {
     const HTML_HAS_APPROVAL_HEADER =
         '<hr><b>Files with +1 or +2 Code-Review vote from owners:</b><br>';
     const HTML_IS_EXEMPTED =
-        '<b>This commit is exempted from owner approval.</b>';
+        '<b>This change is Exempt-From-Owner-Approval.</b>';
     const HTML_NEED_REVIEWER_HEADER =
         '<hr><b>Files without owner reviewer:</b><br>';
     const HTML_NEED_APPROVAL_HEADER =
@@ -94,9 +94,6 @@ Gerrit.install(function(self) {
     var removeList = []; // remain emails to remove from reviewers
     var needRefresh = false; // true if to refresh after checkAddRemoveLists
 
-    function showFindOwnersPage() {
-      pageDiv.style.visibility = 'visible';
-    }
     function getElement(id) {
       return document.getElementById(id);
     }
@@ -430,32 +427,56 @@ Gerrit.install(function(self) {
       updateDivContent();
     }
     function showFindOwnersResults(result) {
-      function showSmallPage(file2owners, args) {
+      function prepareElements() {
+        var elems = [];
         var text = isExemptedFromOwnerApproval() ? HTML_IS_EXEMPTED :
-            (Object.keys(file2owners).length <= 0 ? HTML_NO_OWNER : null);
-        if (text == null) {
-          return false;
+            (Object.keys(result.file2owners).length <= 0 ?
+                HTML_NO_OWNER : null);
+        useContextPopup = !!context && !!text && !!context.popup;
+        if (!!text) {
+          if (useContextPopup) {
+            elems.push(hr(), strElement(text), hr());
+            var onClick = function() { context.hide(); };
+            elems.push(context.button('OK', {onclick: onClick}), hr());
+          } else {
+            elems.push(strElement(text), newButton('OK', hideFindOwnersPage));
+          }
+        } else {
+          showFilesAndOwners(result, elems);
+          if (result.addDebugMsg) {
+            showDebugMessages(result, elems);
+          }
         }
-        pageDiv.className = SMALL_PAGE_STYLE;
-        args.push(strElement(text));
-        args.push(newButton('OK', hideFindOwnersPage));
-        return true;
+        return elems;
       }
       function popupWindow(reviewerList) {
         setupReviewersMap(reviewerList);
-        var args = [];
-        if (!showSmallPage(result.file2owners, args)) {
+        var elems = prepareElements();
+        if (useContextPopup) {
+          context.popup(context.div.apply(this, elems));
+        } else {
+          while (pageDiv.firstChild) {
+            pageDiv.removeChild(pageDiv.firstChild);
+          }
+          elems.forEach(function(e) { pageDiv.appendChild(e); });
           pageDiv.className = LARGE_PAGE_STYLE;
-          showFilesAndOwners(result, args);
+          // Calculate required height, limited to 85% of window height,
+          // and required width, limited to 75% of window width.
+          pageDiv.style.top = '5%';
+          pageDiv.style.height = 'auto';
+          pageDiv.style.left = '10%';
+          pageDiv.style.width = 'auto';
+          var rect = pageDiv.getBoundingClientRect();
+          var h = Math.round(Math.min(rect.height - 2 * PADDING,
+                                      window.innerHeight * 0.85));
+          pageDiv.style.height = h + 'px';
+          pageDiv.style.top = Math.round((window.innerHeight - h) / 2) + 'px';
+          var w = Math.round(Math.min(rect.width - 2 * PADDING,
+                                      window.innerWidth * 0.75));
+          pageDiv.style.width = w + 'px';
+          pageDiv.style.left = Math.round((window.innerWidth - w) / 2) + 'px';
+          pageDiv.style.visibility = 'visible';
         }
-        if (result.addDebugMsg) {
-          showDebugMessages(result, args);
-        }
-        while (pageDiv.firstChild) {
-          pageDiv.removeChild(pageDiv.firstChild);
-        }
-        args.forEach(function(e) { pageDiv.appendChild(e); });
-        showFindOwnersPage();
       }
       getReviewers(changeId, popupWindow);
     }
@@ -468,19 +489,19 @@ Gerrit.install(function(self) {
     callServer(showFindOwnersResults);
   }
   function onFindOwners(context) {
-    popupFindOwnersPage(context.change, context.revision, false);
+    popupFindOwnersPage(context, context.change, context.revision, false);
   }
   function onSubmit(change, revision) {
     const OWNER_REVIEW_LABEL = 'Owner-Review-Vote';
     if (change.labels.hasOwnProperty(OWNER_REVIEW_LABEL)) {
       // Pop up Find Owners page; do not submit.
-      popupFindOwnersPage(change, revision, true);
+      popupFindOwnersPage(null, change, revision, true);
       return false;
     }
     return true; // Okay to submit.
   }
   function onClick(e) {
-    if (pageDiv.style.visibility != 'hidden') {
+    if (pageDiv.style.visibility != 'hidden' && !useContextPopup) {
       var x = event.clientX;
       var y = event.clientY;
       var rect = pageDiv.getBoundingClientRect();
