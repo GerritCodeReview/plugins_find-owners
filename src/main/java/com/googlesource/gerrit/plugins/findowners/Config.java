@@ -32,15 +32,14 @@ class Config {
   static final String MAX_CACHE_AGE = "maxCacheAge"; // seconds to stay in cache
   static final String MAX_CACHE_SIZE = "maxCacheSize"; // number of OwnersDb in cache
   static final String MIN_OWNER_VOTE_LEVEL = "minOwnerVoteLevel"; // default +1
-  static final String OWNERS_FILE_NAME = "ownersFileName"; // default "OWNERS"
+  static final String OWNERS = "OWNERS"; // Default file name
+  static final String OWNERS_FILE_NAME = "ownersFileName"; // config key for file name
+  static final String REJECT_ERROR_IN_OWNERS = "rejectErrorInOwners"; // config key for validator
   static final String REPORT_SYNTAX_ERROR = "reportSyntaxError";
 
   // Name of plugin and namespace.
   static final String PLUGIN_NAME = "find-owners";
   static final String PROLOG_NAMESPACE = "find_owners";
-
-  // Default values.
-  private static final String DEFAULT_OWNERS_FILE_NAME = "OWNERS";
 
   // Global/plugin config parameters.
   private static PluginConfigFactory config = null;
@@ -94,18 +93,18 @@ class Config {
         String name =
             config
                 .getFromProjectConfigWithInheritance(project, PLUGIN_NAME)
-                .getString(OWNERS_FILE_NAME, DEFAULT_OWNERS_FILE_NAME);
+                .getString(OWNERS_FILE_NAME, OWNERS);
         if (name.trim().equals("")) {
           log.error(
               "Project " + project.get() + " has wrong " + OWNERS_FILE_NAME + ": \"" + name + "\"");
-          return DEFAULT_OWNERS_FILE_NAME;
+          return OWNERS;
         }
         return name;
       } catch (NoSuchProjectException e) {
         log.error("Cannot find project: " + project);
       }
     }
-    return DEFAULT_OWNERS_FILE_NAME;
+    return OWNERS;
   }
 
   @VisibleForTesting

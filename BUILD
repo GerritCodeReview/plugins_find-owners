@@ -40,6 +40,7 @@ junit_tests(
   # resources = glob(['src/test/resources/**/*']),
   tags = ['findowners'],
   deps = PLUGIN_DEPS + PLUGIN_TEST_DEPS + [
+    '@commons_io//jar',
     ':find-owners-lib',
     ':find-owners-prolog-rules',
   ],
