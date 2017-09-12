@@ -47,6 +47,7 @@ public class Module extends AbstractModule {
 
   @Override
   protected void configure() {
+    install(OwnersValidator.module());
     install(
         new RestApiModule() {
           @Override

@@ -70,6 +70,16 @@ This plugin finds owners in default OWNERS files.
 If a project has already used OWNERS files for other purpose,
 the "ownersFileName" parameter can be used to change the default.
 
+## Validate OWNERS files before upload
+
+To check syntax of OWNERS files before they are uploaded,
+set the following variable in project.config files.
+
+```bash
+[plugin "find-owners"]
+    rejectErrorInOwners = true
+```
+
 ## Example 0, call `submit_filter/2`
 
 The simplest configuration adds to `rules.pl` of the root
