@@ -48,11 +48,14 @@ import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 
 /** Test OwnersValidator, which checks syntax of changed OWNERS files. */
+@RunWith(JUnit4.class)
 public class OwnersValidatorTest {
 
-  private class MockedEmails extends Emails {
+  private static class MockedEmails extends Emails {
     Set<String> registered;
 
     MockedEmails() {
@@ -62,6 +65,7 @@ public class OwnersValidatorTest {
               "u1@g.com", "u2@g.com", "u2.m@g.com", "user1@google.com", "u1+review@g.com");
     }
 
+    @Override
     public ImmutableSetMultimap<String, Account.Id> getAccountsFor(String... emails) {
       // Used by checkEmails; each email should have exactly one Account.Id
       ImmutableSetMultimap.Builder<String, Account.Id> builder = ImmutableSetMultimap.builder();
@@ -112,7 +116,7 @@ public class OwnersValidatorTest {
     assertThat(OwnersValidator.getOwnersFileName(ANDROID_CONFIG)).isEqualTo(OWNERS_ANDROID);
   }
 
-  private static final Map<String, String> FILES_WITHOUT_OWNERS =
+  private static final ImmutableMap<String, String> FILES_WITHOUT_OWNERS =
       ImmutableMap.of("README", "any\n", "d1/test.c", "int x;\n");
 
   @Test
@@ -124,7 +128,7 @@ public class OwnersValidatorTest {
     }
   }
 
-  private static final Map<String, String> FILES_WITH_NO_ERROR =
+  private static final ImmutableMap<String, String> FILES_WITH_NO_ERROR =
       ImmutableMap.of(
           OWNERS,
           "\n\n#comments ...\n  ###  more comments\n"
@@ -136,7 +140,7 @@ public class OwnersValidatorTest {
               + "per-file *.txt = * # everyone can approve\n"
               + "set  noparent  # comment\n");
 
-  private static final Set<String> EXPECTED_VERBOSE_OUTPUT =
+  private static final ImmutableSet<String> EXPECTED_VERBOSE_OUTPUT =
       ImmutableSet.of(
           "MSG: validate: " + OWNERS,
           "MSG: owner: user1@google.com",
@@ -153,7 +157,7 @@ public class OwnersValidatorTest {
     }
   }
 
-  private static final Map<String, String> FILES_WITH_WRONG_SYNTAX =
+  private static final ImmutableMap<String, String> FILES_WITH_WRONG_SYNTAX =
       ImmutableMap.of(
           "README",
           "# some content\nu2@g.com\n",
@@ -164,13 +168,13 @@ public class OwnersValidatorTest {
           "d3/" + OWNERS,
           "\nfile: common/Owners\n");
 
-  private static final Set<String> EXPECTED_WRONG_SYNTAX =
+  private static final ImmutableSet<String> EXPECTED_WRONG_SYNTAX =
       ImmutableSet.of(
           "ERROR: syntax: " + OWNERS + ":2: wrong syntax",
           "ERROR: unknown: u3@g.com at d2/" + OWNERS + ":2",
           "ERROR: ignored: d3/" + OWNERS + ":2: file: common/Owners");
 
-  private static final Set<String> EXPECTED_VERBOSE_WRONG_SYNTAX =
+  private static final ImmutableSet<String> EXPECTED_VERBOSE_WRONG_SYNTAX =
       ImmutableSet.of(
           "MSG: validate: d3/" + OWNERS,
           "MSG: validate: d2/" + OWNERS,
@@ -193,13 +197,13 @@ public class OwnersValidatorTest {
     }
   }
 
-  private static final Map<String, String> FILES_WITH_WRONG_EMAILS =
+  private static final ImmutableMap<String, String> FILES_WITH_WRONG_EMAILS =
       ImmutableMap.of("d1/" + OWNERS, "u1@g.com\n", "d2/" + OWNERS_ANDROID, "u2@g.com\n");
 
-  private static final Set<String> EXPECTED_VERBOSE_DEFAULT =
+  private static final ImmutableSet<String> EXPECTED_VERBOSE_DEFAULT =
       ImmutableSet.of("MSG: validate: d1/" + OWNERS, "MSG: owner: u1@g.com");
 
-  private static final Set<String> EXPECTED_VERBOSE_ANDROID =
+  private static final ImmutableSet<String> EXPECTED_VERBOSE_ANDROID =
       ImmutableSet.of("MSG: validate: d2/" + OWNERS_ANDROID, "MSG: owner: u2@g.com");
 
   @Test
@@ -255,7 +259,7 @@ public class OwnersValidatorTest {
     OwnersValidator validator = new OwnersValidator(null, null, null, myEmails);
     String ownersFileName = OwnersValidator.getOwnersFileName(cfg);
     List<CommitValidationMessage> m =
-        validator.performValidation(repo, c, rw, ownersFileName, verbose);
+        validator.performValidation(c, rw, ownersFileName, verbose);
     return transformMessages(m);
   }
 

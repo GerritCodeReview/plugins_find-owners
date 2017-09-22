@@ -140,7 +140,7 @@ public class OwnersValidator implements CommitValidationListener {
         try (Repository repo = repoManager.openRepository(project)) {
           String name = getOwnersFileName(project);
           messages =
-              performValidation(repo, receiveEvent.commit, receiveEvent.revWalk, name, false);
+              performValidation(receiveEvent.commit, receiveEvent.revWalk, name, false);
         }
       }
     } catch (NoSuchProjectException | IOException | ExecutionException e) {
@@ -154,13 +154,13 @@ public class OwnersValidator implements CommitValidationListener {
 
   @VisibleForTesting
   List<CommitValidationMessage> performValidation(
-      Repository repo, RevCommit c, RevWalk revWalk, String ownersFileName, boolean verbose)
+      RevCommit c, RevWalk revWalk, String ownersFileName, boolean verbose)
       throws IOException, ExecutionException {
     // Collect all messages from all files.
     List<CommitValidationMessage> messages = new LinkedList<>();
     // Collect all email addresses from all files and check each address only once.
     Map<String, Set<String>> email2lines = new HashMap<>();
-    Map<String, ObjectId> content = getChangedOwners(repo, c, revWalk, ownersFileName);
+    Map<String, ObjectId> content = getChangedOwners(c, revWalk, ownersFileName);
     for (String path : content.keySet()) {
       ObjectLoader ol = revWalk.getObjectReader().open(content.get(path));
       try (InputStream in = ol.openStream()) {
@@ -228,7 +228,7 @@ public class OwnersValidator implements CommitValidationListener {
       int line = 0;
       for (String l = br.readLine(); l != null; l = br.readLine()) {
         line++;
-        checkLine(messages, email2lines, path, line, l, verbose);
+        checkLine(messages, email2lines, path, line, l);
       }
     }
   }
@@ -247,9 +247,7 @@ public class OwnersValidator implements CommitValidationListener {
   private static void collectEmail(
       Map<String, Set<String>> map, String email, String file, int lineNumber) {
     if (!email.equals("*")) {
-      if (map.get(email) == null) {
-        map.put(email, new HashSet<>());
-      }
+      map.computeIfAbsent(email, (String k) -> new HashSet<>());
       map.get(email).add(file + ":" + lineNumber);
     }
   }
@@ -272,8 +270,7 @@ public class OwnersValidator implements CommitValidationListener {
       Map<String, Set<String>> email2lines,
       String path,
       int lineNumber,
-      String line,
-      boolean verbose) {
+      String line) {
     Matcher m;
     if (patComment.matcher(line).find()
         || patNoParent.matcher(line).find()
@@ -294,10 +291,9 @@ public class OwnersValidator implements CommitValidationListener {
    * from "Path to the changed file" to "ObjectId of the file".
    */
   private static Map<String, ObjectId> getChangedOwners(
-      Repository repo, RevCommit c, RevWalk revWalk, String ownersFileName) throws IOException {
+      RevCommit c, RevWalk revWalk, String ownersFileName) throws IOException {
     final Map<String, ObjectId> content = new HashMap<>();
     visitChangedEntries(
-        repo,
         c,
         revWalk,
         new TreeWalkVisitor() {
@@ -321,7 +317,7 @@ public class OwnersValidator implements CommitValidationListener {
    * is found this method calls the onVisit() method of the class TreeWalkVisitor.
    */
   private static void visitChangedEntries(
-      Repository repo, RevCommit c, RevWalk revWalk, TreeWalkVisitor visitor) throws IOException {
+      RevCommit c, RevWalk revWalk, TreeWalkVisitor visitor) throws IOException {
     try (TreeWalk tw = new TreeWalk(revWalk.getObjectReader())) {
       tw.setRecursive(true);
       tw.setFilter(TreeFilter.ANY_DIFF);
