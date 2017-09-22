@@ -106,7 +106,14 @@ class Cache {
     String dbKey = Cache.makeKey(changeData.getId().get(), patchset, branch);
     // TODO: get changed files of the given patchset?
     return get(
-        accountCache, emails, dbKey, repository, project, branch, changeData.currentFilePaths());
+        accountCache,
+        emails,
+        dbKey,
+        repository,
+        changeData,
+        project,
+        branch,
+        changeData.currentFilePaths());
   }
 
   /** Returns a cached or new OwnersDb, for the specified branch and changed files. */
@@ -115,12 +122,14 @@ class Cache {
       Emails emails,
       String key,
       Repository repository,
+      ChangeData changeData,
       Project.NameKey project,
       String branch,
       Collection<String> files) {
     if (dbCache == null) { // Do not cache OwnersDb
       log.trace("Create new OwnersDb, key=" + key);
-      return new OwnersDb(accountCache, emails, key, repository, project, branch, files);
+      return new OwnersDb(
+          accountCache, emails, key, repository, changeData, project, branch, files);
     }
     try {
       log.trace("Get from cash " + dbCache + ", key=" + key + ", cache size=" + dbCache.size());
@@ -130,12 +139,14 @@ class Cache {
             @Override
             public OwnersDb call() {
               log.trace("Create new OwnersDb, key=" + key);
-              return new OwnersDb(accountCache, emails, key, repository, project, branch, files);
+              return new OwnersDb(
+                  accountCache, emails, key, repository, changeData, project, branch, files);
             }
           });
     } catch (ExecutionException e) {
       log.error("Cache.get has exception: " + e);
-      return new OwnersDb(accountCache, emails, key, repository, project, branch, files);
+      return new OwnersDb(
+          accountCache, emails, key, repository, changeData, project, branch, files);
     }
   }
 
