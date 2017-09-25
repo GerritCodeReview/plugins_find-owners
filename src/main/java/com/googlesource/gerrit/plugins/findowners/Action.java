@@ -169,7 +169,7 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
   /** REST API to return owners info of a change. */
   public Response<RestResult> getChangeData(
       Repository repository, Parameters params, ChangeData changeData)
-      throws OrmException, BadRequestException {
+      throws OrmException, BadRequestException, IOException {
     int patchset = getValidPatchsetNum(changeData, params.patchset);
     OwnersDb db = Cache.getInstance().get(accountCache, emails, repository, changeData, patchset);
     Collection<String> changedFiles = changeData.currentFilePaths();

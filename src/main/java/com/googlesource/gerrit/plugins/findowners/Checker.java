@@ -85,7 +85,7 @@ public class Checker {
   }
 
   /** Returns 1 if owner approval is found, -1 if missing, 0 if unneeded. */
-  int findApproval(AccountCache accountCache, OwnersDb db) throws OrmException {
+  int findApproval(AccountCache accountCache, OwnersDb db) throws OrmException, IOException {
     Map<String, Set<String>> file2Owners = db.findOwners(changeData.currentFilePaths());
     if (file2Owners.size() == 0) { // do not need owner approval
       return 0;
@@ -107,7 +107,7 @@ public class Checker {
       ChangeData changeData = StoredValues.CHANGE_DATA.get(engine);
       Repository repository = StoredValues.REPOSITORY.get(engine);
       return new Checker(repository, changeData, minVoteLevel).findApproval(accountCache, emails);
-    } catch (OrmException e) {
+    } catch (OrmException | IOException e) {
       log.error("Exception", e);
       return 0; // owner approval may or may not be required.
     }
@@ -129,7 +129,7 @@ public class Checker {
     return (status == Status.ABANDONED || status == Status.MERGED);
   }
 
-  int findApproval(AccountCache accountCache, Emails emails) throws OrmException {
+  int findApproval(AccountCache accountCache, Emails emails) throws OrmException, IOException {
     if (isExemptFromOwnerApproval(changeData)) {
       return 0;
     }

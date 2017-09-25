@@ -22,6 +22,7 @@ import com.google.gerrit.server.account.AccountCache;
 import com.google.gerrit.server.account.Emails;
 import com.google.gerrit.server.query.change.ChangeData;
 import com.google.gwtorm.server.OrmException;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -88,7 +89,7 @@ class Cache {
 
   /** Returns a cached or new OwnersDb, for the current patchset. */
   OwnersDb get(AccountCache accountCache, Emails emails, Repository repo, ChangeData changeData)
-      throws OrmException {
+      throws OrmException, IOException {
     return get(accountCache, emails, repo, changeData, changeData.currentPatchSet().getId().get());
   }
 
@@ -99,7 +100,7 @@ class Cache {
       Repository repository,
       ChangeData changeData,
       int patchset)
-      throws OrmException {
+      throws OrmException, IOException {
     Project.NameKey project = changeData.change().getProject();
     String branch = changeData.change().getDest().get();
     String dbKey = Cache.makeKey(changeData.getId().get(), patchset, branch);
