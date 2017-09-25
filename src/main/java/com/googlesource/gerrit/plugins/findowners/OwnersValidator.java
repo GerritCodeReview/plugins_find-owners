@@ -139,8 +139,7 @@ public class OwnersValidator implements CommitValidationListener {
       if (isActive(cfg)) {
         try (Repository repo = repoManager.openRepository(project)) {
           String name = getOwnersFileName(project);
-          messages =
-              performValidation(receiveEvent.commit, receiveEvent.revWalk, name, false);
+          messages = performValidation(receiveEvent.commit, receiveEvent.revWalk, name, false);
         }
       }
     } catch (NoSuchProjectException | IOException | ExecutionException e) {
@@ -316,8 +315,8 @@ public class OwnersValidator implements CommitValidationListener {
    * Find all TreeWalk entries which differ between the commit and its parents. If a TreeWalk entry
    * is found this method calls the onVisit() method of the class TreeWalkVisitor.
    */
-  private static void visitChangedEntries(
-      RevCommit c, RevWalk revWalk, TreeWalkVisitor visitor) throws IOException {
+  private static void visitChangedEntries(RevCommit c, RevWalk revWalk, TreeWalkVisitor visitor)
+      throws IOException {
     try (TreeWalk tw = new TreeWalk(revWalk.getObjectReader())) {
       tw.setRecursive(true);
       tw.setFilter(TreeFilter.ANY_DIFF);

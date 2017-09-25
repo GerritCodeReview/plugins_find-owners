@@ -258,8 +258,7 @@ public class OwnersValidatorTest {
     MockedEmails myEmails = new MockedEmails();
     OwnersValidator validator = new OwnersValidator(null, null, null, myEmails);
     String ownersFileName = OwnersValidator.getOwnersFileName(cfg);
-    List<CommitValidationMessage> m =
-        validator.performValidation(c, rw, ownersFileName, verbose);
+    List<CommitValidationMessage> m = validator.performValidation(c, rw, ownersFileName, verbose);
     return transformMessages(m);
   }
 
