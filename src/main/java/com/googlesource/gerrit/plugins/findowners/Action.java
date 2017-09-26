@@ -202,7 +202,9 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
     try (ReviewDb reviewDb = reviewDbProvider.open()) {
       ChangeData changeData = changeDataFactory.create(reviewDb, change);
       if (changeData.change().getDest().get() == null) {
-        log.error("Cannot get branch of change: " + changeData.getId().get());
+        if (!Checker.isExemptFromOwnerApproval(changeData)) {
+          log.error("Cannot get branch of change: " + changeData.getId().get());
+        }
         return null; // no "Find Owners" button
       }
       Status status = resource.getChange().getStatus();

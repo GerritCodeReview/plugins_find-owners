@@ -21,6 +21,7 @@ import com.google.gerrit.reviewdb.client.Account;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.account.AccountCache;
 import com.google.gerrit.server.account.Emails;
+import com.google.gerrit.server.query.change.ChangeData;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.PathMatcher;
@@ -66,6 +67,7 @@ class OwnersDb {
       Emails emails,
       String key,
       Repository repository,
+      ChangeData changeData,
       Project.NameKey project,
       String branch,
       Collection<String> files) {
@@ -75,7 +77,7 @@ class OwnersDb {
     preferredEmails.put("*", "*");
     String ownersFileName = Config.getOwnersFileName(project);
     // Some hacked CL could have a target branch that is not created yet.
-    ObjectId id = getBranchId(repository, branch);
+    ObjectId id = getBranchId(repository, branch, changeData);
     revision = "";
     if (id != null) {
       for (String fileName : files) {
@@ -287,10 +289,10 @@ class OwnersDb {
   }
 
   /** Returns ObjectId of the given branch, or null. */
-  private static ObjectId getBranchId(Repository repo, String branch) {
+  private static ObjectId getBranchId(Repository repo, String branch, ChangeData changeData) {
     try {
       ObjectId id = repo.resolve(branch);
-      if (id == null) {
+      if (id == null && changeData != null && !Checker.isExemptFromOwnerApproval(changeData)) {
         log.error("cannot find branch " + branch);
       }
       return id;
