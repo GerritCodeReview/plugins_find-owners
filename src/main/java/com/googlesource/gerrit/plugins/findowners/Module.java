@@ -23,8 +23,8 @@ import com.google.gerrit.extensions.registration.DynamicSet;
 import com.google.gerrit.extensions.restapi.RestApiModule;
 import com.google.gerrit.extensions.webui.JavaScriptPlugin;
 import com.google.gerrit.extensions.webui.WebUiPlugin;
-import com.google.gerrit.rules.PredicateProvider;
 import com.google.gerrit.server.config.PluginConfigFactory;
+import com.google.gerrit.server.rules.PredicateProvider;
 import com.google.inject.AbstractModule;
 import com.google.inject.Inject;
 
