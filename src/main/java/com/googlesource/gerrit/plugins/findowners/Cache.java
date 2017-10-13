@@ -144,7 +144,7 @@ class Cache {
             }
           });
     } catch (ExecutionException e) {
-      log.error("Cache.get has exception: " + e);
+      log.error("Cache.get has exception for " + Config.getChangeId(changeData), e);
       return new OwnersDb(
           accountCache, emails, key, repository, changeData, project, branch, files);
     }

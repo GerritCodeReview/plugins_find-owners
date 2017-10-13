@@ -75,7 +75,7 @@ class OwnersDb {
     this.emails = emails;
     this.key = key;
     preferredEmails.put("*", "*");
-    String ownersFileName = Config.getOwnersFileName(project);
+    String ownersFileName = Config.getOwnersFileName(project, changeData);
     // Some hacked CL could have a target branch that is not created yet.
     ObjectId id = getBranchId(repository, branch, changeData);
     revision = "";
@@ -101,7 +101,7 @@ class OwnersDb {
       try {
         revision = repository.getRef(branch).getObjectId().getName();
       } catch (Exception e) {
-        log.error("Fail to get branch revision", e);
+        log.error("Fail to get branch revision for " + Config.getChangeId(changeData), e);
       }
     }
     countNumOwners(files);
@@ -293,11 +293,11 @@ class OwnersDb {
     try {
       ObjectId id = repo.resolve(branch);
       if (id == null && changeData != null && !Checker.isExemptFromOwnerApproval(changeData)) {
-        log.error("cannot find branch " + branch);
+        log.error("cannot find branch " + branch + " for " + Config.getChangeId(changeData));
       }
       return id;
     } catch (Exception e) {
-      log.error("cannot find branch " + branch, e);
+      log.error("cannot find branch " + branch + " for " + Config.getChangeId(changeData), e);
     }
     return null;
   }

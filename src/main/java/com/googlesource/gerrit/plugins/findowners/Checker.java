@@ -101,14 +101,15 @@ public class Checker {
 
   /** Returns 1 if owner approval is found, -1 if missing, 0 if unneeded. */
   public static int findApproval(Prolog engine, int minVoteLevel) {
+    ChangeData changeData = null;
     try {
+      changeData = StoredValues.CHANGE_DATA.get(engine);
       AccountCache accountCache = StoredValues.ACCOUNT_CACHE.get(engine);
       Emails emails = StoredValues.EMAILS.get(engine);
-      ChangeData changeData = StoredValues.CHANGE_DATA.get(engine);
       Repository repository = StoredValues.REPOSITORY.get(engine);
       return new Checker(repository, changeData, minVoteLevel).findApproval(accountCache, emails);
     } catch (OrmException | IOException e) {
-      log.error("Exception", e);
+      log.error("Exception for " + Config.getChangeId(changeData), e);
       return 0; // owner approval may or may not be required.
     }
   }
@@ -121,7 +122,7 @@ public class Checker {
         return true;
       }
     } catch (IOException | OrmException e) {
-      log.error("Cannot get commit message", e);
+      log.error("Cannot get commit message for " + Config.getChangeId(changeData), e);
       return true; // exempt from owner approval due to lack of data
     }
     // Abandoned and merged changes do not need approval again.

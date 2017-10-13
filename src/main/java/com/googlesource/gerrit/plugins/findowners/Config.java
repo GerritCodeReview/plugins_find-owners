@@ -87,7 +87,11 @@ class Config {
     return alwaysShowButton;
   }
 
-  static String getOwnersFileName(Project.NameKey project) {
+  static String getChangeId(ChangeData data) {
+    return data == null ? "(unknown change)" : ("change c/" + data.getId().get());
+  }
+
+  static String getOwnersFileName(Project.NameKey project, ChangeData c) {
     if (config != null && project != null) {
       try {
         String name =
@@ -96,12 +100,19 @@ class Config {
                 .getString(OWNERS_FILE_NAME, OWNERS);
         if (name.trim().equals("")) {
           log.error(
-              "Project " + project.get() + " has wrong " + OWNERS_FILE_NAME + ": \"" + name + "\"");
+              "Project "
+                  + project
+                  + " has wrong "
+                  + OWNERS_FILE_NAME
+                  + ": \""
+                  + name
+                  + "\" for "
+                  + getChangeId(c));
           return OWNERS;
         }
         return name;
       } catch (NoSuchProjectException e) {
-        log.error("Cannot find project: " + project, e);
+        log.error("Cannot find project " + project + " for " + getChangeId(c), e);
       }
     }
     return OWNERS;
@@ -121,7 +132,7 @@ class Config {
               .getFromProjectConfigWithInheritance(project, PLUGIN_NAME)
               .getInt(MIN_OWNER_VOTE_LEVEL, minOwnerVoteLevel);
     } catch (NoSuchProjectException e) {
-      log.error("Cannot find project: " + project, e);
+      log.error("Cannot find project " + project + " for " + getChangeId(changeData), e);
       return minOwnerVoteLevel;
     }
   }

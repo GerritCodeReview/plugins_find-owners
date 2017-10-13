@@ -143,7 +143,7 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
         result.add(account.getPreferredEmail());
       }
     } catch (OrmException e) {
-      log.error("Exception", e);
+      log.error("Exception for " + Config.getChangeId(changeData), e);
       result = new ArrayList<>();
     }
     return result;
@@ -199,8 +199,9 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
   @Override
   public Description getDescription(RevisionResource resource) {
     Change change = resource.getChangeResource().getChange();
+    ChangeData changeData = null;
     try (ReviewDb reviewDb = reviewDbProvider.open()) {
-      ChangeData changeData = changeDataFactory.create(reviewDb, change);
+      changeData = changeDataFactory.create(reviewDb, change);
       if (changeData.change().getDest().get() == null) {
         if (!Checker.isExemptFromOwnerApproval(changeData)) {
           log.error("Cannot get branch of change: " + changeData.getId().get());
@@ -228,7 +229,7 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
           .setTitle("Find owners to add to Reviewers list")
           .setVisible(needFindOwners);
     } catch (IOException | OrmException e) {
-      log.error("Exception", e);
+      log.error("Exception for " + Config.getChangeId(changeData), e);
       throw new IllegalStateException(e);
     }
   }
