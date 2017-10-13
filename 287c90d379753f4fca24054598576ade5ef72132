@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6ff6ec70_d2207c8a",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/OwnersDb.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 301,
+      "author": {
+        "id": 1031898
+      },
+      "writtenOn": "2017-10-13T12:29:53Z",
+      "side": 1,
+      "message": "When the destination branch is missing, can we just log \u0027warn\u0027 instead of \u0027error\u0027?\nI\u0027m considering this because those errors increase our error rate.",
+      "range": {
+        "startLine": 292,
+        "startChar": 5,
+        "endLine": 301,
+        "endChar": 3
+      },
+      "revId": "287c90d379753f4fca24054598576ade5ef72132",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    }
+  ]
+}
