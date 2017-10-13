@@ -259,9 +259,9 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
     PushOneCommit.Result cB = createChange("add tB.c", "tB.c", "Hello B!");
 
     // Default owners file name is "OWNERS".
-    assertThat(Config.getOwnersFileName(null)).isEqualTo("OWNERS");
-    assertThat(Config.getOwnersFileName(pA)).isEqualTo("OWNERS");
-    assertThat(Config.getOwnersFileName(pB)).isEqualTo("OWNERS");
+    assertThat(Config.getOwnersFileName(null, null)).isEqualTo("OWNERS");
+    assertThat(Config.getOwnersFileName(pA, null)).isEqualTo("OWNERS");
+    assertThat(Config.getOwnersFileName(pB, null)).isEqualTo("OWNERS");
 
     String ownerX = oneOwnerList("x@x");
     String ownerY = oneOwnerList("y@y");
@@ -273,8 +273,8 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
     setProjectConfig("ownersFileName", "OWNERS.alpha");
     switchProject(pB);
     setProjectConfig("ownersFileName", "OWNERS.beta");
-    assertThat(Config.getOwnersFileName(pA)).isEqualTo("OWNERS.alpha");
-    assertThat(Config.getOwnersFileName(pB)).isEqualTo("OWNERS.beta");
+    assertThat(Config.getOwnersFileName(pA, null)).isEqualTo("OWNERS.alpha");
+    assertThat(Config.getOwnersFileName(pB, null)).isEqualTo("OWNERS.beta");
     String ownerA = oneOwnerList("a@a");
     String ownerB = oneOwnerList("b@b");
     assertThat(getOwnersResponse(cA)).contains(ownerA + ", files:[ tA.c ]");
@@ -283,24 +283,24 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
     // Change back to OWNERS in Project_A
     switchProject(pA);
     setProjectConfig("ownersFileName", "OWNERS");
-    assertThat(Config.getOwnersFileName(pA)).isEqualTo("OWNERS");
+    assertThat(Config.getOwnersFileName(pA, null)).isEqualTo("OWNERS");
     assertThat(getOwnersResponse(cA)).contains(ownerX + ", files:[ tA.c ]");
     assertThat(getOwnersResponse(cB)).contains(ownerB + ", files:[ tB.c ]");
 
     // Change back to OWNERS.alpha in Project_B, but there is no OWNERS.alpha
     switchProject(pB);
     setProjectConfig("ownersFileName", "OWNERS.alpha");
-    assertThat(Config.getOwnersFileName(pB)).isEqualTo("OWNERS.alpha");
+    assertThat(Config.getOwnersFileName(pB, null)).isEqualTo("OWNERS.alpha");
     assertThat(getOwnersResponse(cA)).contains(ownerX + ", files:[ tA.c ]");
     assertThat(getOwnersResponse(cB)).contains("owners:[], files:[ tB.c ]");
 
     // Do not accept empty string or all-white-spaces for ownersFileName.
     setProjectConfig("ownersFileName", "   ");
-    assertThat(Config.getOwnersFileName(pB)).isEqualTo("OWNERS");
+    assertThat(Config.getOwnersFileName(pB, null)).isEqualTo("OWNERS");
     setProjectConfig("ownersFileName", " \t  ");
-    assertThat(Config.getOwnersFileName(pB)).isEqualTo("OWNERS");
+    assertThat(Config.getOwnersFileName(pB, null)).isEqualTo("OWNERS");
     setProjectConfig("ownersFileName", "O");
-    assertThat(Config.getOwnersFileName(pB)).isEqualTo("O");
+    assertThat(Config.getOwnersFileName(pB, null)).isEqualTo("O");
   }
 
   @Test
