@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "e98c98e4_db6c9b69",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Config.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1031898
+      },
+      "writtenOn": "2017-10-13T17:42:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3e088533_90683f2e",
+      "range": {
+        "startLine": 105,
+        "startChar": 81,
+        "endLine": 105,
+        "endChar": 87
+      },
+      "revId": "fbcba3dc5e2ac4aa1c98f3d65c5aa77af72362df",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "224d4b45_d22c94dd",
         "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Config.java",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2017-10-13T17:38:28Z",
       "side": 1,
       "message": "Here is another log.error that could show change id.\nLet\u0027s dump change id in all log.error.\nI think Action.java,  Cache.java, Checker.java, Config.java, OwnersDb.java all have log.error.",
+      "range": {
+        "startLine": 125,
+        "startChar": 6,
+        "endLine": 125,
+        "endChar": 16
+      },
+      "revId": "fbcba3dc5e2ac4aa1c98f3d65c5aa77af72362df",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2fc4afa3_8bb3a3bf",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Config.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1031898
+      },
+      "writtenOn": "2017-10-13T17:42:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "224d4b45_d22c94dd",
       "range": {
         "startLine": 125,
         "startChar": 6,
