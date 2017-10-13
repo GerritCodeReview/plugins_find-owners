@@ -101,7 +101,7 @@ class Config {
         }
         return name;
       } catch (NoSuchProjectException e) {
-        log.error("Cannot find project: " + project, e);
+        log.warn("Cannot find project: " + project, e);
       }
     }
     return OWNERS;
@@ -121,7 +121,7 @@ class Config {
               .getFromProjectConfigWithInheritance(project, PLUGIN_NAME)
               .getInt(MIN_OWNER_VOTE_LEVEL, minOwnerVoteLevel);
     } catch (NoSuchProjectException e) {
-      log.error("Cannot find project: " + project, e);
+      log.warn("Cannot find project: " + project, e);
       return minOwnerVoteLevel;
     }
   }
