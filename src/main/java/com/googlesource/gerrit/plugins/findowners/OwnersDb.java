@@ -75,7 +75,7 @@ class OwnersDb {
     this.emails = emails;
     this.key = key;
     preferredEmails.put("*", "*");
-    String ownersFileName = Config.getOwnersFileName(project);
+    String ownersFileName = Config.getOwnersFileName(project, changeData.getId());
     // Some hacked CL could have a target branch that is not created yet.
     ObjectId id = getBranchId(repository, branch, changeData);
     revision = "";
