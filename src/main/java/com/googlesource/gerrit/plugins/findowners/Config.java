@@ -15,6 +15,7 @@
 package com.googlesource.gerrit.plugins.findowners;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.gerrit.reviewdb.client.Change;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.config.PluginConfig;
 import com.google.gerrit.server.config.PluginConfigFactory;
@@ -87,7 +88,7 @@ class Config {
     return alwaysShowButton;
   }
 
-  static String getOwnersFileName(Project.NameKey project) {
+  static String getOwnersFileName(Project.NameKey project, Change.Id id) {
     if (config != null && project != null) {
       try {
         String name =
@@ -101,7 +102,7 @@ class Config {
         }
         return name;
       } catch (NoSuchProjectException e) {
-        log.error("Cannot find project: " + project, e);
+        log.error(String.format("Cannot find project %s for change %s", project, id.get()), e);
       }
     }
     return OWNERS;
