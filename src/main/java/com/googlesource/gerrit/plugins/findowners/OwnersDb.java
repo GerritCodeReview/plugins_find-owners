@@ -293,11 +293,11 @@ class OwnersDb {
     try {
       ObjectId id = repo.resolve(branch);
       if (id == null && changeData != null && !Checker.isExemptFromOwnerApproval(changeData)) {
-        log.error("cannot find branch " + branch);
+        log.warn("cannot find branch " + branch);
       }
       return id;
     } catch (Exception e) {
-      log.error("cannot find branch " + branch, e);
+      log.warn("cannot find branch " + branch, e);
     }
     return null;
   }
