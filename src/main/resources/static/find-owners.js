@@ -13,6 +13,11 @@
 // limitations under the License.
 
 Gerrit.install(function(self) {
+  if (window.Polymer) {
+    // Install deprecated APIs to mimic GWT UI API.
+    self.deprecated.install();
+  }
+
   // If context.popup API exists and popup content is small,
   // use the API and set useContextPopup,
   // otherwise, use pageDiv and set its visibility.
