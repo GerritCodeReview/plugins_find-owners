@@ -16,10 +16,10 @@ package com.googlesource.gerrit.plugins.findowners;
 
 import com.google.gerrit.reviewdb.client.Change.Status;
 import com.google.gerrit.reviewdb.client.PatchSetApproval;
-import com.google.gerrit.rules.StoredValues;
 import com.google.gerrit.server.account.AccountCache;
 import com.google.gerrit.server.account.Emails;
 import com.google.gerrit.server.query.change.ChangeData;
+import com.google.gerrit.server.rules.StoredValues;
 import com.google.gwtorm.server.OrmException;
 import com.googlecode.prolog_cafe.lang.Prolog;
 import java.io.IOException;
