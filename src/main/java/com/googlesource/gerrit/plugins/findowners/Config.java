@@ -19,6 +19,7 @@ import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.config.PluginConfig;
 import com.google.gerrit.server.config.PluginConfigFactory;
 import com.google.gerrit.server.project.NoSuchProjectException;
+import com.google.gerrit.server.project.ProjectState;
 import com.google.gerrit.server.query.change.ChangeData;
 import com.google.gwtorm.server.OrmException;
 import org.slf4j.Logger;
@@ -91,29 +92,25 @@ class Config {
     return data == null ? "(unknown change)" : ("change c/" + data.getId().get());
   }
 
-  static String getOwnersFileName(Project.NameKey project, ChangeData c) {
-    if (config != null && project != null) {
-      try {
-        String name =
-            config
-                .getFromProjectConfigWithInheritance(project, PLUGIN_NAME)
-                .getString(OWNERS_FILE_NAME, OWNERS);
-        if (name.trim().equals("")) {
-          log.error(
-              "Project "
-                  + project
-                  + " has wrong "
-                  + OWNERS_FILE_NAME
-                  + ": \""
-                  + name
-                  + "\" for "
-                  + getChangeId(c));
-          return OWNERS;
-        }
-        return name;
-      } catch (NoSuchProjectException e) {
-        log.error("Cannot find project " + project + " for " + getChangeId(c), e);
+  static String getOwnersFileName(ProjectState projectState, ChangeData c) {
+    if (config != null && projectState != null) {
+      String name =
+          config
+              .getFromProjectConfigWithInheritance(projectState, PLUGIN_NAME)
+              .getString(OWNERS_FILE_NAME, OWNERS);
+      if (name.trim().equals("")) {
+        log.error(
+            "Project "
+                + projectState.getProject()
+                + " has wrong "
+                + OWNERS_FILE_NAME
+                + ": \""
+                + name
+                + "\" for "
+                + getChangeId(c));
+        return OWNERS;
       }
+      return name;
     }
     return OWNERS;
   }
