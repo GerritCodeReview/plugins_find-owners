@@ -17,9 +17,9 @@ package com.googlesource.gerrit.plugins.findowners;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 import com.google.common.cache.CacheBuilder;
-import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.account.AccountCache;
 import com.google.gerrit.server.account.Emails;
+import com.google.gerrit.server.project.ProjectState;
 import com.google.gerrit.server.query.change.ChangeData;
 import com.google.gwtorm.server.OrmException;
 import java.io.IOException;
@@ -88,48 +88,59 @@ class Cache {
   }
 
   /** Returns a cached or new OwnersDb, for the current patchset. */
-  OwnersDb get(AccountCache accountCache, Emails emails, Repository repo, ChangeData changeData)
+  OwnersDb get(
+      ProjectState projectState,
+      AccountCache accountCache,
+      Emails emails,
+      Repository repo,
+      ChangeData changeData)
       throws OrmException, IOException {
-    return get(accountCache, emails, repo, changeData, changeData.currentPatchSet().getId().get());
+    return get(
+        projectState,
+        accountCache,
+        emails,
+        repo,
+        changeData,
+        changeData.currentPatchSet().getId().get());
   }
 
   /** Returns a cached or new OwnersDb, for the specified patchset. */
   OwnersDb get(
+      ProjectState projectState,
       AccountCache accountCache,
       Emails emails,
       Repository repository,
       ChangeData changeData,
       int patchset)
       throws OrmException, IOException {
-    Project.NameKey project = changeData.change().getProject();
     String branch = changeData.change().getDest().get();
     String dbKey = Cache.makeKey(changeData.getId().get(), patchset, branch);
     // TODO: get changed files of the given patchset?
     return get(
+        projectState,
         accountCache,
         emails,
         dbKey,
         repository,
         changeData,
-        project,
         branch,
         changeData.currentFilePaths());
   }
 
   /** Returns a cached or new OwnersDb, for the specified branch and changed files. */
   OwnersDb get(
+      ProjectState projectState,
       AccountCache accountCache,
       Emails emails,
       String key,
       Repository repository,
       ChangeData changeData,
-      Project.NameKey project,
       String branch,
       Collection<String> files) {
     if (dbCache == null) { // Do not cache OwnersDb
       log.trace("Create new OwnersDb, key=" + key);
       return new OwnersDb(
-          accountCache, emails, key, repository, changeData, project, branch, files);
+          projectState, accountCache, emails, key, repository, changeData, branch, files);
     }
     try {
       log.trace("Get from cash " + dbCache + ", key=" + key + ", cache size=" + dbCache.size());
@@ -140,13 +151,13 @@ class Cache {
             public OwnersDb call() {
               log.trace("Create new OwnersDb, key=" + key);
               return new OwnersDb(
-                  accountCache, emails, key, repository, changeData, project, branch, files);
+                  projectState, accountCache, emails, key, repository, changeData, branch, files);
             }
           });
     } catch (ExecutionException e) {
       log.error("Cache.get has exception for " + Config.getChangeId(changeData), e);
       return new OwnersDb(
-          accountCache, emails, key, repository, changeData, project, branch, files);
+          projectState, accountCache, emails, key, repository, changeData, branch, files);
     }
   }
 

@@ -18,9 +18,9 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.collect.Multimap;
 import com.google.gerrit.reviewdb.client.Account;
-import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.account.AccountCache;
 import com.google.gerrit.server.account.Emails;
+import com.google.gerrit.server.project.ProjectState;
 import com.google.gerrit.server.query.change.ChangeData;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
@@ -63,19 +63,19 @@ class OwnersDb {
   OwnersDb() {}
 
   OwnersDb(
+      ProjectState projectState,
       AccountCache accountCache,
       Emails emails,
       String key,
       Repository repository,
       ChangeData changeData,
-      Project.NameKey project,
       String branch,
       Collection<String> files) {
     this.accountCache = accountCache;
     this.emails = emails;
     this.key = key;
     preferredEmails.put("*", "*");
-    String ownersFileName = Config.getOwnersFileName(project, changeData);
+    String ownersFileName = Config.getOwnersFileName(projectState, changeData);
     // Some hacked CL could have a target branch that is not created yet.
     ObjectId id = getBranchId(repository, branch, changeData);
     revision = "";

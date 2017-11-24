@@ -25,6 +25,7 @@ import com.google.gerrit.server.account.Emails;
 import com.google.gerrit.server.change.ChangeResource;
 import com.google.gerrit.server.config.PluginConfigFactory;
 import com.google.gerrit.server.git.GitRepositoryManager;
+import com.google.gerrit.server.project.ProjectCache;
 import com.google.gerrit.server.query.change.ChangeData;
 import com.google.gwtorm.server.OrmException;
 import com.google.gwtorm.server.SchemaFactory;
@@ -58,7 +59,8 @@ public class GetOwners implements RestReadView<ChangeResource> {
       ChangeData.Factory dataFactory,
       AccountCache accountCache,
       Emails emails,
-      GitRepositoryManager repoManager) {
+      GitRepositoryManager repoManager,
+      ProjectCache projectCache) {
     this.action =
         new Action(
             pluginName,
@@ -68,7 +70,8 @@ public class GetOwners implements RestReadView<ChangeResource> {
             dataFactory,
             accountCache,
             emails,
-            repoManager);
+            repoManager,
+            projectCache);
   }
 
   @Override

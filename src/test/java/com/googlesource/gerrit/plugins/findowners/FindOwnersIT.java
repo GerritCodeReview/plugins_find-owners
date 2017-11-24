@@ -35,6 +35,7 @@ import com.google.gerrit.reviewdb.client.RefNames;
 import com.google.gerrit.server.account.Emails;
 import com.google.gerrit.server.change.ChangeResource;
 import com.google.gerrit.server.config.PluginConfigFactory;
+import com.google.gerrit.server.project.ProjectCache;
 import com.google.inject.Inject;
 import java.util.Collection;
 import org.eclipse.jgit.lib.ObjectLoader;
@@ -51,6 +52,7 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
 
   @Inject private Emails emails;
   @Inject private PluginConfigFactory configFactory;
+  @Inject private ProjectCache projectCache;
 
   @Test
   public void getOwnersTest() throws Exception {
@@ -259,9 +261,9 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
     PushOneCommit.Result cB = createChange("add tB.c", "tB.c", "Hello B!");
 
     // Default owners file name is "OWNERS".
-    assertThat(Config.getOwnersFileName(null, null)).isEqualTo("OWNERS");
-    assertThat(Config.getOwnersFileName(pA, null)).isEqualTo("OWNERS");
-    assertThat(Config.getOwnersFileName(pB, null)).isEqualTo("OWNERS");
+    assertThat(Config.getDefaultOwnersFileName()).isEqualTo("OWNERS");
+    assertThat(Config.getOwnersFileName(projectCache.get(pA), null)).isEqualTo("OWNERS");
+    assertThat(Config.getOwnersFileName(projectCache.get(pB), null)).isEqualTo("OWNERS");
 
     String ownerX = oneOwnerList("x@x");
     String ownerY = oneOwnerList("y@y");
@@ -273,8 +275,9 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
     setProjectConfig("ownersFileName", "OWNERS.alpha");
     switchProject(pB);
     setProjectConfig("ownersFileName", "OWNERS.beta");
-    assertThat(Config.getOwnersFileName(pA, null)).isEqualTo("OWNERS.alpha");
-    assertThat(Config.getOwnersFileName(pB, null)).isEqualTo("OWNERS.beta");
+
+    assertThat(Config.getOwnersFileName(projectCache.get(pA), null)).isEqualTo("OWNERS.alpha");
+    assertThat(Config.getOwnersFileName(projectCache.get(pB), null)).isEqualTo("OWNERS.beta");
     String ownerA = oneOwnerList("a@a");
     String ownerB = oneOwnerList("b@b");
     assertThat(getOwnersResponse(cA)).contains(ownerA + ", files:[ tA.c ]");
@@ -283,24 +286,24 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
     // Change back to OWNERS in Project_A
     switchProject(pA);
     setProjectConfig("ownersFileName", "OWNERS");
-    assertThat(Config.getOwnersFileName(pA, null)).isEqualTo("OWNERS");
+    assertThat(Config.getOwnersFileName(projectCache.get(pA), null)).isEqualTo("OWNERS");
     assertThat(getOwnersResponse(cA)).contains(ownerX + ", files:[ tA.c ]");
     assertThat(getOwnersResponse(cB)).contains(ownerB + ", files:[ tB.c ]");
 
     // Change back to OWNERS.alpha in Project_B, but there is no OWNERS.alpha
     switchProject(pB);
     setProjectConfig("ownersFileName", "OWNERS.alpha");
-    assertThat(Config.getOwnersFileName(pB, null)).isEqualTo("OWNERS.alpha");
+    assertThat(Config.getOwnersFileName(projectCache.get(pB), null)).isEqualTo("OWNERS.alpha");
     assertThat(getOwnersResponse(cA)).contains(ownerX + ", files:[ tA.c ]");
     assertThat(getOwnersResponse(cB)).contains("owners:[], files:[ tB.c ]");
 
     // Do not accept empty string or all-white-spaces for ownersFileName.
     setProjectConfig("ownersFileName", "   ");
-    assertThat(Config.getOwnersFileName(pB, null)).isEqualTo("OWNERS");
+    assertThat(Config.getOwnersFileName(projectCache.get(pB), null)).isEqualTo("OWNERS");
     setProjectConfig("ownersFileName", " \t  ");
-    assertThat(Config.getOwnersFileName(pB, null)).isEqualTo("OWNERS");
+    assertThat(Config.getOwnersFileName(projectCache.get(pB), null)).isEqualTo("OWNERS");
     setProjectConfig("ownersFileName", "O");
-    assertThat(Config.getOwnersFileName(pB, null)).isEqualTo("O");
+    assertThat(Config.getOwnersFileName(projectCache.get(pB), null)).isEqualTo("O");
   }
 
   @Test
@@ -327,7 +330,15 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
     Action.Parameters param = new Action.Parameters();
     Action action =
         new Action(
-            "find-owners", null, null, null, changeDataFactory, accountCache, emails, repoManager);
+            "find-owners",
+            null,
+            null,
+            null,
+            changeDataFactory,
+            accountCache,
+            emails,
+            repoManager,
+            projectCache);
     Response<RestResult> response = action.apply(db, cr, param);
     RestResult result = response.value();
     verifyRestResult(result, 1, 1, changeInfo._number, false);
@@ -436,9 +447,11 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
   }
 
   private int checkApproval(PushOneCommit.Result r) throws Exception {
-    Repository repo = repoManager.openRepository(r.getChange().project());
+    Project.NameKey project = r.getChange().project();
+    Repository repo = repoManager.openRepository(project);
     Cache cache = Cache.getInstance().init(0, 0);
-    OwnersDb db = cache.get(accountCache, emails, repo, r.getChange(), 1);
+    OwnersDb db =
+        cache.get(projectCache.get(project), accountCache, emails, repo, r.getChange(), 1);
     Checker c = new Checker(repo, r.getChange(), 1);
     return c.findApproval(accountCache, db);
   }

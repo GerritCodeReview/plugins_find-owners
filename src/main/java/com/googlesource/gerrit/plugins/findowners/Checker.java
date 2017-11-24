@@ -18,6 +18,7 @@ import com.google.gerrit.reviewdb.client.Change.Status;
 import com.google.gerrit.reviewdb.client.PatchSetApproval;
 import com.google.gerrit.server.account.AccountCache;
 import com.google.gerrit.server.account.Emails;
+import com.google.gerrit.server.project.ProjectState;
 import com.google.gerrit.server.query.change.ChangeData;
 import com.google.gerrit.server.rules.StoredValues;
 import com.google.gwtorm.server.OrmException;
@@ -104,10 +105,12 @@ public class Checker {
     ChangeData changeData = null;
     try {
       changeData = StoredValues.CHANGE_DATA.get(engine);
+      ProjectState projectState = StoredValues.PROJECT_STATE.get(engine);
       AccountCache accountCache = StoredValues.ACCOUNT_CACHE.get(engine);
       Emails emails = StoredValues.EMAILS.get(engine);
       Repository repository = StoredValues.REPOSITORY.get(engine);
-      return new Checker(repository, changeData, minVoteLevel).findApproval(accountCache, emails);
+      return new Checker(repository, changeData, minVoteLevel)
+          .findApproval(projectState, accountCache, emails);
     } catch (OrmException | IOException e) {
       log.error("Exception for " + Config.getChangeId(changeData), e);
       return 0; // owner approval may or may not be required.
@@ -130,13 +133,15 @@ public class Checker {
     return (status == Status.ABANDONED || status == Status.MERGED);
   }
 
-  int findApproval(AccountCache accountCache, Emails emails) throws OrmException, IOException {
+  int findApproval(ProjectState projectState, AccountCache accountCache, Emails emails)
+      throws OrmException, IOException {
     if (isExemptFromOwnerApproval(changeData)) {
       return 0;
     }
     // One update to a Gerrit change can call submit_rule or submit_filter
     // many times. So this function should use cached values.
-    OwnersDb db = Cache.getInstance().get(accountCache, emails, repository, changeData);
+    OwnersDb db =
+        Cache.getInstance().get(projectState, accountCache, emails, repository, changeData);
     if (db.getNumOwners() <= 0) {
       return 0;
     }
