@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9c18b2a9_450b5bec",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1011842
+      },
+      "writtenOn": "2017-11-24T10:44:34Z",
+      "side": 1,
+      "message": "I think this intends project cache: https://gerrit.googlesource.com/gerrit/+/2eab4bdb436b63aa8b6f8f83dbaedd955e8b8f81/java/com/google/gerrit/server/config/PluginConfigFactory.java#130",
+      "parentUuid": "b994e2f8_8f2d54e1",
+      "range": {
+        "startLine": 7,
+        "startChar": 45,
+        "endLine": 7,
+        "endChar": 56
+      },
+      "revId": "c61210b15ffd994d9ee3de9e6dbbbaa94cb7c1af",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "dcb874d7_a9cb296b",
         "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Config.java",
         "patchSetId": 1
