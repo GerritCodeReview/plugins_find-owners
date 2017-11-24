@@ -22,6 +22,29 @@
       "revId": "c61210b15ffd994d9ee3de9e6dbbbaa94cb7c1af",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dcb874d7_a9cb296b",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Config.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1031898
+      },
+      "writtenOn": "2017-11-24T10:42:40Z",
+      "side": 1,
+      "message": "Here it tries to read from group cache and it gets null for project state there.",
+      "range": {
+        "startLine": 99,
+        "startChar": 15,
+        "endLine": 99,
+        "endChar": 63
+      },
+      "revId": "c61210b15ffd994d9ee3de9e6dbbbaa94cb7c1af",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
     }
   ]
 }
