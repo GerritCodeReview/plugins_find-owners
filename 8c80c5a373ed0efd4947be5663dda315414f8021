@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3ba5179d_c0af4607",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 1036808
+      },
+      "writtenOn": "2017-11-29T18:46:05Z",
+      "side": 1,
+      "message": "GroupCache is not used in this plugin.",
+      "range": {
+        "startLine": 13,
+        "startChar": 39,
+        "endLine": 13,
+        "endChar": 49
+      },
+      "revId": "8c80c5a373ed0efd4947be5663dda315414f8021",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9d00e374_d7aa6fa4",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1036808
+      },
+      "writtenOn": "2017-11-29T18:46:05Z",
+      "side": 1,
+      "message": "There is no class named \"FindOwners\".",
+      "range": {
+        "startLine": 17,
+        "startChar": 17,
+        "endLine": 17,
+        "endChar": 27
+      },
+      "revId": "8c80c5a373ed0efd4947be5663dda315414f8021",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    }
+  ]
+}
