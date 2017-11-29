@@ -194,6 +194,30 @@
     },
     {
       "key": {
+        "uuid": "c2a2a4af_d105a59d",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Checker.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1036808
+      },
+      "writtenOn": "2017-11-29T18:46:05Z",
+      "side": 1,
+      "message": "c/144192 is exactly what I wished to have.  Could we have that change pushed to Gerrit servers before making any more change to find-owners plugin?\n\nAfter c/144192, if we see only NoSuchProjectException from SubmitRuleEvaluator and not from find-owners plugin, then we know that problem is in the set up of projectCache in/before SubmitRuleEvaluator, and using projectState in find-owners here won\u0027t help. We need to find out what CLs and APIs triggered those SubmitRuleEvaluator without project state in the projectCache.\n\nIf we see only \"Cannot find project\" in find-owners but not NoSuchProjectException after c/144192, then we know that projectCache is fine in SubmitRuleEvaluator, but not in getFromProjectConfigWithInheritance. We should fix getFromProjectConfigWithInheritance.",
+      "parentUuid": "648d835a_a3db4f82",
+      "range": {
+        "startLine": 108,
+        "startChar": 19,
+        "endLine": 108,
+        "endChar": 31
+      },
+      "revId": "c61210b15ffd994d9ee3de9e6dbbbaa94cb7c1af",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "dcb874d7_a9cb296b",
         "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Config.java",
         "patchSetId": 1
