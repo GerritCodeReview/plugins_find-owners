@@ -45,6 +45,30 @@
       "revId": "8c80c5a373ed0efd4947be5663dda315414f8021",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d893c386_d665d71d",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1031898
+      },
+      "writtenOn": "2017-11-30T08:28:46Z",
+      "side": 1,
+      "message": "I meant \"GetOwners\".",
+      "parentUuid": "9d00e374_d7aa6fa4",
+      "range": {
+        "startLine": 17,
+        "startChar": 17,
+        "endLine": 17,
+        "endChar": 27
+      },
+      "revId": "8c80c5a373ed0efd4947be5663dda315414f8021",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
     }
   ]
 }
