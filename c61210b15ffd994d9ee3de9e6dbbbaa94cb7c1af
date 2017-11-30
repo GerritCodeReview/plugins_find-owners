@@ -218,6 +218,30 @@
     },
     {
       "key": {
+        "uuid": "e1806f88_7b2e8b73",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Checker.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1031898
+      },
+      "writtenOn": "2017-11-30T08:28:46Z",
+      "side": 1,
+      "message": "That change is living in our prod. And I have checked the logs, they are exactly the same. \n\nIn fact, the projectState in SubmitRuleEvaluator will not be null. Or we will see NPE in #getPrologEnvironment. \n\n\u003e If we see only \"Cannot find project\" in find-owners but not NoSuchProjectException after c/144192, then we know that projectCache is fine in SubmitRuleEvaluator, but not in getFromProjectConfigWithInheritance. We should fix getFromProjectConfigWithInheritance.\n\nI\u0027m not pretty sure the cause. Let\u0027s see if using projectCache directly in this plugin like this change will make a difference.",
+      "parentUuid": "c2a2a4af_d105a59d",
+      "range": {
+        "startLine": 108,
+        "startChar": 19,
+        "endLine": 108,
+        "endChar": 31
+      },
+      "revId": "c61210b15ffd994d9ee3de9e6dbbbaa94cb7c1af",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "dcb874d7_a9cb296b",
         "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Config.java",
         "patchSetId": 1
