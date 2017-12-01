@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ab99bb1_205a992c",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Config.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1036808
+      },
+      "writtenOn": "2017-12-01T20:18:10Z",
+      "side": 1,
+      "message": "I think we should still keep it as an error,\nsince many Android projects depend on non-default configuration.\nNot including the exception call stack is okay if we already have many such call stacks to study.\nSame for the log.error at line 135.",
+      "range": {
+        "startLine": 115,
+        "startChar": 12,
+        "endLine": 115,
+        "endChar": 16
+      },
+      "revId": "3179e28bb26cbdbe8ca349e51bfff1073604edc7",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    }
+  ]
+}
