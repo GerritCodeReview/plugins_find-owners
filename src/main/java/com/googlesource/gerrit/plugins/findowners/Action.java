@@ -33,6 +33,7 @@ import com.google.gerrit.server.change.RevisionResource;
 import com.google.gerrit.server.config.PluginConfigFactory;
 import com.google.gerrit.server.git.GitRepositoryManager;
 import com.google.gerrit.server.project.ProjectCache;
+import com.google.gerrit.server.project.ProjectState;
 import com.google.gerrit.server.query.change.ChangeData;
 import com.google.gwtorm.server.OrmException;
 import com.google.gwtorm.server.SchemaFactory;
@@ -175,20 +176,15 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
       Repository repository, Parameters params, ChangeData changeData)
       throws OrmException, BadRequestException, IOException {
     int patchset = getValidPatchsetNum(changeData, params.patchset);
+    ProjectState projectState = projectCache.get(changeData.project());
     OwnersDb db =
         Cache.getInstance()
-            .get(
-                projectCache.get(changeData.project()),
-                accountCache,
-                emails,
-                repository,
-                changeData,
-                patchset);
+            .get(projectState, accountCache, emails, repository, changeData, patchset);
     Collection<String> changedFiles = changeData.currentFilePaths();
     Map<String, Set<String>> file2Owners = db.findOwners(changedFiles);
 
     Boolean addDebugMsg = (params.debug != null) ? params.debug : Config.getAddDebugMsg();
-    RestResult obj = new RestResult(Config.getMinOwnerVoteLevel(changeData), addDebugMsg);
+    RestResult obj = new RestResult(Config.getMinOwnerVoteLevel(projectState), addDebugMsg);
     obj.change = changeData.getId().get();
     obj.patchset = patchset;
     obj.ownerRevision = db.revision;

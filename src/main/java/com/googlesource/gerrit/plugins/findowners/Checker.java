@@ -146,7 +146,7 @@ public class Checker {
       return 0;
     }
     if (minVoteLevel <= 0) {
-      minVoteLevel = Config.getMinOwnerVoteLevel(changeData);
+      minVoteLevel = Config.getMinOwnerVoteLevel(projectState);
     }
     log.trace("findApproval db key = " + db.key);
     return findApproval(accountCache, db);
