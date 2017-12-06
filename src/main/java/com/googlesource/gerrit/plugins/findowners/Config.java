@@ -15,10 +15,8 @@
 package com.googlesource.gerrit.plugins.findowners;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.config.PluginConfig;
 import com.google.gerrit.server.config.PluginConfigFactory;
-import com.google.gerrit.server.project.NoSuchProjectException;
 import com.google.gerrit.server.project.ProjectState;
 import com.google.gerrit.server.query.change.ChangeData;
 import com.google.gwtorm.server.OrmException;
@@ -126,17 +124,16 @@ class Config {
     reportSyntaxError = value;
   }
 
-  static int getMinOwnerVoteLevel(ChangeData changeData) throws OrmException {
-    Project.NameKey project = changeData.change().getProject();
-    try {
-      return (config == null || project == null)
-          ? minOwnerVoteLevel
-          : config
-              .getFromProjectConfigWithInheritance(project, PLUGIN_NAME)
-              .getInt(MIN_OWNER_VOTE_LEVEL, minOwnerVoteLevel);
-    } catch (NoSuchProjectException e) {
-      log.error("Cannot find project " + project + " for " + getChangeId(changeData), e);
+  static int getMinOwnerVoteLevel(ProjectState projectState, ChangeData c) throws OrmException {
+    if (projectState == null) {
+      log.error("Null projectState for change " + getChangeId(c));
       return minOwnerVoteLevel;
+    } else if (config == null) {
+      return minOwnerVoteLevel;
+    } else {
+      return config
+          .getFromProjectConfigWithInheritance(projectState, PLUGIN_NAME)
+          .getInt(MIN_OWNER_VOTE_LEVEL, minOwnerVoteLevel);
     }
   }
 }
