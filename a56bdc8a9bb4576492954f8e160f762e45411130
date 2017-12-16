@@ -22,6 +22,30 @@
       "revId": "a56bdc8a9bb4576492954f8e160f762e45411130",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "71cac979_2e07b284",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 1011323
+      },
+      "writtenOn": "2017-12-16T21:08:42Z",
+      "side": 1,
+      "message": "German should be fine too, not? ;-)",
+      "parentUuid": "7672fc97_a1738974",
+      "range": {
+        "startLine": 14,
+        "startChar": 28,
+        "endLine": 14,
+        "endChar": 55
+      },
+      "revId": "a56bdc8a9bb4576492954f8e160f762e45411130",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
     }
   ]
 }
