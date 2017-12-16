@@ -1,25 +1,37 @@
 load("//lib/prolog:prolog.bzl", "prolog_cafe_library")
 load("//tools/bzl:junit.bzl", "junit_tests")
-load("//tools/bzl:plugin.bzl", "gerrit_plugin", "PLUGIN_DEPS", "PLUGIN_TEST_DEPS")
+load(
+    "//tools/bzl:plugin.bzl",
+    "gerrit_plugin",
+    "PLUGIN_DEPS",
+    "PLUGIN_DEPS_NEVERLINK",
+    "PLUGIN_TEST_DEPS",
+)
+
+MODULE = ["src/main/java/com/googlesource/gerrit/plugins/findowners/Module.java"]
 
 java_library(
     name = "find-owners-lib",
-    srcs = glob(["src/main/java/**/*.java"]),
-    deps = PLUGIN_DEPS + ["@prolog_runtime//jar"],
+    srcs = glob(
+        ["src/main/java/**/*.java"],
+        exclude = MODULE,
+    ),
+    deps = PLUGIN_DEPS_NEVERLINK + [
+        "@prolog_runtime//jar:neverlink",
+    ],
 )
 
 prolog_cafe_library(
     name = "find-owners-prolog-rules",
     srcs = glob(["src/main/prolog/*.pl"]),
-    deps = [
+    deps = PLUGIN_DEPS_NEVERLINK + [
         ":find-owners-lib",
-        "//prolog:gerrit-prolog-common",
     ],
 )
 
 gerrit_plugin(
     name = "find-owners",
-    srcs = glob(["src/main/java/**/Module.java"]),
+    srcs = MODULE,
     manifest_entries = [
         "Gerrit-PluginName: find-owners",
         "Gerrit-ReloadMode: restart",
@@ -37,11 +49,11 @@ gerrit_plugin(
 junit_tests(
     name = "findowners_tests",
     srcs = glob(["src/test/java/**/*.java"]),
-    # resources = glob(['src/test/resources/**/*']),
     tags = ["findowners"],
     deps = PLUGIN_DEPS + PLUGIN_TEST_DEPS + [
         "@commons_io//jar",
         ":find-owners-lib",
         ":find-owners-prolog-rules",
+        ":find-owners__plugin",
     ],
 )
