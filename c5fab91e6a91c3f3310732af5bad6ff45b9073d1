@@ -34,6 +34,24 @@
       "revId": "c5fab91e6a91c3f3310732af5bad6ff45b9073d1",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "55854808_8fc81806",
+        "filename": "WORKSPACE",
+        "patchSetId": 1
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 1011323
+      },
+      "writtenOn": "2017-12-18T08:38:50Z",
+      "side": 1,
+      "message": "Well, don\u0027t ask me, ask the change owner. It was not my decision to add that feature to gerrit. I was against that feature from the beginning. If you ask me, I would wipe out that feature from gerrit, ASAP, or, at very least, entirely forbid it for open source gerrit installation sites.",
+      "parentUuid": "9f0501ca_f0c54498",
+      "revId": "c5fab91e6a91c3f3310732af5bad6ff45b9073d1",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
     }
   ]
 }
