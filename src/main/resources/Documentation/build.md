@@ -1,8 +1,60 @@
 Build
 =====
 
-This plugin is built using Bazel.
-Only the Gerrit in-tree build is supported.
+This plugin is built using Bazel.  To install Bazel, follow
+the instruction on: https://www.bazel.io/versions/master/docs/install.html.
+
+Two build modes are supported: Standalone and in Gerrit tree.
+The standalone build mode is recommended, as this mode doesn't
+require the Gerrit tree to exist locally.
+
+### Build standalone
+
+Clone the plugin:
+
+```
+  git clone https://gerrit.googlesource.com/plugins/@PLUGIN@
+  cd @PLUGIN@
+```
+
+Issue the command:
+
+```
+  bazel build :find-owners
+```
+
+The output is created in
+
+```
+  bazel-genfiles/@PLUGIN@.jar
+```
+
+To package the plugin sources run:
+
+```
+  bazel build lib@PLUGIN@__plugin-src.jar
+```
+
+The output is created in:
+
+```
+  bazel-bin/lib@PLUGIN@__plugin-src.jar
+```
+
+To execute the tests run:
+
+```
+  bazel test //...
+```
+
+This project can be imported into the Eclipse IDE:
+
+```
+  ./tools/eclipse/project.sh
+```
+
+### Build in Gerrit tree
+
 
 Clone or link this plugin to the plugins directory of Gerrit's source
 tree.
