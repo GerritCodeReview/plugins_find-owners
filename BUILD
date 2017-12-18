@@ -57,3 +57,13 @@ junit_tests(
         ":find-owners__plugin",
     ],
 )
+
+java_library(
+    name = "find-owners__plugin_test_deps",
+    testonly = 1,
+    visibility = ["//visibility:public"],
+    exports = PLUGIN_DEPS + PLUGIN_TEST_DEPS + [
+        ":find-owners__plugin",
+        "@commons_io//jar",
+    ],
+)
