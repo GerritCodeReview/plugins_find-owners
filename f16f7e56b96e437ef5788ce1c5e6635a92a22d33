@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6a302e1e_b3cfb8c8",
+        "filename": "lib/prolog/BUILD",
+        "patchSetId": 4
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2017-12-19T07:26:28Z",
+      "side": 1,
+      "message": "Empty file?",
+      "revId": "f16f7e56b96e437ef5788ce1c5e6635a92a22d33",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "27446379_dad55735",
+        "filename": "tools/bzl/BUILD",
+        "patchSetId": 4
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2017-12-19T07:26:28Z",
+      "side": 1,
+      "message": "Empty file?",
+      "revId": "f16f7e56b96e437ef5788ce1c5e6635a92a22d33",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    }
+  ]
+}
