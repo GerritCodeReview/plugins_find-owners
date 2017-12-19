@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "2760ba29_931d3ea9",
+        "filename": "lib/prolog/BUILD",
+        "patchSetId": 4
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2017-12-19T23:19:49Z",
+      "side": 1,
+      "message": "Could you add some of these explanations to the empty BUILD files, or link to the related document? Thanks.",
+      "parentUuid": "544dbe80_cf0c7638",
+      "revId": "f16f7e56b96e437ef5788ce1c5e6635a92a22d33",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "27446379_dad55735",
         "filename": "tools/bzl/BUILD",
         "patchSetId": 4
