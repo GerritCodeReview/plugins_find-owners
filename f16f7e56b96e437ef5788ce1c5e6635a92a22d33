@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "544dbe80_cf0c7638",
+        "filename": "lib/prolog/BUILD",
+        "patchSetId": 4
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1011323
+      },
+      "writtenOn": "2017-12-19T07:53:20Z",
+      "side": 1,
+      "message": "Yeah, I find it confusing too. This is needed for Bazel to realise that this is a valid package and find the Skylark rule files, located in this package:\n\n  //lib/prolog/prolog.bzl\n\nYou can see what happens, if you remove this file and try build the plugin in standalone build mode. Something like: //lib/prolog/prolog.bzl can not be found.",
+      "parentUuid": "6a302e1e_b3cfb8c8",
+      "revId": "f16f7e56b96e437ef5788ce1c5e6635a92a22d33",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "27446379_dad55735",
         "filename": "tools/bzl/BUILD",
         "patchSetId": 4
@@ -30,6 +48,24 @@
       "writtenOn": "2017-12-19T07:26:28Z",
       "side": 1,
       "message": "Empty file?",
+      "revId": "f16f7e56b96e437ef5788ce1c5e6635a92a22d33",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8f746f7d_2850a965",
+        "filename": "tools/bzl/BUILD",
+        "patchSetId": 4
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1011323
+      },
+      "writtenOn": "2017-12-19T07:53:20Z",
+      "side": 1,
+      "message": "Same here.",
+      "parentUuid": "27446379_dad55735",
       "revId": "f16f7e56b96e437ef5788ce1c5e6635a92a22d33",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": false
