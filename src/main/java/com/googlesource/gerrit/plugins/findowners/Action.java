@@ -95,8 +95,8 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
   Action() {}
 
   private String getUserName() {
-    if (userProvider != null && userProvider.get().getUserName() != null) {
-      return userProvider.get().getUserName();
+    if (userProvider != null && userProvider.get().getUserName().isPresent()) {
+      return userProvider.get().getUserName().get();
     }
     return "?";
   }
