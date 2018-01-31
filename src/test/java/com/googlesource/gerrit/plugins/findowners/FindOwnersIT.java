@@ -35,7 +35,6 @@ import com.google.gerrit.reviewdb.client.RefNames;
 import com.google.gerrit.server.account.Emails;
 import com.google.gerrit.server.change.ChangeResource;
 import com.google.gerrit.server.config.PluginConfigFactory;
-import com.google.gerrit.server.project.ProjectCache;
 import com.google.inject.Inject;
 import java.util.Collection;
 import org.eclipse.jgit.lib.ObjectLoader;
@@ -52,7 +51,6 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
 
   @Inject private Emails emails;
   @Inject private PluginConfigFactory configFactory;
-  @Inject private ProjectCache projectCache;
 
   @Test
   public void getOwnersTest() throws Exception {
