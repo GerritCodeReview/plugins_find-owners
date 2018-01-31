@@ -55,15 +55,16 @@ public class Checker {
     Map<String, Integer> map = new HashMap<>();
     for (PatchSetApproval p : changeData.currentApprovals()) {
       if (p.getValue() != 0) {
-        map.put(
-            accountCache.get(p.getAccountId()).getAccount().getPreferredEmail(),
-            Integer.valueOf(p.getValue()));
+        String preferredEmail = accountCache.get(p.getAccountId()).getAccount().getPreferredEmail();
+        if (preferredEmail != null) {
+          map.put(preferredEmail, Integer.valueOf(p.getValue()));
+        }
       }
     }
     // Give CL author a default minVoteLevel vote.
     String author =
         accountCache.get(changeData.change().getOwner()).getAccount().getPreferredEmail();
-    if (!map.containsKey(author) || map.get(author) == 0) {
+    if (author != null && (!map.containsKey(author) || map.get(author) == 0)) {
       map.put(author, minVoteLevel);
     }
     return map;
