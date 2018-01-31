@@ -19,7 +19,6 @@ import com.google.gerrit.server.config.PluginConfig;
 import com.google.gerrit.server.config.PluginConfigFactory;
 import com.google.gerrit.server.project.ProjectState;
 import com.google.gerrit.server.query.change.ChangeData;
-import com.google.gwtorm.server.OrmException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -124,7 +123,7 @@ class Config {
     reportSyntaxError = value;
   }
 
-  static int getMinOwnerVoteLevel(ProjectState projectState, ChangeData c) throws OrmException {
+  static int getMinOwnerVoteLevel(ProjectState projectState, ChangeData c) {
     if (projectState == null) {
       log.error("Null projectState for change " + getChangeId(c));
       return minOwnerVoteLevel;
