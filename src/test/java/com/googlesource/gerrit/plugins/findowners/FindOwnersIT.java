@@ -15,6 +15,7 @@
 package com.googlesource.gerrit.plugins.findowners;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static com.google.gerrit.reviewdb.client.RefNames.REFS_CONFIG;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -32,11 +33,13 @@ import com.google.gerrit.extensions.restapi.Response;
 import com.google.gerrit.reviewdb.client.Account;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.reviewdb.client.RefNames;
+import com.google.gerrit.server.account.AccountState;
 import com.google.gerrit.server.account.Emails;
 import com.google.gerrit.server.change.ChangeResource;
 import com.google.gerrit.server.config.PluginConfigFactory;
 import com.google.inject.Inject;
 import java.util.Collection;
+import java.util.Optional;
 import org.eclipse.jgit.lib.ObjectLoader;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevObject;
@@ -208,7 +211,9 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
       assertThat(id1).isEqualTo(id3);
       assertThat(id1).isEqualTo(id4);
       // Action.getReviewers and Checker.getVotes use accountCache to get email address.
-      assertThat(accountCache.get(id1).getAccount().getPreferredEmail()).isEqualTo(emails1[i]);
+      Optional<Account> account = accountCache.maybeGet(id1).map(AccountState::getAccount);
+      assertThat(account).named("account %s", id1).isPresent();
+      assertThat(account.get().getPreferredEmail()).isEqualTo(emails1[i]);
     }
     // Wrong or non-existing email address.
     String[] wrongEmails = {"nobody", "@g.com", "nobody@g.com", "*"};
