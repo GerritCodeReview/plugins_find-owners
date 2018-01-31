@@ -152,7 +152,12 @@ class OwnersDb {
             if (ids == null || ids.size() != 1) {
               errors.add(owner);
             } else {
-              email = accountCache.get(ids.iterator().next()).getAccount().getPreferredEmail();
+              // Accounts may have no preferred email.
+              email =
+                  accountCache
+                      .get(ids.iterator().next())
+                      .map(a -> a.getAccount().getPreferredEmail())
+                      .orElse(null);
             }
           }
         } catch (Exception e) {

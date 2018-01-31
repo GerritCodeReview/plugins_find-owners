@@ -26,6 +26,7 @@ import com.googlecode.prolog_cafe.lang.Prolog;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import org.eclipse.jgit.lib.Repository;
 import org.slf4j.Logger;
@@ -55,16 +56,24 @@ public class Checker {
     Map<String, Integer> map = new HashMap<>();
     for (PatchSetApproval p : changeData.currentApprovals()) {
       if (p.getValue() != 0) {
-        map.put(
-            accountCache.get(p.getAccountId()).getAccount().getPreferredEmail(),
-            Integer.valueOf(p.getValue()));
+        // Reviewers may have no preferred email, skip them if the preferred email is not set.
+        Optional<String> preferredEmail =
+            accountCache.get(p.getAccountId()).map(a -> a.getAccount().getPreferredEmail());
+        if (preferredEmail.isPresent()) {
+          map.put(preferredEmail.get(), Integer.valueOf(p.getValue()));
+        }
       }
     }
     // Give CL author a default minVoteLevel vote.
-    String author =
-        accountCache.get(changeData.change().getOwner()).getAccount().getPreferredEmail();
-    if (!map.containsKey(author) || map.get(author) == 0) {
-      map.put(author, minVoteLevel);
+    // The preferred email of the author may not be set. Pushing changes only requires an email in
+    // the external IDs, but the preferred email may still be null (also emails may have been
+    // deleted after creating the change). Skip the author if it doesn't have a preferred email.
+    Optional<String> author =
+        accountCache
+            .get(changeData.change().getOwner())
+            .map(a -> a.getAccount().getPreferredEmail());
+    if (author.isPresent() && (!map.containsKey(author.get()) || map.get(author.get()) == 0)) {
+      map.put(author.get(), minVoteLevel);
     }
     return map;
   }

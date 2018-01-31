@@ -14,13 +14,15 @@
 
 package com.googlesource.gerrit.plugins.findowners;
 
+import static java.util.stream.Collectors.toList;
+
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Streams;
 import com.google.gerrit.extensions.annotations.PluginName;
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.Response;
 import com.google.gerrit.extensions.restapi.RestReadView;
 import com.google.gerrit.extensions.webui.UiAction;
-import com.google.gerrit.reviewdb.client.Account;
 import com.google.gerrit.reviewdb.client.Change;
 import com.google.gerrit.reviewdb.client.Change.Status;
 import com.google.gerrit.reviewdb.server.ReviewDb;
@@ -46,6 +48,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import org.eclipse.jgit.lib.Repository;
 import org.slf4j.Logger;
@@ -141,17 +144,21 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
 
   /** Returns reviewer emails got from ChangeData. */
   static List<String> getReviewers(ChangeData changeData, AccountCache accountCache) {
-    List<String> result = new ArrayList<>();
     try {
-      for (Account.Id id : changeData.reviewers().all()) {
-        Account account = accountCache.get(id).getAccount();
-        result.add(account.getPreferredEmail());
-      }
+      // Reviewers may have no preferred email, skip them if the preferred email is not set.
+      return changeData
+          .reviewers()
+          .all()
+          .stream()
+          .map(accountCache::get)
+          .flatMap(Streams::stream)
+          .map(a -> a.getAccount().getPreferredEmail())
+          .filter(Objects::nonNull)
+          .collect(toList());
     } catch (OrmException e) {
       log.error("Exception for " + Config.getChangeId(changeData), e);
-      result = new ArrayList<>();
+      return new ArrayList<>();
     }
-    return result;
   }
 
   /** Returns the current patchset number or the given patchsetNum if it is valid. */
