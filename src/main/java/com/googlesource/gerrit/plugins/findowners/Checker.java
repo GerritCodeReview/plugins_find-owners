@@ -26,6 +26,7 @@ import com.googlecode.prolog_cafe.lang.Prolog;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import org.eclipse.jgit.lib.Repository;
 import org.slf4j.Logger;
@@ -55,17 +56,20 @@ public class Checker {
     Map<String, Integer> map = new HashMap<>();
     for (PatchSetApproval p : changeData.currentApprovals()) {
       if (p.getValue() != 0) {
-        String preferredEmail = accountCache.get(p.getAccountId()).getAccount().getPreferredEmail();
-        if (preferredEmail != null) {
-          map.put(preferredEmail, Integer.valueOf(p.getValue()));
+        Optional<String> preferredEmail =
+            accountCache.maybeGet(p.getAccountId()).map(a -> a.getAccount().getPreferredEmail());
+        if (preferredEmail.isPresent()) {
+          map.put(preferredEmail.get(), Integer.valueOf(p.getValue()));
         }
       }
     }
     // Give CL author a default minVoteLevel vote.
-    String author =
-        accountCache.get(changeData.change().getOwner()).getAccount().getPreferredEmail();
-    if (author != null && (!map.containsKey(author) || map.get(author) == 0)) {
-      map.put(author, minVoteLevel);
+    Optional<String> author =
+        accountCache
+            .maybeGet(changeData.change().getOwner())
+            .map(a -> a.getAccount().getPreferredEmail());
+    if (author.isPresent() && (!map.containsKey(author.get()) || map.get(author.get()) == 0)) {
+      map.put(author.get(), minVoteLevel);
     }
     return map;
   }
