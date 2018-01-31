@@ -57,7 +57,7 @@ public class Checker {
     for (PatchSetApproval p : changeData.currentApprovals()) {
       if (p.getValue() != 0) {
         Optional<String> preferredEmail =
-            accountCache.maybeGet(p.getAccountId()).map(a -> a.getAccount().getPreferredEmail());
+            accountCache.get(p.getAccountId()).map(a -> a.getAccount().getPreferredEmail());
         if (preferredEmail.isPresent()) {
           map.put(preferredEmail.get(), Integer.valueOf(p.getValue()));
         }
@@ -66,7 +66,7 @@ public class Checker {
     // Give CL author a default minVoteLevel vote.
     Optional<String> author =
         accountCache
-            .maybeGet(changeData.change().getOwner())
+            .get(changeData.change().getOwner())
             .map(a -> a.getAccount().getPreferredEmail());
     if (author.isPresent() && (!map.containsKey(author.get()) || map.get(author.get()) == 0)) {
       map.put(author.get(), minVoteLevel);

@@ -154,7 +154,7 @@ class OwnersDb {
             } else {
               email =
                   accountCache
-                      .maybeGet(ids.iterator().next())
+                      .get(ids.iterator().next())
                       .map(a -> a.getAccount().getPreferredEmail())
                       .orElse(null);
             }

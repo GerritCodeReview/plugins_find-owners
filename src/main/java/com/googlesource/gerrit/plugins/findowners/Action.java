@@ -149,7 +149,7 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
           .reviewers()
           .all()
           .stream()
-          .map(accountCache::maybeGet)
+          .map(accountCache::get)
           .flatMap(Streams::stream)
           .map(a -> a.getAccount().getPreferredEmail())
           .filter(Objects::nonNull)
