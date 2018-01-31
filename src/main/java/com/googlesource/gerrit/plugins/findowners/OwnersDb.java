@@ -99,7 +99,7 @@ class OwnersDb {
         }
       }
       try {
-        revision = repository.getRef(branch).getObjectId().getName();
+        revision = repository.exactRef(branch).getObjectId().getName();
       } catch (Exception e) {
         log.error("Fail to get branch revision for " + Config.getChangeId(changeData), e);
       }
