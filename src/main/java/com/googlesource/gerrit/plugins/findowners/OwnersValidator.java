@@ -51,7 +51,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.eclipse.jgit.diff.RawText;
@@ -142,7 +141,7 @@ public class OwnersValidator implements CommitValidationListener {
           messages = performValidation(receiveEvent.commit, receiveEvent.revWalk, name, false);
         }
       }
-    } catch (NoSuchProjectException | IOException | ExecutionException e) {
+    } catch (NoSuchProjectException | IOException e) {
       throw new CommitValidationException("failed to check owners files", e);
     }
     if (hasError(messages)) {
@@ -153,8 +152,7 @@ public class OwnersValidator implements CommitValidationListener {
 
   @VisibleForTesting
   List<CommitValidationMessage> performValidation(
-      RevCommit c, RevWalk revWalk, String ownersFileName, boolean verbose)
-      throws IOException, ExecutionException {
+      RevCommit c, RevWalk revWalk, String ownersFileName, boolean verbose) throws IOException {
     // Collect all messages from all files.
     List<CommitValidationMessage> messages = new LinkedList<>();
     // Collect all email addresses from all files and check each address only once.
