@@ -56,13 +56,16 @@ public class Checker {
     for (PatchSetApproval p : changeData.currentApprovals()) {
       if (p.getValue() != 0) {
         map.put(
-            accountCache.get(p.getAccountId()).getAccount().getPreferredEmail(),
+            accountCache.getEvenIfMissing(p.getAccountId()).getAccount().getPreferredEmail(),
             Integer.valueOf(p.getValue()));
       }
     }
     // Give CL author a default minVoteLevel vote.
     String author =
-        accountCache.get(changeData.change().getOwner()).getAccount().getPreferredEmail();
+        accountCache
+            .getEvenIfMissing(changeData.change().getOwner())
+            .getAccount()
+            .getPreferredEmail();
     if (!map.containsKey(author) || map.get(author) == 0) {
       map.put(author, minVoteLevel);
     }

@@ -144,7 +144,7 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
     List<String> result = new ArrayList<>();
     try {
       for (Account.Id id : changeData.reviewers().all()) {
-        Account account = accountCache.get(id).getAccount();
+        Account account = accountCache.getEvenIfMissing(id).getAccount();
         result.add(account.getPreferredEmail());
       }
     } catch (OrmException e) {

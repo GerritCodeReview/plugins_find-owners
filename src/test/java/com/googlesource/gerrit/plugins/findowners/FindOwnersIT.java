@@ -208,7 +208,8 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
       assertThat(id1).isEqualTo(id3);
       assertThat(id1).isEqualTo(id4);
       // Action.getReviewers and Checker.getVotes use accountCache to get email address.
-      assertThat(accountCache.get(id1).getAccount().getPreferredEmail()).isEqualTo(emails1[i]);
+      assertThat(accountCache.getEvenIfMissing(id1).getAccount().getPreferredEmail())
+          .isEqualTo(emails1[i]);
     }
     // Wrong or non-existing email address.
     String[] wrongEmails = {"nobody", "@g.com", "nobody@g.com", "*"};
