@@ -46,6 +46,30 @@
       "revId": "99b44dbb1a7a91c55440bbb4dcad4b8753cbf965",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "256e17d1_ad3598ef",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/OwnersDb.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2018-02-03T00:28:34Z",
+      "side": 1,
+      "message": "Incremental improvement is fine.\nBut the comment at 155 is misleading.\nThe effect of this change is only to use the new \u0027get\u0027 interface.",
+      "parentUuid": "f93abec3_18ab69a0",
+      "range": {
+        "startLine": 160,
+        "startChar": 30,
+        "endLine": 160,
+        "endChar": 34
+      },
+      "revId": "99b44dbb1a7a91c55440bbb4dcad4b8753cbf965",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
     }
   ]
 }
