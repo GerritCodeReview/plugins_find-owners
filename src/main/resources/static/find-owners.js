@@ -505,6 +505,18 @@ Gerrit.install(function(self) {
     }
     return true; // Okay to submit.
   }
+  var hasPolyGerritButton = false;
+  function onShowChangePolyGerrit(change, revision) {
+    var changeActions = self.changeActions();
+    // Hide previous 'Find Owners' button under 'MORE'.
+    changeActions.setActionHidden('revision', 'find-owners~find-owners', true);
+    if (!hasPolyGerritButton) {
+      var key = changeActions.add('revision', 'Find Owners');
+      changeActions.addTapListener(key,
+          () => popupFindOwnersPage(null, change, revision, false));
+      hasPolyGerritButton = true;
+    }
+  }
   function onClick(e) {
     if (pageDiv.style.visibility != 'hidden' && !useContextPopup) {
       var x = event.clientX;
@@ -521,6 +533,10 @@ Gerrit.install(function(self) {
     self.onAction('revision', 'find-owners', onFindOwners);
   } else {
     console.log('WARNING, no handler for the Find Owners button');
+  }
+  // When using PolyGerrit, move "Find Owners" button out of the 'MORE' list.
+  if (window.Polymer) {
+    self.on('showchange', onShowChangePolyGerrit);
   }
   // When the "Submit" button is clicked, call onSubmit.
   self.on('submitchange', onSubmit);
