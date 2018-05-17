@@ -195,7 +195,7 @@ public class OwnersValidator implements CommitValidationListener {
         if (!wrongEmail) {
           try {
             Collection<Account.Id> ids = email2ids.get(owner);
-            wrongEmail = (ids == null || ids.size() != 1);
+            wrongEmail = (ids == null || ids.isEmpty());
           } catch (Exception e) {
             wrongEmail = true;
           }
