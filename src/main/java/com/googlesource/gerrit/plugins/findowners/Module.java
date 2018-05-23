@@ -58,6 +58,14 @@ public class Module extends AbstractModule {
         });
     DynamicSet.bind(binder(), WebUiPlugin.class)
         .toInstance(new JavaScriptPlugin(Config.PLUGIN_NAME + ".js"));
-    DynamicSet.bind(binder(), PredicateProvider.class).to(FindOwnersProvider.class);
+
+    install(new PredicateModule());
+  }
+
+  public static class PredicateModule extends AbstractModule {
+    @Override
+    protected void configure() {
+      DynamicSet.bind(binder(), PredicateProvider.class).to(FindOwnersProvider.class);
+    }
   }
 }
