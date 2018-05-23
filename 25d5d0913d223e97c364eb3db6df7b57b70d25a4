@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "50b6f68c_5da4c6dc",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/PredicateModule.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1026112
+      },
+      "writtenOn": "2018-05-23T16:26:14Z",
+      "side": 1,
+      "message": "Usually, the Module is the inner class of what is the FindOwnersProvider here. However, this does a bit of magic with \u0027Config\u0027 which stores static references, so I would rather not mess with it in this case.",
+      "revId": "25d5d0913d223e97c364eb3db6df7b57b70d25a4",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    }
+  ]
+}
