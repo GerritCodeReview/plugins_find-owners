@@ -17,34 +17,14 @@ package com.googlesource.gerrit.plugins.findowners;
 import static com.google.gerrit.server.change.ChangeResource.CHANGE_KIND;
 import static com.google.gerrit.server.change.RevisionResource.REVISION_KIND;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.gerrit.extensions.annotations.PluginName;
 import com.google.gerrit.extensions.registration.DynamicSet;
 import com.google.gerrit.extensions.restapi.RestApiModule;
 import com.google.gerrit.extensions.webui.JavaScriptPlugin;
 import com.google.gerrit.extensions.webui.WebUiPlugin;
-import com.google.gerrit.server.config.PluginConfigFactory;
-import com.google.gerrit.server.rules.PredicateProvider;
 import com.google.inject.AbstractModule;
-import com.google.inject.Inject;
 
 /** find-owners plugin module */
 public class Module extends AbstractModule {
-  /** Prolog Predicate Provider. */
-  static class FindOwnersProvider implements PredicateProvider {
-
-    @Inject
-    public FindOwnersProvider(@PluginName String pluginName, PluginConfigFactory configFactory) {
-      Config.setVariables(pluginName, configFactory);
-      Cache.getInstance(); // Create a single Cache.
-    }
-
-    @Override
-    public ImmutableSet<String> getPackages() {
-      return ImmutableSet.of(Config.PROLOG_NAMESPACE);
-    }
-  }
-
   @Override
   protected void configure() {
     install(OwnersValidator.module());
@@ -58,6 +38,7 @@ public class Module extends AbstractModule {
         });
     DynamicSet.bind(binder(), WebUiPlugin.class)
         .toInstance(new JavaScriptPlugin(Config.PLUGIN_NAME + ".js"));
-    DynamicSet.bind(binder(), PredicateProvider.class).to(FindOwnersProvider.class);
+
+    install(new PredicateModule());
   }
 }
