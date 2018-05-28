@@ -36,6 +36,7 @@ gerrit_plugin(
         "Gerrit-PluginName: find-owners",
         "Gerrit-ReloadMode: restart",
         "Gerrit-Module: com.googlesource.gerrit.plugins.findowners.Module",
+        "Gerrit-BatchModule: com.googlesource.gerrit.plugins.findowners.PredicateModule",
         "Implementation-Title: Find-Owners plugin",
         "Implementation-URL: https://gerrit.googlesource.com/plugins/find-owners",
     ],
