@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f84b7c03_2fd9a018",
+        "filename": "src/main/resources/static/find-owners.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 508,
+      "author": {
+        "id": 1024777
+      },
+      "writtenOn": "2018-05-29T21:52:31Z",
+      "side": 1,
+      "message": "You could use !!changeActions.getActionDetails(\u0027find-owners~find-owners\u0027) to ensure the button is there.",
+      "revId": "6cf0df52ba01921eadd355cee82865d242eb648b",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a13e8aa9_c3c8eb61",
+        "filename": "src/main/resources/static/find-owners.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 516,
+      "author": {
+        "id": 1024777
+      },
+      "writtenOn": "2018-05-29T21:52:31Z",
+      "side": 1,
+      "message": "You could use plugin.popup() method instead.",
+      "range": {
+        "startLine": 516,
+        "startChar": 16,
+        "endLine": 516,
+        "endChar": 35
+      },
+      "revId": "6cf0df52ba01921eadd355cee82865d242eb648b",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "444a1ad4_843137f9",
+        "filename": "src/main/resources/static/find-owners.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 538,
+      "author": {
+        "id": 1024777
+      },
+      "writtenOn": "2018-05-29T21:52:31Z",
+      "side": 1,
+      "message": "FYI: GWT UI is going away:\nhttps://docs.google.com/document/d/1_11Y79_MgHqO1G0f8N6LSsogAEj6vv6wep7DZk2c8gY/preview",
+      "revId": "6cf0df52ba01921eadd355cee82865d242eb648b",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    }
+  ]
+}
