@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "18c97b48_76ae67b5",
+        "filename": "src/main/resources/static/find-owners.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 508,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2018-05-30T21:43:29Z",
+      "side": 1,
+      "message": "I tried to replace line 513 with\n  if (!changeActions.getActionDetails(\u0027find-owners~find-owners\u0027)) {\nbut then it found the old action hidden at line 512.\nSo the new \u0027Find Owners\u0027 button was never created.\n\nIf I use\n   if (!changeActions.getActionDetails(\u0027find-owners~Find Owners\u0027)) {\nor the name used at line 514,\nthen it never found the new button, and thus create multiple new buttons after every reload of the \u0027revision\u0027 page.\n\nIs my spelling wrong?\nIs there similar use case in other plugin?",
+      "parentUuid": "f84b7c03_2fd9a018",
+      "revId": "6cf0df52ba01921eadd355cee82865d242eb648b",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "a13e8aa9_c3c8eb61",
         "filename": "src/main/resources/static/find-owners.js",
         "patchSetId": 1
@@ -42,6 +60,30 @@
     },
     {
       "key": {
+        "uuid": "613f0712_e5318d5b",
+        "filename": "src/main/resources/static/find-owners.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 516,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2018-05-30T21:43:29Z",
+      "side": 1,
+      "message": "I got undefined error about \u0027plugin\u0027 now.\nIs there something more to add for plugin.popup() to work?",
+      "parentUuid": "a13e8aa9_c3c8eb61",
+      "range": {
+        "startLine": 516,
+        "startChar": 16,
+        "endLine": 516,
+        "endChar": 35
+      },
+      "revId": "6cf0df52ba01921eadd355cee82865d242eb648b",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "444a1ad4_843137f9",
         "filename": "src/main/resources/static/find-owners.js",
         "patchSetId": 1
@@ -53,6 +95,24 @@
       "writtenOn": "2018-05-29T21:52:31Z",
       "side": 1,
       "message": "FYI: GWT UI is going away:\nhttps://docs.google.com/document/d/1_11Y79_MgHqO1G0f8N6LSsogAEj6vv6wep7DZk2c8gY/preview",
+      "revId": "6cf0df52ba01921eadd355cee82865d242eb648b",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "480b5951_8818a981",
+        "filename": "src/main/resources/static/find-owners.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 538,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2018-05-30T21:43:29Z",
+      "side": 1,
+      "message": "Okay, will remove dependency in separate CLs.",
+      "parentUuid": "444a1ad4_843137f9",
       "revId": "6cf0df52ba01921eadd355cee82865d242eb648b",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": false
