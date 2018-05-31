@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "4f14fa92_b8a16781",
+        "filename": "src/main/resources/static/find-owners.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 508,
+      "author": {
+        "id": 1024777
+      },
+      "writtenOn": "2018-05-31T22:22:49Z",
+      "side": 1,
+      "message": "*sigh*\nYou\u0027re right, I\u0027ve completely overlooked this use case.\nSorry for derailing.",
+      "parentUuid": "18c97b48_76ae67b5",
+      "revId": "6cf0df52ba01921eadd355cee82865d242eb648b",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a13e8aa9_c3c8eb61",
         "filename": "src/main/resources/static/find-owners.js",
         "patchSetId": 1
@@ -72,6 +90,30 @@
       "side": 1,
       "message": "I got undefined error about \u0027plugin\u0027 now.\nIs there something more to add for plugin.popup() to work?",
       "parentUuid": "a13e8aa9_c3c8eb61",
+      "range": {
+        "startLine": 516,
+        "startChar": 16,
+        "endLine": 516,
+        "endChar": 35
+      },
+      "revId": "6cf0df52ba01921eadd355cee82865d242eb648b",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "72fa18d7_3b53864d",
+        "filename": "src/main/resources/static/find-owners.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 516,
+      "author": {
+        "id": 1024777
+      },
+      "writtenOn": "2018-05-31T22:22:49Z",
+      "side": 1,
+      "message": "plugin.popup() provides an API for showing and hiding a custom element, so you probably would need to create one. This probably makes more sense after the plugin is migrated off deprecated APIs, since it requires for the plugin to be an .html-based file.",
+      "parentUuid": "613f0712_e5318d5b",
       "range": {
         "startLine": 516,
         "startChar": 16,
