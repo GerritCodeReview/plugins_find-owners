@@ -505,16 +505,17 @@ Gerrit.install(function(self) {
     }
     return true; // Okay to submit.
   }
-  var hasPolyGerritButton = false;
+  var actionKey = null;
   function onShowChangePolyGerrit(change, revision) {
     var changeActions = self.changeActions();
     // Hide previous 'Find Owners' button under 'MORE'.
     changeActions.setActionHidden('revision', 'find-owners~find-owners', true);
-    if (!hasPolyGerritButton) {
-      var key = changeActions.add('revision', 'Find Owners');
-      changeActions.addTapListener(key,
+    if (!!actionKey) {
+      changeActions.setActionHidden('revision', actionKey, false);
+    } else {
+      actionKey = changeActions.add('revision', 'Find Owners');
+      changeActions.addTapListener(actionKey,
           () => popupFindOwnersPage(null, change, revision, false));
-      hasPolyGerritButton = true;
     }
   }
   function onClick(e) {
