@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "b6e4b8e2_845fef56",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2018-06-11T18:18:39Z",
+      "side": 1,
+      "message": "Viktar\u0027s comment confirmed that the action could become hidden after switching pages. This was new behavior so I am taking his suggestion to set action to not-hidden again.",
+      "parentUuid": "4dcea420_82ddd38e",
+      "range": {
+        "startLine": 9,
+        "startChar": 58,
+        "endLine": 9,
+        "endChar": 73
+      },
+      "revId": "fb1fd5ada32b794e8ee040b527dc874928f8e04b",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "841817d3_83fb58ab",
         "filename": "src/main/resources/static/find-owners.js",
         "patchSetId": 1
@@ -42,6 +66,24 @@
     },
     {
       "key": {
+        "uuid": "06a95a03_b16cd124",
+        "filename": "src/main/resources/static/find-owners.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 508,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2018-06-11T18:18:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "841817d3_83fb58ab",
+      "revId": "fb1fd5ada32b794e8ee040b527dc874928f8e04b",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "451e056a_b5c717a9",
         "filename": "src/main/resources/static/find-owners.js",
         "patchSetId": 1
@@ -53,6 +95,24 @@
       "writtenOn": "2018-06-08T16:38:04Z",
       "side": 1,
       "message": "Alternatively, you could use changeActions.setActionHidden(\u0027revision\u0027, actionKey, false); to show it.\n\nIf you decide to remove it, please use changeActions.removeTapListener() to prevent memory leak.",
+      "revId": "fb1fd5ada32b794e8ee040b527dc874928f8e04b",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "60182fa8_ab4e0c50",
+        "filename": "src/main/resources/static/find-owners.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 514,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2018-06-11T18:18:39Z",
+      "side": 1,
+      "message": "Done. I prefer setting it unhidden.\nBut, it shouldn\u0027t be necessary for a plugin to \"reactivate\" an action again. This requirement is new and could break other plugins too.\nAnyway, I can use this approach so it will work with either older or newer PolyGerrit.",
+      "parentUuid": "451e056a_b5c717a9",
       "revId": "fb1fd5ada32b794e8ee040b527dc874928f8e04b",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": true
