@@ -5,7 +5,7 @@ load("//tools/bzl:plugin.bzl", "gerrit_plugin", "PLUGIN_DEPS")
 java_library(
     name = "find-owners-lib",
     srcs = glob(["src/main/java/**/*.java"]),
-    deps = PLUGIN_DEPS + ["@prolog_runtime//jar"],
+    deps = PLUGIN_DEPS + ["@prolog-runtime//jar"],
 )
 
 prolog_cafe_library(
