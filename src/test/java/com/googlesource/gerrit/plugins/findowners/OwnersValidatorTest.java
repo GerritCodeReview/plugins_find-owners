@@ -59,7 +59,7 @@ public class OwnersValidatorTest {
     Set<String> registered;
 
     MockedEmails() {
-      super(null, null);
+      super(null, null, null);
       registered =
           ImmutableSet.of(
               "u1@g.com", "u2@g.com", "u2.m@g.com", "user1@google.com", "u1+review@g.com");
