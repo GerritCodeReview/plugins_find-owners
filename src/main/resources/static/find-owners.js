@@ -69,7 +69,8 @@ Gerrit.install(function(self) {
     const HTML_SELECT_REVIEWERS =
         '<b>Check the box before owner names to select reviewers, ' +
         'then click the "Apply" button.' +
-        '</b><br><small>Each file needs at least one owner code review vote. ' +
+        '</b><br><small>If owner-approval requirement is enabled, ' +
+        'each file needs at least one Code-Review +1 vote from an owner. ' +
         'Owners listed after a file are ordered by their importance. ' +
         '(Or declare "<b><span style="font-size:80%;">' +
         'Exempt-From-Owner-Approval:</span></b> ' +
@@ -511,12 +512,14 @@ Gerrit.install(function(self) {
     // Hide previous 'Find Owners' button under 'MORE'.
     changeActions.setActionHidden('revision', 'find-owners~find-owners', true);
     if (!!actionKey) {
-      changeActions.setActionHidden('revision', actionKey, false);
-    } else {
-      actionKey = changeActions.add('revision', 'Find Owners');
-      changeActions.addTapListener(actionKey,
-          () => popupFindOwnersPage(null, change, revision, false));
+      changeActions.removeTapListener(actionKey);
+      changeActions.remove(actionKey);
     }
+    actionKey = changeActions.add('revision', '[Find Owners]');
+    changeActions.setIcon(actionKey, 'robot');
+    changeActions.setTitle(actionKey, 'Find owners of changed files');
+    changeActions.addTapListener(actionKey,
+        () => popupFindOwnersPage(null, change, revision, false));
   }
   function onClick(e) {
     if (pageDiv.style.visibility != 'hidden' && !useContextPopup) {
