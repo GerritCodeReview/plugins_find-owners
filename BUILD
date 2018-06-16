@@ -2,10 +2,10 @@ load("//lib/prolog:prolog.bzl", "prolog_cafe_library")
 load("//tools/bzl:junit.bzl", "junit_tests")
 load(
     "//tools/bzl:plugin.bzl",
-    "gerrit_plugin",
     "PLUGIN_DEPS",
     "PLUGIN_DEPS_NEVERLINK",
     "PLUGIN_TEST_DEPS",
+    "gerrit_plugin",
 )
 
 MODULE = ["src/main/java/com/googlesource/gerrit/plugins/findowners/Module.java"]
@@ -17,7 +17,7 @@ java_library(
         exclude = MODULE,
     ),
     deps = PLUGIN_DEPS_NEVERLINK + [
-        "@prolog_runtime//jar:neverlink",
+        "@prolog-runtime//jar:neverlink",
     ],
 )
 
@@ -52,7 +52,7 @@ junit_tests(
     srcs = glob(["src/test/java/**/*.java"]),
     tags = ["findowners"],
     deps = PLUGIN_DEPS + PLUGIN_TEST_DEPS + [
-        "@commons_io//jar",
+        "@commons-io//jar",
         ":find-owners-lib",
         ":find-owners-prolog-rules",
         ":find-owners__plugin",
