@@ -16,6 +16,24 @@
       "revId": "d5bed08850a91df401973f99963eec72fd820e76",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d48f3fc1_322e1fd0",
+        "filename": "BUILD",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1011123
+      },
+      "writtenOn": "2018-06-16T03:52:15Z",
+      "side": 1,
+      "message": "The stable-2.14 branch does not have the commons-io dependency. This fix is unique to stable-2.15 (and master).",
+      "parentUuid": "b7a9d532_28112d17",
+      "revId": "d5bed08850a91df401973f99963eec72fd820e76",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
     }
   ]
 }
