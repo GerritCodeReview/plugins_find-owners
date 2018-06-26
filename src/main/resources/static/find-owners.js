@@ -468,19 +468,23 @@ Gerrit.install(function(self) {
           pageDiv.className = LARGE_PAGE_STYLE;
           // Calculate required height, limited to 85% of window height,
           // and required width, limited to 75% of window width.
+          var maxHeight = Math.round(window.innerHeight * 0.85);
+          var maxWidth = Math.round(window.innerWidth * 0.75);
           pageDiv.style.top = '5%';
           pageDiv.style.height = 'auto';
           pageDiv.style.left = '10%';
           pageDiv.style.width = 'auto';
           var rect = pageDiv.getBoundingClientRect();
-          var h = Math.round(Math.min(rect.height - 2 * PADDING,
-                                      window.innerHeight * 0.85));
-          pageDiv.style.height = h + 'px';
-          pageDiv.style.top = Math.round((window.innerHeight - h) / 2) + 'px';
-          var w = Math.round(Math.min(rect.width - 2 * PADDING,
-                                      window.innerWidth * 0.75));
-          pageDiv.style.width = w + 'px';
-          pageDiv.style.left = Math.round((window.innerWidth - w) / 2) + 'px';
+          if (rect.width > maxWidth) {
+            pageDiv.style.width = maxWidth + 'px';
+            rect = pageDiv.getBoundingClientRect();
+          }
+          pageDiv.style.left = Math.round((window.innerWidth - rect.width) / 2) + 'px';
+          if (rect.height > maxHeight) {
+            pageDiv.style.height = maxHeight + 'px';
+            rect = pageDiv.getBoundingClientRect();
+          }
+          pageDiv.style.top = Math.round((window.innerHeight - rect.height) / 2) + 'px';
           pageDiv.style.visibility = 'visible';
         }
       }
