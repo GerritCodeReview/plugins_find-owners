@@ -55,7 +55,8 @@ public class Checker {
       throws OrmException {
     Map<String, Integer> map = new HashMap<>();
     for (PatchSetApproval p : changeData.currentApprovals()) {
-      if (p.getValue() != 0) {
+      // Only collect non-zero Code-Review votes.
+      if (p.getValue() != 0 && p.getLabel().equals("Code-Review")) {
         // Reviewers may have no preferred email, skip them if the preferred email is not set.
         Optional<String> preferredEmail =
             accountCache.get(p.getAccountId()).map(a -> a.getAccount().getPreferredEmail());
