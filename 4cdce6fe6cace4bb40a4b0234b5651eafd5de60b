@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa1aa914_8b8a23e4",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Action.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 1003935
+      },
+      "writtenOn": "2018-07-30T14:40:33Z",
+      "side": 1,
+      "message": "Passing the exception here doesn\u0027t work. You should use the withCause(e) call instead. The same must be changed in other places too.",
+      "range": {
+        "startLine": 157,
+        "startChar": 79,
+        "endLine": 157,
+        "endChar": 80
+      },
+      "revId": "4cdce6fe6cace4bb40a4b0234b5651eafd5de60b",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4a17a438_dee0ba28",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Action.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 1003935
+      },
+      "writtenOn": "2018-07-30T14:40:33Z",
+      "side": 1,
+      "message": "Here and in all other logs: Use \u0027%s\u0027 as placeholder for args.",
+      "range": {
+        "startLine": 157,
+        "startChar": 28,
+        "endLine": 157,
+        "endChar": 78
+      },
+      "revId": "4cdce6fe6cace4bb40a4b0234b5651eafd5de60b",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    }
+  ]
+}
