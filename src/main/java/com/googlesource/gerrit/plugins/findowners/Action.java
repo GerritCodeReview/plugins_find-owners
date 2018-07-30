@@ -18,6 +18,7 @@ import static java.util.stream.Collectors.toList;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Streams;
+import com.google.common.flogger.FluentLogger;
 import com.google.gerrit.extensions.annotations.PluginName;
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.Response;
@@ -50,14 +51,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import org.eclipse.jgit.lib.Repository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /** Create and return OWNERS info when "Find Owners" button is clicked. */
 class Action implements RestReadView<RevisionResource>, UiAction<RevisionResource> {
-
-  private static final Logger log = LoggerFactory.getLogger(Action.class);
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private AccountCache accountCache;
   private Emails emails;
@@ -156,7 +155,8 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
           .filter(Objects::nonNull)
           .collect(toList());
     } catch (OrmException e) {
-      log.error("Exception for " + Config.getChangeId(changeData), e);
+      logger.atSevere().atMostEvery(5, TimeUnit.MINUTES).log(
+          "Exception for " + Config.getChangeId(changeData), e);
       return new ArrayList<>();
     }
   }
@@ -220,7 +220,8 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
       changeData = changeDataFactory.create(reviewDb, change);
       if (changeData.change().getDest().get() == null) {
         if (!Checker.isExemptFromOwnerApproval(changeData)) {
-          log.error("Cannot get branch of change: " + changeData.getId().get());
+          logger.atSevere().atMostEvery(5, TimeUnit.MINUTES).log(
+              "Cannot get branch of change: " + changeData.getId().get());
         }
         return null; // no "Find Owners" button
       }
@@ -243,7 +244,7 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
                       emails,
                       repo,
                       changeData);
-          log.trace("getDescription db key = " + db.key);
+          logger.atInfo().atMostEvery(5, TimeUnit.MINUTES).log("getDescription db key = " + db.key);
           needFindOwners = db.getNumOwners() > 0;
         }
       }
@@ -252,7 +253,8 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
           .setTitle("Find owners to add to Reviewers list")
           .setVisible(needFindOwners);
     } catch (IOException | OrmException e) {
-      log.error("Exception for " + Config.getChangeId(changeData), e);
+      logger.atSevere().atMostEvery(5, TimeUnit.MINUTES).log(
+          "Exception for " + Config.getChangeId(changeData), e);
       throw new IllegalStateException(e);
     }
   }

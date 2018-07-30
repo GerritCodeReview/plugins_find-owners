@@ -17,6 +17,7 @@ package com.googlesource.gerrit.plugins.findowners;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.collect.Multimap;
+import com.google.common.flogger.FluentLogger;
 import com.google.gerrit.reviewdb.client.Account;
 import com.google.gerrit.server.account.AccountCache;
 import com.google.gerrit.server.account.Emails;
@@ -33,18 +34,17 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectReader;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.treewalk.TreeWalk;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /** Keep all information about owners and owned files. */
 class OwnersDb {
-  private static final Logger log = LoggerFactory.getLogger(OwnersDb.class);
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private AccountCache accountCache;
   private Emails emails;
@@ -101,7 +101,8 @@ class OwnersDb {
       try {
         revision = repository.exactRef(branch).getObjectId().getName();
       } catch (Exception e) {
-        log.error("Fail to get branch revision for " + Config.getChangeId(changeData), e);
+        logger.atSevere().atMostEvery(5, TimeUnit.MINUTES).log(
+            "Fail to get branch revision for " + Config.getChangeId(changeData), e);
       }
     }
     countNumOwners(files);
@@ -140,7 +141,8 @@ class OwnersDb {
       try {
         email2ids = emails.getAccountsFor(ownerEmailsAsArray);
       } catch (Exception e) {
-        log.error("accounts.byEmails failed with exception: ", e);
+        logger.atSevere().atMostEvery(5, TimeUnit.MINUTES).log(
+            "accounts.byEmails failed with exception: ", e);
       }
       for (String owner : ownerEmailsAsArray) {
         String email = owner;
@@ -161,7 +163,8 @@ class OwnersDb {
             }
           }
         } catch (Exception e) {
-          log.error("Fail to find preferred email of " + owner, e);
+          logger.atSevere().atMostEvery(5, TimeUnit.MINUTES).log(
+              "Fail to find preferred email of " + owner, e);
           errors.add(owner);
         }
         preferredEmails.put(owner, email);
@@ -182,8 +185,8 @@ class OwnersDb {
       }
     }
     if (Config.getReportSyntaxError()) {
-      result.warnings.forEach(w -> log.warn(w));
-      result.errors.forEach(w -> log.error(w));
+      result.warnings.forEach(w -> logger.atWarning().atMostEvery(5, TimeUnit.MINUTES).log(w));
+      result.errors.forEach(w -> logger.atSevere().atMostEvery(5, TimeUnit.MINUTES).log(w));
     }
   }
 
@@ -298,11 +301,13 @@ class OwnersDb {
     try {
       ObjectId id = repo.resolve(branch);
       if (id == null && changeData != null && !Checker.isExemptFromOwnerApproval(changeData)) {
-        log.error("cannot find branch " + branch + " for " + Config.getChangeId(changeData));
+        logger.atSevere().atMostEvery(5, TimeUnit.MINUTES).log(
+            "cannot find branch " + branch + " for " + Config.getChangeId(changeData));
       }
       return id;
     } catch (Exception e) {
-      log.error("cannot find branch " + branch + " for " + Config.getChangeId(changeData), e);
+      logger.atSevere().atMostEvery(5, TimeUnit.MINUTES).log(
+          "cannot find branch " + branch + " for " + Config.getChangeId(changeData), e);
     }
     return null;
   }
@@ -317,7 +322,7 @@ class OwnersDb {
         return new String(reader.open(treeWalk.getObjectId(0)).getBytes(), UTF_8);
       }
     } catch (Exception e) {
-      log.error("get file " + file, e);
+      logger.atSevere().atMostEvery(5, TimeUnit.MINUTES).log("get file " + file, e);
     }
     return "";
   }

@@ -14,6 +14,7 @@
 
 package com.googlesource.gerrit.plugins.findowners;
 
+import com.google.common.flogger.FluentLogger;
 import com.google.gerrit.reviewdb.client.Change.Status;
 import com.google.gerrit.reviewdb.client.PatchSetApproval;
 import com.google.gerrit.server.account.AccountCache;
@@ -28,13 +29,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import org.eclipse.jgit.lib.Repository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /** Check if a change needs owner approval. */
 public class Checker {
-  private static final Logger log = LoggerFactory.getLogger(Checker.class);
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   // Accept both "Exempt-" and "Exempted-".
   private static final String EXEMPT_MESSAGE1 = "Exempt-From-Owner-Approval:";
@@ -122,7 +122,8 @@ public class Checker {
       return new Checker(repository, changeData, minVoteLevel)
           .findApproval(projectState, accountCache, emails);
     } catch (OrmException | IOException e) {
-      log.error("Exception for " + Config.getChangeId(changeData), e);
+      logger.atSevere().atMostEvery(5, TimeUnit.MINUTES).log(
+          "Exception for " + Config.getChangeId(changeData), e);
       return 0; // owner approval may or may not be required.
     }
   }
@@ -135,7 +136,8 @@ public class Checker {
         return true;
       }
     } catch (IOException | OrmException e) {
-      log.error("Cannot get commit message for " + Config.getChangeId(changeData), e);
+      logger.atSevere().atMostEvery(5, TimeUnit.MINUTES).log(
+          "Cannot get commit message for " + Config.getChangeId(changeData), e);
       return true; // exempt from owner approval due to lack of data
     }
     // Abandoned and merged changes do not need approval again.
@@ -158,7 +160,7 @@ public class Checker {
     if (minVoteLevel <= 0) {
       minVoteLevel = Config.getMinOwnerVoteLevel(projectState, changeData);
     }
-    log.trace("findApproval db key = " + db.key);
+    logger.atSevere().atMostEvery(5, TimeUnit.MINUTES).log("findApproval db key = " + db.key);
     return findApproval(accountCache, db);
   }
 }
