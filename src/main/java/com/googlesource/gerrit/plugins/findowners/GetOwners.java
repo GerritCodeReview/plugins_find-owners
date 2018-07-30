@@ -14,6 +14,7 @@
 
 package com.googlesource.gerrit.plugins.findowners;
 
+import com.google.common.flogger.FluentLogger;
 import com.google.gerrit.extensions.annotations.PluginName;
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.Response;
@@ -32,13 +33,12 @@ import com.google.gwtorm.server.SchemaFactory;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 import org.kohsuke.args4j.Option;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /** REST API to get owners of a change. */
 public class GetOwners implements RestReadView<ChangeResource> {
-  private static final Logger log = LoggerFactory.getLogger(GetOwners.class);
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private final Action action;
 
@@ -84,7 +84,7 @@ public class GetOwners implements RestReadView<ChangeResource> {
     } catch (BadRequestException e) {
       // Catch this exception to avoid too many call stack dumps
       // from bad wrong client requests.
-      log.error("Exception: " + e);
+      logger.atInfo().atMostEvery(3, TimeUnit.MINUTES).log("Exception: " + e);
       return Response.none();
     }
   }
