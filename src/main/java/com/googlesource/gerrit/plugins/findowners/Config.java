@@ -15,12 +15,11 @@
 package com.googlesource.gerrit.plugins.findowners;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.flogger.FluentLogger;
 import com.google.gerrit.server.config.PluginConfig;
 import com.google.gerrit.server.config.PluginConfigFactory;
 import com.google.gerrit.server.project.ProjectState;
 import com.google.gerrit.server.query.change.ChangeData;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /** find-owners configuration parameters */
 class Config {
@@ -48,7 +47,7 @@ class Config {
   private static boolean reportSyntaxError = false;
   private static boolean alwaysShowButton = false;
 
-  private static final Logger log = LoggerFactory.getLogger(Config.class);
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   static void setVariables(String pluginName, PluginConfigFactory conf) {
     if (conf == null) { // When called from integration tests.
@@ -95,21 +94,18 @@ class Config {
 
   static String getOwnersFileName(ProjectState projectState, ChangeData c) {
     if (projectState == null) {
-      log.error("Null projectState for change " + getChangeId(c));
+      logger.atSevere().log("Null projectState for change %s", getChangeId(c));
     } else if (config != null) {
       String name =
           config
               .getFromProjectConfigWithInheritance(projectState, PLUGIN_NAME)
               .getString(OWNERS_FILE_NAME, OWNERS);
       if (name.trim().equals("")) {
-        log.error(
-            "Project "
+        logger.atSevere().log(
+            "Project %s has wrong %s: \"%s\" for %s"
                 + projectState.getProject()
-                + " has wrong "
                 + OWNERS_FILE_NAME
-                + ": \""
                 + name
-                + "\" for "
                 + getChangeId(c));
         return OWNERS;
       }
@@ -125,7 +121,7 @@ class Config {
 
   static int getMinOwnerVoteLevel(ProjectState projectState, ChangeData c) {
     if (projectState == null) {
-      log.error("Null projectState for change " + getChangeId(c));
+      logger.atSevere().log("Null projectState for change %s", getChangeId(c));
       return minOwnerVoteLevel;
     } else if (config == null) {
       return minOwnerVoteLevel;
