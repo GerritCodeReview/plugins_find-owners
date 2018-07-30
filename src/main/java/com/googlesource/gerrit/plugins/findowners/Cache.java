@@ -17,6 +17,7 @@ package com.googlesource.gerrit.plugins.findowners;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 import com.google.common.cache.CacheBuilder;
+import com.google.common.flogger.FluentLogger;
 import com.google.gerrit.server.account.AccountCache;
 import com.google.gerrit.server.account.Emails;
 import com.google.gerrit.server.project.ProjectState;
@@ -27,12 +28,10 @@ import java.util.Collection;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import org.eclipse.jgit.lib.Repository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /** Save OwnersDb in a cache for multiple calls to submit_filter. */
 class Cache {
-  private static final Logger log = LoggerFactory.getLogger(Cache.class);
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   // The OwnersDb is created from OWNERS files in directories that
   // contain changed files of a patch set, which belongs to a project
@@ -74,14 +73,14 @@ class Cache {
       dbCache.invalidateAll(); // release all cached objects
     }
     if (maxSeconds > 0) {
-      log.info("Initialize Cache with maxSeconds=" + maxSeconds + " maxSize=" + maxSize);
+      logger.atInfo().log("Initialize Cache with maxSeconds=%d maxSize=%d", maxSeconds, maxSize);
       dbCache =
           CacheBuilder.newBuilder()
               .maximumSize(maxSize)
               .expireAfterWrite(maxSeconds, SECONDS)
               .build();
     } else {
-      log.info("Cache disabled.");
+      logger.atInfo().log("Cache disabled.");
       dbCache = null;
     }
     return this;
@@ -138,24 +137,25 @@ class Cache {
       String branch,
       Collection<String> files) {
     if (dbCache == null) { // Do not cache OwnersDb
-      log.trace("Create new OwnersDb, key=" + key);
+      logger.atFiner().log("Create new OwnersDb, key=%s", key);
       return new OwnersDb(
           projectState, accountCache, emails, key, repository, changeData, branch, files);
     }
     try {
-      log.trace("Get from cash " + dbCache + ", key=" + key + ", cache size=" + dbCache.size());
+      logger.atFiner().log("Get from cash %s, key=%s, cache size=%d", dbCache, key, dbCache.size());
       return dbCache.get(
           key,
           new Callable<OwnersDb>() {
             @Override
             public OwnersDb call() {
-              log.trace("Create new OwnersDb, key=" + key);
+              logger.atFiner().log("Create new OwnersDb, key=%s", key);
               return new OwnersDb(
                   projectState, accountCache, emails, key, repository, changeData, branch, files);
             }
           });
     } catch (ExecutionException e) {
-      log.error("Cache.get has exception for " + Config.getChangeId(changeData), e);
+      logger.atSevere().withCause(e).log(
+          "Cache.get has exception for %s", Config.getChangeId(changeData));
       return new OwnersDb(
           projectState, accountCache, emails, key, repository, changeData, branch, files);
     }

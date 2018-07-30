@@ -14,6 +14,7 @@
 
 package com.googlesource.gerrit.plugins.findowners;
 
+import com.google.common.flogger.FluentLogger;
 import com.google.gerrit.reviewdb.client.Change.Status;
 import com.google.gerrit.reviewdb.client.PatchSetApproval;
 import com.google.gerrit.server.account.AccountCache;
@@ -29,12 +30,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import org.eclipse.jgit.lib.Repository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /** Check if a change needs owner approval. */
 public class Checker {
-  private static final Logger log = LoggerFactory.getLogger(Checker.class);
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   // Accept both "Exempt-" and "Exempted-".
   private static final String EXEMPT_MESSAGE1 = "Exempt-From-Owner-Approval:";
@@ -122,7 +121,7 @@ public class Checker {
       return new Checker(repository, changeData, minVoteLevel)
           .findApproval(projectState, accountCache, emails);
     } catch (OrmException | IOException e) {
-      log.error("Exception for " + Config.getChangeId(changeData), e);
+      logger.atSevere().withCause(e).log("Exception for %s ", Config.getChangeId(changeData));
       return 0; // owner approval may or may not be required.
     }
   }
@@ -135,7 +134,8 @@ public class Checker {
         return true;
       }
     } catch (IOException | OrmException e) {
-      log.error("Cannot get commit message for " + Config.getChangeId(changeData), e);
+      logger.atSevere().withCause(e).log(
+          "Cannot get commit message for %s", Config.getChangeId(changeData));
       return true; // exempt from owner approval due to lack of data
     }
     // Abandoned and merged changes do not need approval again.
@@ -158,7 +158,7 @@ public class Checker {
     if (minVoteLevel <= 0) {
       minVoteLevel = Config.getMinOwnerVoteLevel(projectState, changeData);
     }
-    log.trace("findApproval db key = " + db.key);
+    logger.atFiner().log("findApproval db key = %s", db.key);
     return findApproval(accountCache, db);
   }
 }
