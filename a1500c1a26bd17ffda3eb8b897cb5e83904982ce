@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "cd2cd33e_8a13b513",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Action.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 244,
+      "author": {
+        "id": 1003935
+      },
+      "writtenOn": "2018-08-01T07:14:39Z",
+      "side": 1,
+      "message": "The mapping between the log4j and Java Util Logging (JUL) levels are defined at [1].\n\natFine() in JUL correlates to the DEBUG level in log4j.\natFiner() and atFinest() correlate to the TRACE level in log4j.\n\nSince this was TRACE before, it should be either atFiner() or atFinest() now (unless the log level should be raised, but then this should rather be a separate change).\n\n[1] https://cs.corp.google.com/piper///depot/google3/third_party/java_src/flogger/log4j/src/main/java/com/google/common/flogger/backend/log4j/Log4jLoggerBackend.java?rcl\u003d196476038\u0026l\u003d26",
+      "parentUuid": "39af60b7_e0a4d900",
+      "range": {
+        "startLine": 244,
+        "startChar": 17,
+        "endLine": 244,
+        "endChar": 23
+      },
+      "revId": "a1500c1a26bd17ffda3eb8b897cb5e83904982ce",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0a150953_6392fd9e",
         "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Cache.java",
         "patchSetId": 3
