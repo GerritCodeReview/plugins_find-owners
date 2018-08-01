@@ -94,6 +94,30 @@
       "revId": "9b3048f90c5c6e646e19b223723a4ebead06dd3c",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "350ae329_1652fc90",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/GetOwners.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2018-08-01T16:59:46Z",
+      "side": 1,
+      "message": "My old comments at line 84 and 85 look still valid now.\nI would like to log some message for every exception as early as possible, but this one does not need the stack trace.",
+      "parentUuid": "10e0b62e_d9e2ee79",
+      "range": {
+        "startLine": 86,
+        "startChar": 23,
+        "endLine": 86,
+        "endChar": 36
+      },
+      "revId": "9b3048f90c5c6e646e19b223723a4ebead06dd3c",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
     }
   ]
 }
