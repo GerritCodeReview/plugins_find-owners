@@ -22,6 +22,30 @@
       "revId": "2657c4cd2f3d5036ecb60b31ef199359d32ee0dd",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a472dcf1_83b2cdb3",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/GetOwners.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 1031898
+      },
+      "writtenOn": "2018-08-01T07:17:09Z",
+      "side": 0,
+      "message": "I think this could be dropped.",
+      "parentUuid": "4c4c1e1a_160a8f98",
+      "range": {
+        "startLine": 87,
+        "startChar": 16,
+        "endLine": 87,
+        "endChar": 29
+      },
+      "revId": "2657c4cd2f3d5036ecb60b31ef199359d32ee0dd",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
     }
   ]
 }

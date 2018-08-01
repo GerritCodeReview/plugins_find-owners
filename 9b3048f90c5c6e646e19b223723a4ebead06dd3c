@@ -22,6 +22,30 @@
       "revId": "9b3048f90c5c6e646e19b223723a4ebead06dd3c",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ccb18935_9fbc9027",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/GetOwners.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1031898
+      },
+      "writtenOn": "2018-08-01T07:17:09Z",
+      "side": 1,
+      "message": "It logged the exception \"e\" which means the stacktrace is included?",
+      "parentUuid": "879e407c_3e6d5451",
+      "range": {
+        "startLine": 86,
+        "startChar": 23,
+        "endLine": 86,
+        "endChar": 36
+      },
+      "revId": "9b3048f90c5c6e646e19b223723a4ebead06dd3c",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
     }
   ]
 }
