@@ -51,8 +51,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import org.eclipse.jgit.diff.RawText;
 import org.eclipse.jgit.lib.FileMode;
 import org.eclipse.jgit.lib.ObjectId;
@@ -230,17 +228,6 @@ public class OwnersValidator implements CommitValidationListener {
     }
   }
 
-  // Line patterns accepted by Parser.java in the find-owners plugin.
-  static final Pattern patComment = Pattern.compile("^ *(#.*)?$");
-  static final Pattern patEmail = // email address or a "*"
-      Pattern.compile("^ *([^ <>@]+@[^ <>@#]+|\\*) *(#.*)?$");
-  static final Pattern patFile = Pattern.compile("^ *file:.*$");
-  static final Pattern patNoParent = Pattern.compile("^ *set +noparent *(#.*)?$");
-  static final Pattern patPerFileNoParent =
-      Pattern.compile("^ *per-file +([^= ]+) *= *set +noparent *(#.*)?$");
-  static final Pattern patPerFileEmail =
-      Pattern.compile("^ *per-file +([^= ]+) *= *([^ <>@]+@[^ <>@#]+|\\*) *(#.*)?$");
-
   private static void collectEmail(
       Map<String, Set<String>> map, String email, String file, int lineNumber) {
     if (!email.equals("*")) {
@@ -268,17 +255,18 @@ public class OwnersValidator implements CommitValidationListener {
       String path,
       int lineNumber,
       String line) {
-    Matcher m;
-    if (patComment.matcher(line).find()
-        || patNoParent.matcher(line).find()
-        || patPerFileNoParent.matcher(line).find()) {
-      return;
-    } else if ((m = patEmail.matcher(line)).find()) {
-      collectEmail(email2lines, m.group(1), path, lineNumber);
-    } else if ((m = patPerFileEmail.matcher(line)).find()) {
-      collectEmail(email2lines, m.group(2).trim(), path, lineNumber);
+    String email;
+    String[] emails;
+    if (Parser.isComment(line) || Parser.isNoParent(line)) {
+      // no email address to check
+    } else if ((email = Parser.parseEmail(line)) != null) {
+      collectEmail(email2lines, email, path, lineNumber);
+    } else if ((emails = Parser.parsePerFileEmails(line)) != null) {
+      for (String e : emails) {
+        collectEmail(email2lines, e, path, lineNumber);
+      }
     } else {
-      String prefix = patFile.matcher(line).find() ? "ignored" : "syntax";
+      String prefix = Parser.isFile(line) ? "ignored" : "syntax";
       add(messages, prefix + ": " + path + ":" + lineNumber + ": " + line, true);
     }
   }
