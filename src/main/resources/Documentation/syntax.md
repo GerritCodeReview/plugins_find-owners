@@ -7,23 +7,27 @@ repository and top of the _merge-to_ branch of a patch set.
 The syntax is:
 
 ```java
-lines     := (SPACE* line? SPACE* EOL)*
-line      := "set noparent"
-          |  "per-file" SPACE+ glob SPACE* "=" SPACE* directive
-          |  comment
-          |  directive
-directive := email
-          |  "*"
-glob      := [a-zA-Z0-9_-*?]+
-comment   := "#" ANYCHAR*
-email     := [^ @]+@[^ #]+
-ANYCHAR   := any character but EOL
-EOL       := end of line characters
-SPACE     := any white space character
+lines      := (SPACE* line? SPACE* EOL)*
+line       := "set" SPACE+ "noparent"
+           |  "per-file" SPACE+ globs SPACE* "=" SPACE* directives
+           |  comment
+           |  directive
+directives := directive (SPACE* "," SPACE* directive)*
+directive  := email
+           |  "*"
+globs      := glob (SPACE* "," SPACE* glob)*
+glob       := [a-zA-Z0-9_-*?.]+
+comment    := "#" ANYCHAR*
+email      := [^ @]+@[^ #]+
+ANYCHAR    := any character but EOL
+EOL        := end of line characters
+SPACE      := any white space character
 ```
 
-* `per-file glob = directive` applies `directive` only to files
-  matching `glob`, which does not contain directory path.
+* `per-file globs = directives` applies each `directive` only to files
+  matching any of the `glob`.
+
+* A 'glob' does not contain directory path.
 
 * The email addresses should belong to registered Gerrit users.
 

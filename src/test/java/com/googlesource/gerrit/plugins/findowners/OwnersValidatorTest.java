@@ -135,17 +135,18 @@ public class OwnersValidatorTest {
               + "   user1@google.com # comment\n"
               + "u1+review@g.com###\n"
               + " * # everyone can approve\n"
-              + "per-file *.py =  set  noparent###\n"
-              + "per-file   *.py=u2.m@g.com\n"
-              + "per-file *.txt = * # everyone can approve\n"
-              + "set  noparent  # comment\n");
+              + "per-file   *.py=u2.m@g.com   \n"
+              + "per-file *.c, *.java ,A*bp = u1@g.com, u1+review@g.com  ,u2.m@g.com#comment\n"
+              + "  per-file *.txt = * # everyone can approve #  \n"
+              + "  set   noparent  # comment#\n");
 
   private static final ImmutableSet<String> EXPECTED_VERBOSE_OUTPUT =
       ImmutableSet.of(
           "MSG: validate: " + OWNERS,
-          "MSG: owner: user1@google.com",
           "MSG: owner: u1+review@g.com",
-          "MSG: owner: u2.m@g.com");
+          "MSG: owner: u1@g.com",
+          "MSG: owner: u2.m@g.com",
+          "MSG: owner: user1@google.com");
 
   @Test
   public void testGoodInput() throws Exception {

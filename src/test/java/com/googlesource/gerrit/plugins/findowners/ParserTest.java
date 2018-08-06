@@ -16,6 +16,7 @@ package com.googlesource.gerrit.plugins.findowners;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import java.util.Arrays;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -47,6 +48,11 @@ public class ParserTest {
   private static String testLineErrorMsg(String line) {
     // expected error message created by testLine(line)
     return Parser.errorMsg("OWNERS", 3, "ignored unknown line", line);
+  }
+
+  private static String testLineBadEmailMsg(String line) {
+    // expected error message created by testLine(line)
+    return Parser.errorMsg("OWNERS", 3, "invalid email address in line", line);
   }
 
   @Test
@@ -119,27 +125,40 @@ public class ParserTest {
 
   @Test
   public void perFileGoodDirectiveTest() {
-    String[] directives = {"abc@google.com#comment", "  *# comment", "  xyz@gmail.com # comment"};
-    String[] emails = {"abc@google.com", "*", "xyz@gmail.com"};
+    String[] directives = {
+      "abc@google.com#comment", "  *# comment", "  xyz@gmail.com # comment",
+      "a@g.com  ,  xyz@gmail.com , *  # comment", "*,*#comment", "  a@b,c@d  "
+    };
+    String[] globsList = {"*", "*,*.c", "  *test*.java , *.cc, *.cpp  ", "*.bp,*.mk ,A*  "};
     for (int i = 0; i < directives.length; i++) {
-      String line = "per-file *test*.java=" + directives[i];
-      Parser.Result result = testLine(line);
-      String[] paths = result.owner2paths.get(emails[i]).toArray(new String[1]);
-      assertThat(paths.length).isEqualTo(1);
-      assertThat(paths[0]).isEqualTo(mockedTestDir() + "*test*.java");
+      for (String globs : globsList) {
+        String line = "per-file " + globs + "=" + directives[i];
+        Parser.Result result = testLine(line);
+        String[] emailList = directives[i].replaceAll("#.*$", "").trim().split(Parser.COMMA);
+        String[] globList = globs.trim().split(Parser.COMMA);
+        Arrays.sort(globList);
+        for (String email : emailList) {
+          String[] paths = result.owner2paths.get(email).toArray(new String[1]);
+          assertThat(paths.length).isEqualTo(globList.length);
+          Arrays.sort(paths);
+          for (int g = 0; g < globList.length; g++) {
+            assertThat(paths[g]).isEqualTo(mockedTestDir() + globList[g]);
+          }
+        }
+      }
     }
   }
 
   @Test
   public void perFileBadDirectiveTest() {
     String[] directives = {
-      "file://OWNERS", " ** ", "a b@c .co", "a@b@c  #com", "a.<b>@zc#", " set  noparent "
+      "file://OWNERS", " ** ", "a b@c .co", "a@b@c  #com", "a.<b>@zc#", " set  noparent ",
+      " , a@b  ", "a@b, , c@d  #"
     };
-    String[] errors = {"file://OWNERS", "**", "a b@c .co", "a@b@c", "a.<b>@zc", "set  noparent"};
     for (int i = 0; i < directives.length; i++) {
       String line = "per-file *test*.c=" + directives[i];
       Parser.Result result = testLine(line);
-      String expected = testLineErrorMsg(errors[i]);
+      String expected = testLineBadEmailMsg(directives[i].replaceAll("#.*$", "").trim());
       assertThat(result.warnings).isEmpty();
       assertThat(result.errors).hasSize(1);
       assertThat(result.errors.get(0)).isEqualTo(expected);
