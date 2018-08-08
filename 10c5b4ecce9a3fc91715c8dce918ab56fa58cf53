@@ -16,6 +16,24 @@
       "revId": "10c5b4ecce9a3fc91715c8dce918ab56fa58cf53",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2fad2410_b854e97f",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Parser.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2018-08-08T21:16:20Z",
+      "side": 1,
+      "message": "Now hide these patterns in simpler parser functions to return if a line matches a certain pattern and the sub strings.",
+      "parentUuid": "89258ab9_cdee2984",
+      "revId": "10c5b4ecce9a3fc91715c8dce918ab56fa58cf53",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
     }
   ]
 }
