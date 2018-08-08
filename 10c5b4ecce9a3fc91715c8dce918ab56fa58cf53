@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "89258ab9_cdee2984",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Parser.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1034308
+      },
+      "writtenOn": "2018-08-08T05:48:00Z",
+      "side": 1,
+      "message": "As these patterns have grown more complex now, it might be helpful to document alongside them what is in each parentheses group. For example:\n\nstatic final int patPerFileFilename \u003d 1;\nstatic final int patPerFileEmails \u003d 2;\n\nThis makes it easier to understand and review the groupings in the code below. Using these constants instead of raw integers below makes it easier to read (and easier to reason about if the code does change).",
+      "revId": "10c5b4ecce9a3fc91715c8dce918ab56fa58cf53",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    }
+  ]
+}
