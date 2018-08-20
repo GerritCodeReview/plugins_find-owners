@@ -125,11 +125,11 @@ public class ParserTest {
       "a@g.com  ,  xyz@gmail.com , *  # comment", "*,*#comment", "  a@b,c@d  "
     };
     String[] globsList = {"*", "*,*.c", "  *test*.java , *.cc, *.cpp  ", "*.bp,*.mk ,A*  "};
-    for (int i = 0; i < directives.length; i++) {
+    for (String directive : directives) {
       for (String globs : globsList) {
-        String line = "per-file " + globs + "=" + directives[i];
+        String line = "per-file " + globs + "=" + directive;
         Parser.Result result = testLine(line);
-        String[] emailList = directives[i].replaceAll("#.*$", "").trim().split(Parser.COMMA);
+        String[] emailList = directive.replaceAll("#.*$", "").trim().split(Parser.COMMA, -1);
         String[] globList = globs.trim().split(Parser.COMMA);
         Arrays.sort(globList);
         for (String email : emailList) {
@@ -150,8 +150,8 @@ public class ParserTest {
       "file://OWNERS", " ** ", "a b@c .co", "a@b@c  #com", "a.<b>@zc#", " set  noparent ",
       " , a@b  ", "a@b, , c@d  #"
     };
-    for (int i = 0; i < directives.length; i++) {
-      String line = "per-file *test*.c=" + directives[i];
+    for (String directive : directives) {
+      String line = "per-file *test*.c=" + directive;
       Parser.Result result = testLine(line);
       String expected = testLineErrorMsg(line);
       assertThat(result.warnings).isEmpty();

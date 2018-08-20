@@ -156,8 +156,8 @@ class Parser {
     } else if ((email = parseEmail(line)) != null) {
       Util.addToMap(result.owner2paths, email, dir);
     } else if ((globsAndEmails = parsePerFile(line)) != null) {
-      String[] emails = globsAndEmails[1].split(COMMA);
-      for (String glob : globsAndEmails[0].split(COMMA)) {
+      String[] emails = globsAndEmails[1].split(COMMA, -1);
+      for (String glob : globsAndEmails[0].split(COMMA, -1)) {
         for (String e : emails) {
           Util.addToMap(result.owner2paths, e, dir + glob);
         }
