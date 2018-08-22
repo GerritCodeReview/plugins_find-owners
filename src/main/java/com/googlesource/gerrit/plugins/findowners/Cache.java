@@ -88,6 +88,7 @@ class Cache {
 
   /** Returns a cached or new OwnersDb, for the current patchset. */
   OwnersDb get(
+      Boolean useCache,
       ProjectState projectState,
       AccountCache accountCache,
       Emails emails,
@@ -95,6 +96,7 @@ class Cache {
       ChangeData changeData)
       throws OrmException, IOException {
     return get(
+        useCache,
         projectState,
         accountCache,
         emails,
@@ -105,6 +107,7 @@ class Cache {
 
   /** Returns a cached or new OwnersDb, for the specified patchset. */
   OwnersDb get(
+      Boolean useCache,
       ProjectState projectState,
       AccountCache accountCache,
       Emails emails,
@@ -116,6 +119,7 @@ class Cache {
     String dbKey = Cache.makeKey(changeData.getId().get(), patchset, branch);
     // TODO: get changed files of the given patchset?
     return get(
+        useCache,
         projectState,
         accountCache,
         emails,
@@ -128,6 +132,7 @@ class Cache {
 
   /** Returns a cached or new OwnersDb, for the specified branch and changed files. */
   OwnersDb get(
+      Boolean useCache,
       ProjectState projectState,
       AccountCache accountCache,
       Emails emails,
@@ -136,7 +141,7 @@ class Cache {
       ChangeData changeData,
       String branch,
       Collection<String> files) {
-    if (dbCache == null) { // Do not cache OwnersDb
+    if (dbCache == null || !useCache) { // Do not cache OwnersDb
       logger.atFiner().log("Create new OwnersDb, key=%s", key);
       return new OwnersDb(
           projectState, accountCache, emails, key, repository, changeData, branch, files);

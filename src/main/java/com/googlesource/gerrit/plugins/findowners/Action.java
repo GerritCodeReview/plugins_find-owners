@@ -67,6 +67,7 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
 
   static class Parameters {
     Boolean debug; // REST API "debug" parameter, or null
+    Boolean nocache; // REST API "nocache" parameter, or null
     Integer patchset; // REST API "patchset" parameter, or null
   }
 
@@ -104,7 +105,7 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
 
   private List<OwnerInfo> getOwners(OwnersDb db, Collection<String> files) {
     Map<String, OwnerWeights> weights = new HashMap<>();
-    db.findOwners(files, weights);
+    db.findOwners(files, weights, new ArrayList<>());
     List<OwnerInfo> result = new ArrayList<>();
     Set<String> emails = new HashSet<>();
     for (String key : OwnerWeights.sortKeys(weights)) {
@@ -182,9 +183,9 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
       throws OrmException, BadRequestException, IOException {
     int patchset = getValidPatchsetNum(changeData, params.patchset);
     ProjectState projectState = projectCache.get(changeData.project());
-    OwnersDb db =
-        Cache.getInstance()
-            .get(projectState, accountCache, emails, repository, changeData, patchset);
+    Boolean useCache = params.nocache == null || !params.nocache;
+    OwnersDb db = Cache.getInstance().get(
+        useCache, projectState, accountCache, emails, repository, changeData, patchset);
     Collection<String> changedFiles = changeData.currentFilePaths();
     Map<String, Set<String>> file2Owners = db.findOwners(changedFiles);
 
@@ -201,6 +202,7 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
       obj.dbgmsgs.errors = db.errors;
       obj.dbgmsgs.path2owners = Util.makeSortedMap(db.path2Owners);
       obj.dbgmsgs.owner2paths = Util.makeSortedMap(db.owner2Paths);
+      obj.dbgmsgs.logs = db.logs;
     }
 
     obj.file2owners = Util.makeSortedMap(file2Owners);
@@ -236,6 +238,7 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
           OwnersDb db =
               Cache.getInstance()
                   .get(
+                      true, // use cached OwnersDb
                       projectCache.get(resource.getProject()),
                       accountCache,
                       emails,

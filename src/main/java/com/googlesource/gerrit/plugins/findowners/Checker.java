@@ -151,7 +151,7 @@ public class Checker {
     // One update to a Gerrit change can call submit_rule or submit_filter
     // many times. So this function should use cached values.
     OwnersDb db =
-        Cache.getInstance().get(projectState, accountCache, emails, repository, changeData);
+        Cache.getInstance().get(true, projectState, accountCache, emails, repository, changeData);
     if (db.getNumOwners() <= 0) {
       return 0;
     }

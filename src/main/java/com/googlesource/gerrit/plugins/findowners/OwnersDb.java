@@ -23,11 +23,14 @@ import com.google.gerrit.server.account.AccountCache;
 import com.google.gerrit.server.account.Emails;
 import com.google.gerrit.server.project.ProjectState;
 import com.google.gerrit.server.query.change.ChangeData;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -58,6 +61,7 @@ class OwnersDb {
   Set<String> stopLooking = new HashSet<>(); // directories where OWNERS has "set noparent"
   Map<String, String> preferredEmails = new HashMap<>(); // owner email to preferred email
   List<String> errors = new ArrayList<>(); // error messages
+  List<String> logs = new ArrayList<>(); // trace/debug messages
 
   OwnersDb() {}
 
@@ -73,10 +77,18 @@ class OwnersDb {
     this.accountCache = accountCache;
     this.emails = emails;
     this.key = key;
+    try {
+      InetAddress inetAddress = InetAddress.getLocalHost();
+      logs.add("HostName:" + inetAddress.getHostName());
+    } catch (UnknownHostException e) {
+      logException(logs, "HostName:", e);
+    }
+    logs.add("key:" + key);
     preferredEmails.put("*", "*");
     String ownersFileName = Config.getOwnersFileName(projectState, changeData);
+    logs.add("ownersFileName:" + ownersFileName);
     // Some hacked CL could have a target branch that is not created yet.
-    ObjectId id = getBranchId(repository, branch, changeData);
+    ObjectId id = getBranchId(repository, branch, changeData, logs);
     revision = "";
     if (id != null) {
       for (String fileName : files) {
@@ -84,10 +96,12 @@ class OwnersDb {
         // Stop looking for a parent directory if OWNERS has "set noparent".
         fileName = Util.normalizedFilePath(fileName);
         String dir = Util.normalizedDirPath(fileName); // e.g. dir = ./d1/d2
+        logs.add("findOwnersFileFor:" + fileName);
         while (!readDirs.contains(dir)) {
           readDirs.add(dir);
+          logs.add("findOwnersFileIn:" + dir);
           String filePath = (dir + "/" + ownersFileName).substring(2); // remove "./"
-          String content = getRepositoryFile(repository, id, filePath);
+          String content = getRepositoryFile(repository, id, filePath, logs);
           if (content != null && !content.equals("")) {
             addFile(dir + "/", dir + "/" + ownersFileName, content.split("\\R+"));
           }
@@ -102,6 +116,7 @@ class OwnersDb {
       } catch (Exception e) {
         logger.atSevere().withCause(e).log(
             "Fail to get branch revision for %s", Config.getChangeId(changeData));
+        logException(logs, "OwnersDb get revision", e);
       }
     }
     countNumOwners(files);
@@ -112,7 +127,8 @@ class OwnersDb {
   }
 
   private void countNumOwners(Collection<String> files) {
-    Map<String, Set<String>> file2Owners = findOwners(files, null);
+    logs.add("countNumOwners");
+    Map<String, Set<String>> file2Owners = findOwners(files, null, logs);
     if (file2Owners != null) {
       Set<String> emails = new HashSet<>();
       file2Owners.values().forEach(emails::addAll);
@@ -141,6 +157,7 @@ class OwnersDb {
         email2ids = emails.getAccountsFor(ownerEmailsAsArray);
       } catch (Exception e) {
         logger.atSevere().withCause(e).log("accounts.byEmails failed");
+        logException(logs, "getAccountsFor:" + ownerEmailsAsArray[0], e);
       }
       for (String owner : ownerEmailsAsArray) {
         String email = owner;
@@ -192,8 +209,10 @@ class OwnersDb {
       ArrayList<Integer> distances,
       String file,
       Map<String, Set<String>> file2Owners,
-      Map<String, OwnerWeights> map) {
+      Map<String, OwnerWeights> map,
+      List<String> logs) {
     for (int i = 0; i < paths.size(); i++) {
+      logs.add("addOwnerWeightsIn:" + paths.get(i));
       Set<String> owners = path2Owners.get(paths.get(i));
       if (owners == null) {
         continue;
@@ -214,13 +233,13 @@ class OwnersDb {
 
   /** Quick method to find owner emails of every file. */
   Map<String, Set<String>> findOwners(Collection<String> files) {
-    return findOwners(files, null);
+    return findOwners(files, null, new ArrayList<>());
   }
 
   /** Returns owner emails of every file and set up ownerWeights. */
   Map<String, Set<String>> findOwners(
-      Collection<String> files, Map<String, OwnerWeights> ownerWeights) {
-    return findOwners(files.toArray(new String[0]), ownerWeights);
+      Collection<String> files, Map<String, OwnerWeights> ownerWeights, List<String> logs) {
+    return findOwners(files.toArray(new String[0]), ownerWeights, logs);
   }
 
   /** Returns true if path has '*' owner. */
@@ -238,14 +257,18 @@ class OwnersDb {
   }
 
   /** Returns owner emails of every file and set up ownerWeights. */
-  Map<String, Set<String>> findOwners(String[] files, Map<String, OwnerWeights> ownerWeights) {
+  Map<String, Set<String>> findOwners(
+      String[] files, Map<String, OwnerWeights> ownerWeights, List<String> logs) {
     // Returns a map of file to set of owner emails.
     // If ownerWeights is not null, add to it owner to distance-from-dir;
     // a distance of 1 is the lowest/closest possible distance
     // (which makes the subsequent math easier).
+    logs.add("findOwners");
+    Arrays.sort(files); // Force an ordered search sequence.
     Map<String, Set<String>> file2Owners = new HashMap<>();
     for (String fileName : files) {
       fileName = Util.normalizedFilePath(fileName);
+      logs.add("checkFile:" + fileName);
       String dirPath = Util.normalizedDirPath(fileName);
       String baseName = fileName.substring(dirPath.length() + 1);
       int distance = 1;
@@ -257,6 +280,7 @@ class OwnersDb {
       boolean foundStar = false;
       while (true) {
         int savedSizeOfPaths = paths.size();
+        logs.add("checkDir:" + dirPath);
         if (dir2Globs.containsKey(dirPath + "/")) {
           Set<String> patterns = dir2Globs.get(dirPath + "/");
           for (String pat : patterns) {
@@ -287,40 +311,59 @@ class OwnersDb {
         dirPath = Util.getDirName(dirPath); // go up one level
       }
       if (!foundStar) {
-        addOwnerWeights(paths, distances, fileName, file2Owners, ownerWeights);
+        addOwnerWeights(paths, distances, fileName, file2Owners, ownerWeights, logs);
+      } else {
+        logs.add("found * in:" + fileName);
       }
     }
     return file2Owners;
   }
 
   /** Returns ObjectId of the given branch, or null. */
-  private static ObjectId getBranchId(Repository repo, String branch, ChangeData changeData) {
+  private static ObjectId getBranchId(
+      Repository repo, String branch, ChangeData changeData, List<String> logs) {
+    String header = "getBranchId:" + branch;
     try {
       ObjectId id = repo.resolve(branch);
       if (id == null && changeData != null && !Checker.isExemptFromOwnerApproval(changeData)) {
         logger.atSevere().log(
             "cannot find branch %s for %s", branch, Config.getChangeId(changeData));
+        logs.add(header + " (NOT FOUND)");
+      } else {
+        logs.add(header + " (FOUND)");
       }
       return id;
     } catch (Exception e) {
       logger.atSevere().withCause(e).log(
           "cannot find branch %s for %s", branch, Config.getChangeId(changeData));
+      logException(logs, header, e);
     }
     return null;
   }
 
   /** Returns file content or empty string; uses Repository. */
-  private static String getRepositoryFile(Repository repo, ObjectId id, String file) {
+  private static String getRepositoryFile(
+      Repository repo, ObjectId id, String file, List<String> logs) {
+    String header = "getRepositoryFile:" + file;
     try (RevWalk revWalk = new RevWalk(repo)) {
       RevTree tree = revWalk.parseCommit(id).getTree();
       ObjectReader reader = revWalk.getObjectReader();
       TreeWalk treeWalk = TreeWalk.forPath(reader, file, tree);
       if (treeWalk != null) {
-        return new String(reader.open(treeWalk.getObjectId(0)).getBytes(), UTF_8);
+        String content = new String(reader.open(treeWalk.getObjectId(0)).getBytes(), UTF_8);
+        logs.add(header + ":" + content);
+        return content;
       }
+      logs.add(header + " (NOT FOUND)");
     } catch (Exception e) {
       logger.atSevere().withCause(e).log("get file %s", file);
+      logException(logs, header, e);
     }
     return "";
+  }
+
+  /** Adds a header + exception message to the logs. */
+  private static void logException(List<String> logs, String header, Exception e) {
+    logs.add(header + " Exception:" + e.getMessage());
   }
 }

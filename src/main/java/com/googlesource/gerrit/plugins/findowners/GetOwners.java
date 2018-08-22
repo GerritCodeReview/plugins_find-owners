@@ -46,6 +46,10 @@ public class GetOwners implements RestReadView<ChangeResource> {
   @Option(name = "--debug", usage = "get extra debug info")
   private String debug;
 
+  // "nocache" could be true/yes/1 or false/no/0, default is false.
+  @Option(name = "--nocache", usage = "do not use cached owners info")
+  private String nocache;
+
   @Option(name = "--patchset", usage = "select change patchset number")
   private Integer patchset;
 
@@ -78,6 +82,7 @@ public class GetOwners implements RestReadView<ChangeResource> {
     Action.Parameters params = new Action.Parameters();
     params.patchset = patchset;
     params.debug = (debug != null) ? Util.parseBoolean(debug) : null;
+    params.nocache = (nocache != null) ? Util.parseBoolean(nocache) : null;
     try {
       return this.action.apply(rsrc, params);
     } catch (BadRequestException e) {

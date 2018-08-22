@@ -19,6 +19,8 @@ The `<id>` is a Gerrit change ID. This API can have two parameters:
 * **debug**: can be set to true or false to override the configuration variable
   **addDebugMsg**.
 
+* **nocache**: can be set to true to collect owerns info without using the cached OwnersDb.
+
 For example,
 
 ```bash
@@ -65,6 +67,9 @@ This API returns a JSON object with the following attributes:
     * **owner2paths**:
       a map from owner email to an array of directory path or file glob.
       This is opposite to the path2owners map.
+
+    * **logs**:
+      trace messages during the search of OWNERS files.
 
 * **file2owners**: a map from each file path in the change patchset to
    an array of the file's owner emails.

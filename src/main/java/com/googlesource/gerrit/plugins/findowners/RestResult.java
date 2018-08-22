@@ -57,5 +57,6 @@ public class RestResult {
     List<String> errors;
     SortedMap<String, List<String>> path2owners;
     SortedMap<String, List<String>> owner2paths;
+    List<String> logs;
   }
 }

@@ -96,8 +96,11 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
     assertThat(getOwnersResponse(c1)).contains(ownersAX + ", files:[ OWNERS ]");
     // Check all fields in response.
     String expectedTail =
-        "path2owners:{ ./:[ a@a, x@x ] }, owner2paths:{ a@a:[ ./ ], x@x:[ ./ ] } }"
-            + ", file2owners:{ ./t.c:[ a@a, x@x ] }, reviewers:[], "
+        "path2owners:{ ./:[ a@a, x@x ] }, owner2paths:{ a@a:[ ./ ], x@x:[ ./ ] }, logs:[ "
+            + "key:12:1:master, ownersFileName:OWNERS, getBranchId:refs/heads/master(FOUND), "
+            + "findOwnersFileFor:./t.c, findOwnersFileIn:., getRepositoryFile:OWNERS:x@x\\na@a\\n, "
+            + "countNumOwners, findOwners, checkFile:./t.c, checkDir:., addOwnerWeightsIn:./ ] "
+            + "}, file2owners:{ ./t.c:[ a@a, x@x ] }, reviewers:[], "
             + ownersAX
             + ", files:[ t.c ] }";
     assertThat(getOwnersDebugResponse(c2)).contains(expectedTail);
@@ -454,14 +457,15 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
     Repository repo = repoManager.openRepository(project);
     Cache cache = Cache.getInstance().init(0, 0);
     OwnersDb db =
-        cache.get(projectCache.get(project), accountCache, emails, repo, r.getChange(), 1);
+        cache.get(true, projectCache.get(project), accountCache, emails, repo, r.getChange(), 1);
     Checker c = new Checker(repo, r.getChange(), 1);
     return c.findApproval(accountCache, db);
   }
 
-  // Remove '"' and space; replace '\n' with ' '; ignore unpredictable "owner_revision".
+  // Remove '"' and space; replace '\n' with ' '; ignore "owner_revision" and "HostName:*".
   private static String filteredJson(String json) {
-    return json.replaceAll("[\" ]*", "").replace('\n', ' ').replaceAll("owner_revision:[^ ]* ", "");
+    return json.replaceAll("[\" ]*", "").replace('\n', ' ').replaceAll("owner_revision:[^ ]* ", "")
+        .replaceAll("HostName:[^ ]*, ", "");
   }
 
   private static String filteredJson(RestResponse response) throws Exception {
