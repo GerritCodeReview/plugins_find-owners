@@ -242,20 +242,6 @@ class OwnersDb {
     return findOwners(files.toArray(new String[0]), ownerWeights, logs);
   }
 
-  /** Returns true if path has '*' owner. */
-  private boolean findStarOwner(
-      String path, int distance, ArrayList<String> paths, ArrayList<Integer> distances) {
-    Set<String> owners = path2Owners.get(path);
-    if (owners != null) {
-      paths.add(path);
-      distances.add(distance);
-      if (owners.contains("*")) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   /** Returns owner emails of every file and set up ownerWeights. */
   Map<String, Set<String>> findOwners(
       String[] files, Map<String, OwnerWeights> ownerWeights, List<String> logs) {
@@ -317,6 +303,20 @@ class OwnersDb {
       }
     }
     return file2Owners;
+  }
+
+  /** Returns true if path has '*' owner. */
+  private boolean findStarOwner(
+      String path, int distance, ArrayList<String> paths, ArrayList<Integer> distances) {
+    Set<String> owners = path2Owners.get(path);
+    if (owners != null) {
+      paths.add(path);
+      distances.add(distance);
+      if (owners.contains("*")) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /** Returns ObjectId of the given branch, or null. */
