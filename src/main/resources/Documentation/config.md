@@ -8,7 +8,8 @@ To enforce the *owner-approval-before-submit* rule, this plugin provides
 predicates for Gerrit projects.
 
 If a Gerrit project wants to enforce this *owner-approval* policy,
-it can add a `submit_rule` to its `rules.pl` file like this:
+it can add a `submit_rule` to the `rules.pl` file in `refs/meta/config`
+like this:
 
 ```prolog
 submit_rule(S) :- find_owners:submit_rule(S).
