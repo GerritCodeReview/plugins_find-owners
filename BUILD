@@ -43,5 +43,6 @@ junit_tests(
         ":find-owners-lib",
         ":find-owners-prolog-rules",
         "//gerrit-acceptance-framework:lib",
+        "//lib/bouncycastle:bcprov",
     ],
 )
