@@ -11,7 +11,7 @@ OWNERS information of a change.
 GET /changes/<id>/owners HTTP/1.0
 ```
 
-The `<id>` is a Gerrit change ID. This API can have two parameters:
+The `<id>` is a Gerrit change ID. This API can have three parameters:
 
 * **patchset**: is the patchset number of the change to look for changed files.
   By default the current (latest) patchset of given change is used.
