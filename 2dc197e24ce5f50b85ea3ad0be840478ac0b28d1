@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "717156b9_1479e60b",
+        "filename": "src/main/resources/Documentation/rest-api.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 1062067
+      },
+      "writtenOn": "2018-10-01T16:30:56Z",
+      "side": 1,
+      "message": "\"three\" (?)",
+      "range": {
+        "startLine": 14,
+        "startChar": 52,
+        "endLine": 14,
+        "endChar": 55
+      },
+      "revId": "2dc197e24ce5f50b85ea3ad0be840478ac0b28d1",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    }
+  ]
+}
