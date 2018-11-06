@@ -19,8 +19,10 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import com.google.common.collect.Multimap;
 import com.google.common.flogger.FluentLogger;
 import com.google.gerrit.reviewdb.client.Account;
+import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.account.AccountCache;
 import com.google.gerrit.server.account.Emails;
+import com.google.gerrit.server.git.GitRepositoryManager;
 import com.google.gerrit.server.project.ProjectState;
 import com.google.gerrit.server.query.change.ChangeData;
 import java.net.InetAddress;
@@ -49,6 +51,7 @@ class OwnersDb {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private AccountCache accountCache;
+  private GitRepositoryManager repoManager;
   private Emails emails;
   private int numOwners = -1; // # of owners of all given files.
 
@@ -70,11 +73,12 @@ class OwnersDb {
       AccountCache accountCache,
       Emails emails,
       String key,
-      Repository repository,
+      GitRepositoryManager repoManager,
       ChangeData changeData,
       String branch,
       Collection<String> files) {
     this.accountCache = accountCache;
+    this.repoManager = repoManager;
     this.emails = emails;
     this.key = key;
     try {
@@ -85,39 +89,48 @@ class OwnersDb {
     }
     logs.add("key:" + key);
     preferredEmails.put("*", "*");
+    String projectName = projectState.getName();
+    logs.add("project:" + projectName);
     String ownersFileName = Config.getOwnersFileName(projectState, changeData);
     logs.add("ownersFileName:" + ownersFileName);
-    // Some hacked CL could have a target branch that is not created yet.
-    ObjectId id = getBranchId(repository, branch, changeData, logs);
-    revision = "";
-    if (id != null) {
-      for (String fileName : files) {
-        // Find OWNERS in fileName's directory and parent directories.
-        // Stop looking for a parent directory if OWNERS has "set noparent".
-        fileName = Util.normalizedFilePath(fileName);
-        String dir = Util.normalizedDirPath(fileName); // e.g. dir = ./d1/d2
-        logs.add("findOwnersFileFor:" + fileName);
-        while (!readDirs.contains(dir)) {
-          readDirs.add(dir);
-          logs.add("findOwnersFileIn:" + dir);
-          String filePath = (dir + "/" + ownersFileName).substring(2); // remove "./"
-          String content = getRepositoryFile(repository, id, filePath, logs);
-          if (content != null && !content.equals("")) {
-            addFile(dir + "/", dir + "/" + ownersFileName, content.split("\\R+"));
+    try (Repository repo = repoManager.openRepository(projectState.getNameKey())) {
+      // Some hacked CL could have a target branch that is not created yet.
+      ObjectId id = getBranchId(repo, branch, changeData, logs);
+      revision = "";
+      if (id != null) {
+        for (String fileName : files) {
+          // Find OWNERS in fileName's directory and parent directories.
+          // Stop looking for a parent directory if OWNERS has "set noparent".
+          fileName = Util.addDotPrefix(fileName); // e.g.   "./" "./d1/f1" "./d2/d3/"
+          String dir = Util.getParentDir(fileName); // e.g. "."  "./d1"    "./d2"
+          logs.add("findOwnersFileFor:" + fileName);
+          while (!readDirs.contains(dir)) {
+            readDirs.add(dir);
+            logs.add("findOwnersFileIn:" + dir);
+            String filePath = dir + "/" + ownersFileName;
+            String content = getFile(repo, id, filePath, logs);
+            if (content != null && !content.isEmpty()) {
+              addFile(projectName, branch, dir + "/", dir + "/" + ownersFileName,
+                      content.split("\\R+"));
+            }
+            if (stopLooking.contains(dir + "/") || !dir.contains("/")) {
+              break; // stop looking through parent directory
+            }
+            dir = Util.getDirName(dir); // go up one level
           }
-          if (stopLooking.contains(dir + "/") || !dir.contains("/")) {
-            break; // stop looking through parent directory
-          }
-          dir = Util.getDirName(dir); // go up one level
+        }
+        try {
+          revision = repo.exactRef(branch).getObjectId().getName();
+        } catch (Exception e) {
+          logger.atSevere().withCause(e).log(
+              "Fail to get branch revision for %s", Config.getChangeId(changeData));
+          logException(logs, "OwnersDb get revision", e);
         }
       }
-      try {
-        revision = repository.exactRef(branch).getObjectId().getName();
-      } catch (Exception e) {
-        logger.atSevere().withCause(e).log(
-            "Fail to get branch revision for %s", Config.getChangeId(changeData));
-        logException(logs, "OwnersDb get revision", e);
-      }
+    } catch (Exception e) {
+      logger.atSevere().withCause(e).log(
+          "Fail to find repository of project %s", projectName);
+      logException(logs, "OwnersDb get repository", e);
     }
     countNumOwners(files);
   }
@@ -186,8 +199,9 @@ class OwnersDb {
     }
   }
 
-  void addFile(String dirPath, String filePath, String[] lines) {
-    Parser.Result result = Parser.parseFile(dirPath, filePath, lines);
+  void addFile(String project, String branch, String dirPath, String filePath, String[] lines) {
+    Parser parser = new Parser(repoManager, project, branch, filePath, logs);
+    Parser.Result result = parser.parseFile(dirPath, lines);
     if (result.stopLooking) {
       stopLooking.add(dirPath);
     }
@@ -253,9 +267,9 @@ class OwnersDb {
     Arrays.sort(files); // Force an ordered search sequence.
     Map<String, Set<String>> file2Owners = new HashMap<>();
     for (String fileName : files) {
-      fileName = Util.normalizedFilePath(fileName);
+      fileName = Util.addDotPrefix(fileName);
       logs.add("checkFile:" + fileName);
-      String dirPath = Util.normalizedDirPath(fileName);
+      String dirPath = Util.getParentDir(fileName);
       String baseName = fileName.substring(dirPath.length() + 1);
       int distance = 1;
       FileSystem fileSystem = FileSystems.getDefault();
@@ -341,10 +355,30 @@ class OwnersDb {
     return null;
   }
 
+  /** Returns file content or empty string; uses project+branch+file names. */
+  public static String getRepoFile(GitRepositoryManager repoManager,
+      String project, String branch, String file, List<String> logs) {
+    // 'file' must be an absolute path from the root of 'project'.
+    logs.add("getRepoFile:" + project + ":" + branch + ":" + file);
+    try (Repository repo = repoManager.openRepository(new Project.NameKey(project))) {
+      ObjectId id = repo.resolve(branch);
+      if (id != null) {
+        return getFile(repo, id, file, logs);
+      }
+      logs.add("getRepoFile not found branch " + branch);
+    } catch (Exception e) {
+      logger.atSevere().withCause(e).log(
+          "Fail to find repository of project %s", project);
+      logException(logs, "getRepoFile", e);
+    }
+    return "";
+  }
+
   /** Returns file content or empty string; uses Repository. */
-  private static String getRepositoryFile(
+  private static String getFile(
       Repository repo, ObjectId id, String file, List<String> logs) {
-    String header = "getRepositoryFile:" + file;
+    file = Util.gitRepoFilePath(file);
+    String header = "getFile:" + file;
     try (RevWalk revWalk = new RevWalk(repo)) {
       RevTree tree = revWalk.parseCommit(id).getTree();
       ObjectReader reader = revWalk.getObjectReader();
@@ -357,7 +391,7 @@ class OwnersDb {
       logs.add(header + " (NOT FOUND)");
     } catch (Exception e) {
       logger.atSevere().withCause(e).log("get file %s", file);
-      logException(logs, header, e);
+      logException(logs, "getFile", e);
     }
     return "";
   }

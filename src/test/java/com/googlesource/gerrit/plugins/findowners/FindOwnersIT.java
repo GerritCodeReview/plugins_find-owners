@@ -41,7 +41,6 @@ import com.google.inject.Inject;
 import java.util.Collection;
 import java.util.Optional;
 import org.eclipse.jgit.lib.ObjectLoader;
-import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevObject;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
@@ -79,88 +78,363 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
   }
 
   @Test
-  public void ownersFile1Test() throws Exception {
-    // Create 1st OWNERS file, this change does not have owner.
-    PushOneCommit.Result c1 = createChange("add OWNERS", "OWNERS", "x@x\na@a\n");
-    assertThat(getOwnersResponse(c1)).contains("owners:[], files:[ OWNERS ]");
-    // Create another "t.c" file, which has no owner because c1 is not submitted yet.
-    PushOneCommit.Result c2 = createChange("add t.c", "t.c", "##");
+  public void includeNotFoundTest() throws Exception {
+    // c2 and c1 are both submitted before existence of OWNERS.
+    PushOneCommit.Result c2 = addFile("1", "t.c", "##");
+    // Submitted c2 still finds no owners before c1 is submitted.
     assertThat(getOwnersResponse(c2)).contains("owners:[], files:[ t.c ]");
-    // Change of "t.c" file has owner after c1 is submitted.
-    approveSubmit(c1);
-    String ownerA = ownerJson("a@a");
-    String ownerX = ownerJson("x@x");
-    String ownersAX = "owners:[ " + ownerA + ", " + ownerX + " ]";
-    assertThat(getOwnersResponse(c2)).contains(ownersAX + ", files:[ t.c ]");
+    PushOneCommit.Result c1 = addFile("2", "OWNERS",
+        "x@x\na@a\nfile:f1.txt\ninclude  P1/P2 : f1\ninclude ./d1/d2/../../f2\n");
+    // Now c2 should find owners, but include directives find no repository or file.
+    String ownersAX = "owners:[ " + ownerJson("a@a") + ", " + ownerJson("x@x") + " ]";
+    String path2owners = "path2owners:{ ./:[ a@a, x@x ] }";
+    String owner2paths = "owner2paths:{ a@a:[ ./ ], x@x:[ ./ ] }";
+    String projectName = myProjectName("includeNotFoundTest");
+    String expectedInLog = "project:" + projectName + ", "
+            + "ownersFileName:OWNERS, "
+            + "getBranchId:refs/heads/master(FOUND), "
+            + "findOwnersFileFor:./t.c, "
+            + "findOwnersFileIn:., "
+            + "getFile:OWNERS:x@x\\na@a\\nfile:f1.txt\\n"
+            + "includeP1/P2:f1\\ninclude./d1/d2/../../f2\\n, "
+            + "parseLine:file, "
+            + "parseLine:include:P1/P2:f1, "
+            + "getRepoFile:P1/P2:refs/heads/master:f1, "
+            + "getRepoFileException:repositorynotfound:P1/P2, " // repository not found
+            + "parseLine:include:(empty), " // missing file is treated as empty
+            + "parseLine:include:" + projectName + ":./d1/d2/../../f2, "
+            + "getRepoFile:" + projectName + ":refs/heads/master:f2, "
+            + "getFile:f2(NOTFOUND), " // same repository but f2 is missing
+            + "parseLine:include:(empty), " // missing file is treated as empty
+            + "countNumOwners, "
+            + "findOwners, "
+            + "checkFile:./t.c, "
+            + "checkDir:., "
+            + "addOwnerWeightsIn:./ "
+            + "] ";
+    String c2Response = getOwnersDebugResponse(c2);
+    assertThat(c2Response).contains(path2owners);
+    assertThat(c2Response).contains(owner2paths);
+    assertThat(c2Response).contains("file2owners:{ ./t.c:[ a@a, x@x ] }");
+    assertThat(c2Response).contains(ownersAX);
+    assertThat(c2Response).contains(expectedInLog);
     // A submitted change gets owners info from current repository.
-    assertThat(getOwnersResponse(c1)).contains(ownersAX + ", files:[ OWNERS ]");
-    // Check all fields in response.
-    String expectedTail =
-        "path2owners:{ ./:[ a@a, x@x ] }, owner2paths:{ a@a:[ ./ ], x@x:[ ./ ] }, logs:[ "
-            + "key:12:1:master, ownersFileName:OWNERS, getBranchId:refs/heads/master(FOUND), "
-            + "findOwnersFileFor:./t.c, findOwnersFileIn:., getRepositoryFile:OWNERS:x@x\\na@a\\n, "
-            + "countNumOwners, findOwners, checkFile:./t.c, checkDir:., addOwnerWeightsIn:./ ] "
-            + "}, file2owners:{ ./t.c:[ a@a, x@x ] }, reviewers:[], "
-            + ownersAX
-            + ", files:[ t.c ] }";
-    assertThat(getOwnersDebugResponse(c2)).contains(expectedTail);
+    String c1Response = getOwnersDebugResponse(c1);
+    assertThat(c1Response).contains(path2owners);
+    assertThat(c1Response).contains(owner2paths);
+    assertThat(c1Response).contains("file2owners:{ ./OWNERS:[ a@a, x@x ] }");
+    assertThat(c1Response).contains(ownersAX);
   }
 
   @Test
-  public void ownersFile2Test() throws Exception {
-    // Add OWNERS file, this test does not inherit files created in ownersFile1Test.
-    addFile("add OWNERS", "OWNERS", "per-file *.c=x@x\na@a\nc@c\nb@b\n");
+  public void includeFoundTest() throws Exception {
+    // Compared with includeNotFoundTest, this one has file "f2" to include.
+    addFile("c0", "f2", "g1@g\ng2@g\n");
+    // c2 and c1 are both submitted before existence of OWNERS.
+    PushOneCommit.Result c2 = addFile("c2", "t.c", "##");
+    PushOneCommit.Result c1 = addFile("c1", "OWNERS",
+        "x@x\na@a\nfile:f1.txt\ninclude  P1/P2 : f1\ninclude ./d1/d2/../../f2\n");
+    String ownerA = ownerJson("a@a");
+    String ownerX = ownerJson("x@x");
+    String ownerG1 = ownerJson("g1@g");
+    String ownerG2 = ownerJson("g2@g");
+    String ownersAG1G2X =
+        "owners:[ " + ownerA + ", " + ownerG1 + ", " + ownerG2 + ", " + ownerX + " ]";
+    String path2owners = "path2owners:{ ./:[ a@a, g1@g, g2@g, x@x ] }";
+    String owner2paths = "owner2paths:{ a@a:[ ./ ], g1@g:[ ./ ], g2@g:[ ./ ], x@x:[ ./ ] }";
+    String projectName = myProjectName("includeFoundTest");
+    String expectedInLog = "project:" + projectName + ", "
+            + "ownersFileName:OWNERS, "
+            + "getBranchId:refs/heads/master(FOUND), "
+            + "findOwnersFileFor:./t.c, "
+            + "findOwnersFileIn:., "
+            + "getFile:OWNERS:x@x\\na@a\\nfile:f1.txt\\n"
+            + "includeP1/P2:f1\\ninclude./d1/d2/../../f2\\n, "
+            + "parseLine:file, "
+            + "parseLine:include:P1/P2:f1, "
+            + "getRepoFile:P1/P2:refs/heads/master:f1, "
+            + "getRepoFileException:repositorynotfound:P1/P2, "
+            + "parseLine:include:(empty), " // P1/P2 is still not found
+            + "parseLine:include:" + projectName + ":./d1/d2/../../f2, "
+            + "getRepoFile:" + projectName + ":refs/heads/master:f2, "
+            + "getFile:f2:g1@g\\ng2@g\\n, " // f2 is included
+            + "countNumOwners, "
+            + "findOwners, "
+            + "checkFile:./t.c, "
+            + "checkDir:., "
+            + "addOwnerWeightsIn:./ "
+            + "] ";
+    String c2Response = getOwnersDebugResponse(c2);
+    assertThat(c2Response).contains(path2owners);
+    assertThat(c2Response).contains(owner2paths);
+    assertThat(c2Response).contains("file2owners:{ ./t.c:[ a@a, g1@g, g2@g, x@x ] }");
+    assertThat(c2Response).contains(ownersAG1G2X);
+    assertThat(c2Response).contains(expectedInLog);
+    // A submitted change gets owners info from current repository.
+    String c1Response = getOwnersDebugResponse(c1);
+    assertThat(c1Response).contains(path2owners);
+    assertThat(c1Response).contains(owner2paths);
+    assertThat(c1Response).contains("file2owners:{ ./OWNERS:[ a@a, g1@g, g2@g, x@x ] }");
+    assertThat(c1Response).contains(ownersAG1G2X);
+  }
+
+  @Test
+  public void includeIndirectFileTest() throws Exception {
+    // Test indirectly included file and relative file path.
+    addFile("1", "d1/f2", "d1f2@g\n");
+    addFile("2", "d2/f2", "d2f2@g\n");
+    addFile("3", "d3/f2", "d3f2@g\n");
+    addFile("4", "d1/d2/owners", "d1d2@g\ninclude ../f2\n");
+    addFile("5", "d2/d2/owners", "d2d2@g\ninclude ../f2\n");
+    addFile("6", "d3/d2/owners", "d3d2@g\ninclude ../f2\n");
+    addFile("7", "d3/OWNERS", "d3@g\ninclude ../d2/d2/owners\n");
+    addFile("8", "OWNERS", "x@g\n");
+    PushOneCommit.Result c1 = createChange("c1", "d3/t.c", "Hello!");
+    // d3's owners are in d3/OWNERS, d2/d2/owners, d2/f2, OWNERS,
+    // If the include directories are based on original directory d3,
+    // then the included files will be d2/d2/owners and d3/f2.
+    String ownerD3 = ownerJson("d3@g");
+    String ownerD2 = ownerJson("d2d2@g");
+    String ownerF2 = ownerJson("d2f2@g");
+    String ownerX = ownerJson("x@g", 0, 1, 0);
+    assertThat(getOwnersResponse(c1)).contains("owners:[ " + ownerD2 + ", "
+        + ownerF2 + ", " + ownerD3 + ", " + ownerX + " ], files:[ d3/t.c ]");
+  }
+
+  @Test
+  public void includeCycleTest() throws Exception {
+    // f1 includes f2, f2 includes f3, f3 includes f4, f4 includes f2, OWNERS includes f1.
+    // All files are in the root directory, but could be referred with relative paths.
+    addFile("1", "f1", "f1@g\ninclude ./f2\n");
+    addFile("2", "f2", "f2@g\ninclude d1/../f3\n");
+    addFile("3", "f3", "f3@g\ninclude /f4\n");
+    addFile("4", "f4", "f4@g\ninclude d2/../f2\n");
+    addFile("5", "OWNERS", "x@g\ninclude ./d1/../f1\n");
+    PushOneCommit.Result c = createChange("6", "t.c", "#\n");
+    String response = getOwnersDebugResponse(c);
+    String projectName = myProjectName("includeCycleTest");
+    String expectedInLog = "project:" + projectName + ", "
+            + "ownersFileName:OWNERS, "
+            + "getBranchId:refs/heads/master(FOUND), "
+            + "findOwnersFileFor:./t.c, "
+            + "findOwnersFileIn:., "
+            + "getFile:OWNERS:x@g\\ninclude./d1/../f1\\n, "
+            + "parseLine:include:" + projectName + ":./d1/../f1, "
+            + "getRepoFile:" + projectName + ":refs/heads/master:f1, "
+            + "getFile:f1:f1@g\\ninclude./f2\\n, "
+            + "parseLine:include:" + projectName + ":./f2, "
+            + "getRepoFile:" + projectName + ":refs/heads/master:f2, "
+            + "getFile:f2:f2@g\\nincluded1/../f3\\n, "
+            + "parseLine:include:" + projectName + ":d1/../f3, "
+            + "getRepoFile:" + projectName + ":refs/heads/master:f3, "
+            + "getFile:f3:f3@g\\ninclude/f4\\n, "
+            + "parseLine:include:" + projectName + ":/f4, "
+            + "getRepoFile:" + projectName + ":refs/heads/master:f4, "
+            + "getFile:f4:f4@g\\nincluded2/../f2\\n, "
+            + "parseLine:skip:include:" + projectName + ":d2/../f2, "
+            + "countNumOwners, "
+            + "findOwners, "
+            + "checkFile:./t.c, "
+            + "checkDir:., "
+            + "addOwnerWeightsIn:./ "
+            + "] ";
+    assertThat(response).contains("path2owners:{ ./:[ f1@g, f2@g, f3@g, f4@g, x@g ] }");
+    assertThat(response).contains(
+        "owner2paths:{ f1@g:[ ./ ], f2@g:[ ./ ], f3@g:[ ./ ], f4@g:[ ./ ], x@g:[ ./ ] }");
+    assertThat(response).contains(expectedInLog);
+  }
+
+  @Test
+  public void includeDuplicationTest() throws Exception {
+    // f0 is included into f1, f2, f3,
+    // f2 is included into f4 and f5; f4 is included into f5.
+    // f0, f1, f2, f3, f5 are included into d6/OWNERS.
+    addFile("0", "d0/f0", "f0@g\n");
+    addFile("1", "d1/d2/f1", "f1@g\ninclude ../../d0/f0\n");
+    addFile("2", "d2/f2", "f2@g\ninclude ../d0/f0\n");
+    addFile("3", "d2/d3/f3", "f3@g\ninclude /d0/f0\n");
+    addFile("4", "d4/f4", "f4@g\ninclude ../d2/f2\n");
+    addFile("5", "d4/d5/f5", "f5@g\ninclude /d2/f2\ninclude ../f4\n");
+    PushOneCommit.Result c = addFile("6", "d6/OWNERS",
+        "f6@g\ninclude /d0/f0\ninclude ../d1/d2/f1\n"
+        + "include ../d2/f2\ninclude /d2/d3/f3\ninclude /d2/../d4/d5/f5\ninclude /d4/f4\n");
+    String result = getOwnersDebugResponse(c);
+    assertThat(result).contains("{ ./d6/OWNERS:[ f0@g, f1@g, f2@g, f3@g, f4@g, f5@g, f6@g ] }");
+    String skipLog = "parseLine:skip:include:" + myProjectName("includeDuplicationTest") + ":";
+    for (String path : new String[]{"../../d0/f0", "../d0/f0", "../d2/f2", "/d2/f2", "/d4/f4"}) {
+      assertThat(result).contains(skipLog + path);
+    }
+    String projectName = myProjectName("includeDuplicationTest");
+    String expectedInLog = "project:" + projectName + ", "
+           + "ownersFileName:OWNERS, "
+           + "getBranchId:refs/heads/master(FOUND), "
+           + "findOwnersFileFor:./d6/OWNERS, "
+           + "findOwnersFileIn:./d6, "
+           + "getFile:d6/OWNERS:f6@g\\ninclude/d0/f0\\ninclude../d1/d2/f1\\ninclude../d2/f2\\n"
+           + "include/d2/d3/f3\\ninclude/d2/../d4/d5/f5\\ninclude/d4/f4\\n, "
+           + "parseLine:include:" + projectName + ":/d0/f0, "
+           + "getRepoFile:" + projectName + ":refs/heads/master:d0/f0, "
+           + "getFile:d0/f0:f0@g\\n, "
+           + "parseLine:include:" + projectName + ":../d1/d2/f1, "
+           + "getRepoFile:" + projectName + ":refs/heads/master:d1/d2/f1, "
+           + "getFile:d1/d2/f1:f1@g\\ninclude../../d0/f0\\n, "
+           + "parseLine:skip:include:" + projectName + ":../../d0/f0, "
+           + "parseLine:include:" + projectName + ":../d2/f2, "
+           + "getRepoFile:" + projectName + ":refs/heads/master:d2/f2, "
+           + "getFile:d2/f2:f2@g\\ninclude../d0/f0\\n, "
+           + "parseLine:skip:include:" + projectName + ":../d0/f0, "
+           + "parseLine:include:" + projectName + ":/d2/d3/f3, "
+           + "getRepoFile:" + projectName + ":refs/heads/master:d2/d3/f3, "
+           + "getFile:d2/d3/f3:f3@g\\ninclude/d0/f0\\n, "
+           + "parseLine:skip:include:" + projectName + ":/d0/f0, "
+           + "parseLine:include:" + projectName + ":/d2/../d4/d5/f5, "
+           + "getRepoFile:" + projectName + ":refs/heads/master:d4/d5/f5, "
+           + "getFile:d4/d5/f5:f5@g\\ninclude/d2/f2\\ninclude../f4\\n, "
+           + "parseLine:skip:include:" + projectName + ":/d2/f2, "
+           + "parseLine:include:" + projectName + ":../f4, "
+           + "getRepoFile:" + projectName + ":refs/heads/master:d4/f4, "
+           + "getFile:d4/f4:f4@g\\ninclude../d2/f2\\n, "
+           + "parseLine:skip:include:" + projectName + ":../d2/f2, "
+           + "parseLine:skip:include:" + projectName + ":/d4/f4, "
+           + "findOwnersFileIn:., "
+           + "getFile:OWNERS(NOTFOUND), "
+           + "countNumOwners, "
+           + "findOwners, "
+           + "checkFile:./d6/OWNERS, "
+           + "checkDir:./d6, "
+           + "checkDir:., "
+           + "addOwnerWeightsIn:./d6/ "
+           + "] ";
+    assertThat(result).contains(expectedInLog);
+  }
+
+  @Test
+  public void ownersPerFileTest() throws Exception {
+    addFile("1", "OWNERS", "per-file *.c=x@x\na@a\nc@c\nb@b\n");
     // Add "t.c" file, which has per-file owner x@x, not a@a, b@b, c@c.
-    PushOneCommit.Result c2 = createChange("add t.c", "t.c", "Hello!");
+    PushOneCommit.Result c2 = createChange("2", "t.c", "Hello!");
     String ownerA = ownerJson("a@a");
     String ownerB = ownerJson("b@b");
     String ownerC = ownerJson("c@c");
     String ownerX = ownerJson("x@x");
     assertThat(getOwnersResponse(c2)).contains("owners:[ " + ownerX + " ], files:[ t.c ]");
     // Add "t.txt" file, which has new owners.
-    PushOneCommit.Result c3 = createChange("add t.txt", "t.txt", "Test!");
+    PushOneCommit.Result c3 = createChange("3", "t.txt", "Test!");
     assertThat(getOwnersResponse(c3))
         .contains("owners:[ " + ownerA + ", " + ownerB + ", " + ownerC + " ], files:[ t.txt ]");
   }
 
   @Test
+  public void includePerFileTest() throws Exception {
+    // Test included file with per-file, which affects the including file.
+    PushOneCommit.Result c1 = addFile("1", "d1/d1/OWNERS", "d1d1@g\nper-file OWNERS=d1d1o@g\n");
+    PushOneCommit.Result c2 = addFile("2", "d1/OWNERS", "d1@g\nper-file OWNERS=d1o@g\n");
+    PushOneCommit.Result c3 = addFile("3", "d2/d1/OWNERS", "d2d1@g\ninclude ../../d1/d1/OWNERS\n");
+    PushOneCommit.Result c4 = addFile("4", "d2/OWNERS", "d2@g\nper-file OWNERS=d2o@g");
+    assertThat(getOwnersResponse(c1)).contains("{ ./d1/d1/OWNERS:[ d1d1o@g, d1o@g ] }");
+    assertThat(getOwnersResponse(c2)).contains("{ ./d1/OWNERS:[ d1o@g ] }");
+    assertThat(getOwnersResponse(c3)).contains("{ ./d2/d1/OWNERS:[ d1d1o@g, d2o@g ] }");
+    assertThat(getOwnersResponse(c4)).contains("{ ./d2/OWNERS:[ d2o@g ] }");
+  }
+
+  @Test
+  public void includeNoParentTest() throws Exception {
+    // Test included file with noparent, which affects the inheritance of including file.
+    PushOneCommit.Result c1 = addFile("1", "d1/d1/OWNERS", "d1d1@g\nset noparent\n");
+    PushOneCommit.Result c2 = addFile("2", "d1/d2/OWNERS", "d1d2@g\n");
+    PushOneCommit.Result c3 = addFile("3", "d1/OWNERS", "d1@g\n");
+    PushOneCommit.Result c4 = addFile("4", "d2/d1/OWNERS", "d2d1@g\ninclude ../../d1/d1/OWNERS\n");
+    PushOneCommit.Result c5 = addFile("5", "d2/d2/OWNERS", "d2d2@g\ninclude ../../d1/d2/OWNERS");
+    PushOneCommit.Result c6 = addFile("6", "d2/OWNERS", "d2@g\n");
+    // d1/d1/OWNERS sets noparent, does not inherit d1/OWNERS
+    assertThat(getOwnersResponse(c1)).contains("{ ./d1/d1/OWNERS:[ d1d1@g ] }");
+    // d1/d2/OWNERS inherits d1/OWNERS
+    assertThat(getOwnersResponse(c2)).contains("{ ./d1/d2/OWNERS:[ d1@g, d1d2@g ] }");
+    assertThat(getOwnersResponse(c3)).contains("{ ./d1/OWNERS:[ d1@g ] }");
+    // d2/d1/OWNERS includes d1/d1/OWNERS, does not inherit d1/OWNERS or d2/OWNERS
+    assertThat(getOwnersResponse(c4)).contains("{ ./d2/d1/OWNERS:[ d1d1@g, d2d1@g ] }");
+    // d2/d2/OWNERS includes d1/d1/OWNERS, inherit d2/OWNERS but not d1/OWNERS
+    assertThat(getOwnersResponse(c5)).contains("{ ./d2/d2/OWNERS:[ d1d2@g, d2@g, d2d2@g ] }");
+    assertThat(getOwnersResponse(c6)).contains("{ ./d2/OWNERS:[ d2@g ] }");
+  }
+
+  @Test
+  public void includeProjectOwnerTest() throws Exception {
+    // Test include directive with other project name.
+    String testName = "includeProjectOwnerTest";
+    String projectA = "A1/A2/A3";
+    String projectB = "B1/B2/B3";
+    Project.NameKey pA = createProject(projectA);
+    Project.NameKey pB = createProject(projectB);
+    String nameA = pA.get();
+    String nameB = pB.get();
+    assertThat(nameA).isEqualTo(myProjectName(testName, projectA));
+    assertThat(nameB).isEqualTo(myProjectName(testName, projectB));
+    switchProject(pA);
+    addFile("1", "f1", "pAf1@g\ninclude ./d1/f1\n");
+    addFile("2", "d1/f1", "pAd1f1@g\ninclude " + nameB + ":" + "/d2/f2\n");
+    addFile("3", "d2/OWNERS", "pAd2@g\n  include " + nameA + "  : " + "../f1\n");
+    addFile("4", "OWNERS", "pA@g\n");
+    switchProject(pB);
+    addFile("5", "f1", "pBf1@g\ninclude ./d1/f1\n");
+    addFile("6", "f2", "pBf2@g\n");
+    addFile("7", "d1/f1", "pBd1f1@g\n");
+    addFile("8", "d2/f2", "pBd2f2@g\ninclude ../f1\n");
+    switchProject(pA);
+    PushOneCommit.Result c1 = createChange("c1", "d2/t.c", "Hello!");
+    // included: pA:d2/OWNERS, pA:d2/../f1, pA:d1/f1, pB:d2/f2, pB:d2/../f1, pB:./d1/f1
+    // inherited: pA:OWNERS
+    String owners = "owners:[ " + ownerJson("pAd1f1@g") + ", " + ownerJson("pAd2@g") + ", "
+        + ownerJson("pAf1@g") + ", " + ownerJson("pBd1f1@g") + ", " + ownerJson("pBd2f2@g")
+        + ", " + ownerJson("pBf1@g") + ", " + ownerJson("pA@g", 0, 1, 0) + " ]";
+    assertThat(getOwnersResponse(c1)).contains(owners);
+  }
+
+  @Test
   public void subOwnersFileTest() throws Exception {
     // Add OWNERS file in root and subdirectories.
-    addFile("add OWNERS", "OWNERS", "x@x\n");
-    addFile("add d1/OWNERS", "d1/OWNERS", "a@a\n");
-    addFile("add d2/OWNERS", "d2/OWNERS", "y@y\n");
-    addFile("add d3/OWNERS", "d3/OWNERS", "b@b\nset noparent\n");
+    addFile("1", "OWNERS", "x@x\n");
+    addFile("2", "d1/OWNERS", "a@a\n");
+    addFile("3", "d2/OWNERS", "y@y\n");
+    addFile("4", "d3/OWNERS", "b@b\nset noparent\n");
+    addFile("5", "d4/OWNERS", "z@z\ninclude ../d2/OWNERS");
     // Add "t.c" file, which is not owned by subdirectory owners.
-    PushOneCommit.Result c2 = createChange("add t.c", "t.c", "Hello!");
+    PushOneCommit.Result c2 = createChange("c2", "t.c", "Hello!");
     String ownerA = ownerJson("a@a");
     String ownerX = ownerJson("x@x");
     assertThat(getOwnersResponse(c2)).contains("owners:[ " + ownerX + " ], files:[ t.c ]");
     // Add "d1/t.c" file, which is owned by ./d1 and root owners.
-    PushOneCommit.Result c3 = createChange("add d1/t.c", "d1/t.c", "Hello!");
+    PushOneCommit.Result c3 = createChange("c3", "d1/t.c", "Hello!");
     String ownerX010 = ownerJson("x@x", 0, 1, 0);
     assertThat(getOwnersResponse(c3))
         .contains("owners:[ " + ownerA + ", " + ownerX010 + " ], files:[ d1/t.c ]");
     // Add "d2/t.c" file, which is owned by ./d2 and root owners.
-    PushOneCommit.Result c4 = createChange("add d2/t.c", "d2/t.c", "Hello!");
+    PushOneCommit.Result c4 = createChange("c4", "d2/t.c", "Hello!");
     String ownerY = ownerJson("y@y");
     assertThat(getOwnersResponse(c4))
         .contains("owners:[ " + ownerY + ", " + ownerX010 + " ], files:[ d2/t.c ]");
     // Add "d2/d1/t.c" file, which is owned by ./d2 and root owners.
-    PushOneCommit.Result c5 = createChange("add d2/d1/t.c", "d2/d1/t.c", "Hello!");
-    assertThat(getOwnersResponse(c5))
-        .contains("owners:[ " + ownerY + ", " + ownerX010 + " ], files:[ d2/d1/t.c ]");
+    PushOneCommit.Result c5 = createChange("c5", "d2/d1/t.c", "Hello!");
+    assertThat(getOwnersResponse(c5)).contains(
+        "owners:[ " + ownerY + ", " + ownerX010 + " ], files:[ d2/d1/t.c ]");
     // Add "d3/t.c" file, which is owned only by ./d3 owners due to "set noparent".
-    PushOneCommit.Result c6 = createChange("add d3/t.c", "d3/t.c", "Hello!");
+    PushOneCommit.Result c6 = createChange("c6", "d3/t.c", "Hello!");
     String ownerB = ownerJson("b@b");
     assertThat(getOwnersResponse(c6)).contains("owners:[ " + ownerB + " ], files:[ d3/t.c ]");
     // Add "d3/d1/t.c" file, which is owned only by ./d3 owners due to "set noparent".
-    PushOneCommit.Result c7 = createChange("add d3/d1/t.c", "d3/d1/t.c", "Hello!");
-    assertThat(getOwnersResponse(c7)).contains("owners:[ " + ownerB + " ], files:[ d3/d1/t.c ]");
+    PushOneCommit.Result c7 = createChange("c7", "d3/d1/t.c", "Hello!");
+    assertThat(getOwnersResponse(c7)).contains(
+        "owners:[ " + ownerB + " ], files:[ d3/d1/t.c ]");
+    // Add "d4/t.c" file, which is owned by ./d4 and ./d2 owners, but not root owners.
+    PushOneCommit.Result c8 = createChange("c8", "d4/t.c", "Hello!");
+    String ownerZ = ownerJson("z@z");
+    assertThat(getOwnersResponse(c8)).contains(
+        "owners:[ " + ownerY + ", " + ownerZ + ", " + ownerX010 + " ], files:[ d4/t.c ]");
   }
 
   @Test
   public void requestErrorTest() throws Exception {
-    PushOneCommit.Result c1 = createChange("add t.c", "t.c", "##");
+    PushOneCommit.Result c1 = createChange("1", "t.c", "##");
     assertThat(getOwnersResponse(c1)).contains("owners:[], files:[ t.c ]");
     int id = c1.getChange().getId().get();
     // Correct change id.
@@ -231,8 +505,7 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
   public void projectTest() throws Exception {
     RestResponse response = adminRestSession.get("/projects/?d");
     String content = response.getEntityContent();
-    // Predefined projects: "All-Projects", "All-Users",
-    // "com.googlesource.gerrit.plugins.findowners.FindOwnersIT_projectTest_project"
+    // Predefined projects: "All-Projects", "All-Users", myProjectName("projectTest")
     assertThat(content).contains("\"id\": \"All-Projects\",");
     assertThat(content).contains("\"id\": \"All-Users\",");
     assertThat(content).contains(idProject("projectTest", "project"));
@@ -245,26 +518,19 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
   @Test
   public void ownersFileNameTest() throws Exception {
     Config.setVariables("find-owners", configFactory);
-
     // Default project is something like ....FindOwnersIT..._project
     Project.NameKey pA = createProject("Project_A");
     Project.NameKey pB = createProject("Project_B");
-    switchProject(pA);
-    // Now project is ....FindOwnersIT..._Project_A
-    switchProject(pB);
-    // Now project is ....FindOwnersIT..._Project_B
-
     // Add OWNERS and OWNERS.alpha file to Project_A.
     switchProject(pA);
-    addFile("add OWNERS", "OWNERS", "per-file *.c=x@x\n"); // default owner x@x
-    addFile("add OWNERS.alpha", "OWNERS.alpha", "per-file *.c=a@a\n"); // alpha owner a@a
-    PushOneCommit.Result cA = createChange("add tA.c", "tA.c", "Hello A!");
-
+    addFile("1", "OWNERS", "per-file *.c=x@x\n"); // default owner x@x
+    addFile("2", "OWNERS.alpha", "per-file *.c=a@a\n"); // alpha owner a@a
+    PushOneCommit.Result cA = createChange("cA", "tA.c", "Hello A!");
     // Add OWNERS and OWNERS.beta file to Project_B.
     switchProject(pB);
-    addFile("add OWNERS", "OWNERS", "per-file *.c=y@y\n"); // default owner y@y
-    addFile("add OWNERS.beta", "OWNERS.beta", "per-file *.c=b@b\n"); // beta owner b@b
-    PushOneCommit.Result cB = createChange("add tB.c", "tB.c", "Hello B!");
+    addFile("3", "OWNERS", "per-file *.c=y@y\n"); // default owner y@y
+    addFile("4", "OWNERS.beta", "per-file *.c=b@b\n"); // beta owner b@b
+    PushOneCommit.Result cB = createChange("cB", "tB.c", "Hello B!");
 
     // Default owners file name is "OWNERS".
     assertThat(Config.getDefaultOwnersFileName()).isEqualTo("OWNERS");
@@ -315,12 +581,12 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
   @Test
   public void authorDefaultVoteTest() throws Exception {
     // CL author has default +1 owner vote.
-    addFile("add d1/OWNERS", "d1/OWNERS", user.email + "\n"); // d1 owned by user
-    addFile("add d2/OWNERS", "d2/OWNERS", admin.email + "\n"); // d2 owned by admin
+    addFile("1", "d1/OWNERS", user.email + "\n"); // d1 owned by user
+    addFile("2", "d2/OWNERS", admin.email + "\n"); // d2 owned by admin
     // admin is the author of CLs created by createChange.
-    PushOneCommit.Result r1 = createChange("add d1/t.c", "d1/t.c", "Hello1");
-    PushOneCommit.Result r2 = createChange("add d2/t.c", "d2/t.c", "Hello2");
-    PushOneCommit.Result r3 = createChange("add d3/t.c", "d3/t.c", "Hello3");
+    PushOneCommit.Result r1 = createChange("r1", "d1/t.c", "Hello1");
+    PushOneCommit.Result r2 = createChange("r2", "d2/t.c", "Hello2");
+    PushOneCommit.Result r3 = createChange("r3", "d3/t.c", "Hello3");
     assertThat(checkApproval(r1)).isEqualTo(-1); // owner is not change author
     assertThat(checkApproval(r2)).isEqualTo(1); // owner is change author, default +1
     assertThat(checkApproval(r3)).isEqualTo(0); // no owner is found in d3
@@ -412,8 +678,11 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
     gApi.changes().id(change.getChangeId()).current().submit(new SubmitInput());
   }
 
-  private void addFile(String subject, String file, String content) throws Exception {
-    approveSubmit(createChange(subject, file, content));
+  private PushOneCommit.Result addFile(
+      String subject, String file, String content) throws Exception {
+    PushOneCommit.Result c = createChange(subject, file, content);
+    approveSubmit(c);
+    return c;
   }
 
   private void switchProject(Project.NameKey p) throws Exception {
@@ -454,11 +723,10 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
 
   private int checkApproval(PushOneCommit.Result r) throws Exception {
     Project.NameKey project = r.getChange().project();
-    Repository repo = repoManager.openRepository(project);
     Cache cache = Cache.getInstance().init(0, 0);
-    OwnersDb db =
-        cache.get(true, projectCache.get(project), accountCache, emails, repo, r.getChange(), 1);
-    Checker c = new Checker(repo, r.getChange(), 1);
+    OwnersDb db = cache.get(true, projectCache.get(project), accountCache, emails,
+                            repoManager, r.getChange(), 1);
+    Checker c = new Checker(repoManager, r.getChange(), 1);
     return c.findApproval(accountCache, db);
   }
 
@@ -472,11 +740,17 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
     return filteredJson(response.getEntityContent());
   }
 
-  private static String idProject(String test, String project) {
+  private String myProjectName(String test) {
+    return myProjectName(test, "project");
+  }
+
+  private String myProjectName(String test, String project) {
+    return this.getClass().getName() + "_" + test + "_" + project;
+  }
+
+  private String idProject(String test, String project) {
     // Expected string of "id": "project_name",
-    return String.format(
-        "\"id\": \"com.googlesource.gerrit.plugins.findowners.FindOwnersIT_" + "%s_%s\",",
-        test, project);
+    return "\"id\": \"" + myProjectName(test, project) + "\",";
   }
 
   private static void verifyRestResult(

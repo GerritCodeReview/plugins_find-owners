@@ -31,7 +31,6 @@ import com.google.gerrit.server.config.PluginConfig;
 import com.google.gerrit.server.config.PluginConfigFactory;
 import com.google.gerrit.server.config.ProjectConfigEntry;
 import com.google.gerrit.server.events.CommitReceivedEvent;
-import com.google.gerrit.server.git.GitRepositoryManager;
 import com.google.gerrit.server.git.validators.CommitValidationException;
 import com.google.gerrit.server.git.validators.CommitValidationListener;
 import com.google.gerrit.server.git.validators.CommitValidationMessage;
@@ -55,7 +54,6 @@ import org.eclipse.jgit.diff.RawText;
 import org.eclipse.jgit.lib.FileMode;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectLoader;
-import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.treewalk.TreeWalk;
@@ -88,18 +86,15 @@ public class OwnersValidator implements CommitValidationListener {
 
   private final String pluginName;
   private final PluginConfigFactory cfgFactory;
-  private final GitRepositoryManager repoManager;
   private final Emails emails;
 
   @Inject
   OwnersValidator(
       @PluginName String pluginName,
       PluginConfigFactory cfgFactory,
-      GitRepositoryManager repoManager,
       Emails emails) {
     this.pluginName = pluginName;
     this.cfgFactory = cfgFactory;
-    this.repoManager = repoManager;
     this.emails = emails;
   }
 
@@ -134,10 +129,8 @@ public class OwnersValidator implements CommitValidationListener {
       Project.NameKey project = receiveEvent.project.getNameKey();
       PluginConfig cfg = cfgFactory.getFromProjectConfigWithInheritance(project, pluginName);
       if (isActive(cfg)) {
-        try (Repository repo = repoManager.openRepository(project)) {
-          String name = getOwnersFileName(project);
-          messages = performValidation(receiveEvent.commit, receiveEvent.revWalk, name, false);
-        }
+        String name = getOwnersFileName(project);
+        messages = performValidation(receiveEvent.commit, receiveEvent.revWalk, name, false);
       }
     } catch (NoSuchProjectException | IOException e) {
       throw new CommitValidationException("failed to check owners files", e);
@@ -265,9 +258,15 @@ public class OwnersValidator implements CommitValidationListener {
       for (String e : emails) {
         collectEmail(email2lines, e, path, lineNumber);
       }
+    } else if (Parser.isInclude(line)) {
+      // Included "OWNERS" files will be checked by themselves.
+      // TODO: Check if the include file path is valid and existence of the included file.
+      // TODO: Check an included file syntax if it is not named as the project ownersFileName.
+      add(messages, "unchecked: " + path + ":" + lineNumber + ": " + line, false);
+    } else if (Parser.isFile(line)) {
+      add(messages, "ignored: " + path + ":" + lineNumber + ": " + line, true);
     } else {
-      String prefix = Parser.isFile(line) ? "ignored" : "syntax";
-      add(messages, prefix + ": " + path + ":" + lineNumber + ": " + line, true);
+      add(messages, "syntax: " + path + ":" + lineNumber + ": " + line, true);
     }
   }
 

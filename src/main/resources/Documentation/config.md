@@ -43,14 +43,14 @@ is needed or missing.
   When a user clicks on the Submit button,
   a window will pop up and ask the user to
   (1) add missing *owners* to the reviewers list and/or
-      ask for owner's +1 Code-Review votes, or
+  ask for owner's +1 Code-Review votes, or
   (2) add `Exempt-From-Owner-Approval:` to the commit message.
-  The **`Find Owners`** button is useful in this situation to find
+  The **`[[FIND OWNERS]]`** button is useful in this situation to find
   the missing *owners* or +1 votes of any changed files.
 
 When `label('Owner-Approved', may(_))` is added to the submit rule output,
 Gerrit displays a grey 'Owner-Approved' label. To avoid confusion,
-this 'may(_)' state label could be removed by the `submit_filter` of
+this `may(_)` state label could be removed by the `submit_filter` of
 the root level `All-Projects`. Special automerge processes could
 create changes that do not need either Code-Review vote or owner approval.
 Such special conditions can also be handled in the `submit_filter`

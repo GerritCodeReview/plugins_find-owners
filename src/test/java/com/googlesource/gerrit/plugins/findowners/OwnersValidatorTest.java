@@ -257,7 +257,7 @@ public class OwnersValidatorTest {
   private List<String> validate(RevWalk rw, RevCommit c, boolean verbose, PluginConfig cfg)
       throws Exception {
     MockedEmails myEmails = new MockedEmails();
-    OwnersValidator validator = new OwnersValidator(null, null, null, myEmails);
+    OwnersValidator validator = new OwnersValidator(null, null, myEmails);
     String ownersFileName = OwnersValidator.getOwnersFileName(cfg);
     List<CommitValidationMessage> m = validator.performValidation(c, rw, ownersFileName, verbose);
     return transformMessages(m);
