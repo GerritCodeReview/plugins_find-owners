@@ -51,7 +51,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import org.eclipse.jgit.lib.Repository;
 
 /** Create and return OWNERS info when "Find Owners" button is clicked. */
 class Action implements RestReadView<RevisionResource>, UiAction<RevisionResource> {
@@ -134,11 +133,8 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
   // Used by integration tests, because they do not have ReviewDb Provider.
   public Response<RestResult> apply(ReviewDb reviewDb, ChangeResource rsrc, Parameters params)
       throws IOException, OrmException, BadRequestException {
-    Change c = rsrc.getChange();
-    try (Repository repo = repoManager.openRepository(c.getProject())) {
-      ChangeData changeData = changeDataFactory.create(reviewDb, c);
-      return getChangeData(repo, params, changeData);
-    }
+    ChangeData changeData = changeDataFactory.create(reviewDb, rsrc.getChange());
+    return getChangeData(params, changeData);
   }
 
   /** Returns reviewer emails got from ChangeData. */
@@ -178,14 +174,13 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
   }
 
   /** REST API to return owners info of a change. */
-  public Response<RestResult> getChangeData(
-      Repository repository, Parameters params, ChangeData changeData)
+  public Response<RestResult> getChangeData(Parameters params, ChangeData changeData)
       throws OrmException, BadRequestException, IOException {
     int patchset = getValidPatchsetNum(changeData, params.patchset);
     ProjectState projectState = projectCache.get(changeData.project());
     Boolean useCache = params.nocache == null || !params.nocache;
     OwnersDb db = Cache.getInstance().get(
-        useCache, projectState, accountCache, emails, repository, changeData, patchset);
+        useCache, projectState, accountCache, emails, repoManager, changeData, patchset);
     Collection<String> changedFiles = changeData.currentFilePaths();
     Map<String, Set<String>> file2Owners = db.findOwners(changedFiles);
 
@@ -234,19 +229,17 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
       // If alwaysShowButton is true, skip expensive owner lookup.
       if (needFindOwners && !Config.getAlwaysShowButton()) {
         needFindOwners = false; // Show button only if some owner is found.
-        try (Repository repo = repoManager.openRepository(change.getProject())) {
-          OwnersDb db =
-              Cache.getInstance()
-                  .get(
-                      true, // use cached OwnersDb
-                      projectCache.get(resource.getProject()),
-                      accountCache,
-                      emails,
-                      repo,
-                      changeData);
-          logger.atFiner().log("getDescription db key = %s", db.key);
-          needFindOwners = db.getNumOwners() > 0;
-        }
+        OwnersDb db =
+            Cache.getInstance()
+                .get(
+                    true, // use cached OwnersDb
+                    projectCache.get(resource.getProject()),
+                    accountCache,
+                    emails,
+                    repoManager,
+                    changeData);
+        logger.atFiner().log("getDescription db key = %s", db.key);
+        needFindOwners = db.getNumOwners() > 0;
       }
       return new Description()
           .setLabel("Find Owners")

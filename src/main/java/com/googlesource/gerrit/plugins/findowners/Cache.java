@@ -20,6 +20,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.flogger.FluentLogger;
 import com.google.gerrit.server.account.AccountCache;
 import com.google.gerrit.server.account.Emails;
+import com.google.gerrit.server.git.GitRepositoryManager;
 import com.google.gerrit.server.project.ProjectState;
 import com.google.gerrit.server.query.change.ChangeData;
 import com.google.gwtorm.server.OrmException;
@@ -27,7 +28,6 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-import org.eclipse.jgit.lib.Repository;
 
 /** Save OwnersDb in a cache for multiple calls to submit_filter. */
 class Cache {
@@ -92,7 +92,7 @@ class Cache {
       ProjectState projectState,
       AccountCache accountCache,
       Emails emails,
-      Repository repo,
+      GitRepositoryManager repoManager,
       ChangeData changeData)
       throws OrmException, IOException {
     return get(
@@ -100,7 +100,7 @@ class Cache {
         projectState,
         accountCache,
         emails,
-        repo,
+        repoManager,
         changeData,
         changeData.currentPatchSet().getId().get());
   }
@@ -111,7 +111,7 @@ class Cache {
       ProjectState projectState,
       AccountCache accountCache,
       Emails emails,
-      Repository repository,
+      GitRepositoryManager repoManager,
       ChangeData changeData,
       int patchset)
       throws OrmException, IOException {
@@ -124,7 +124,7 @@ class Cache {
         accountCache,
         emails,
         dbKey,
-        repository,
+        repoManager,
         changeData,
         branch,
         changeData.currentFilePaths());
@@ -137,14 +137,14 @@ class Cache {
       AccountCache accountCache,
       Emails emails,
       String key,
-      Repository repository,
+      GitRepositoryManager repoManager,
       ChangeData changeData,
       String branch,
       Collection<String> files) {
     if (dbCache == null || !useCache) { // Do not cache OwnersDb
       logger.atFiner().log("Create new OwnersDb, key=%s", key);
       return new OwnersDb(
-          projectState, accountCache, emails, key, repository, changeData, branch, files);
+          projectState, accountCache, emails, key, repoManager, changeData, branch, files);
     }
     try {
       logger.atFiner().log(
@@ -156,14 +156,14 @@ class Cache {
             public OwnersDb call() {
               logger.atFiner().log("Create new OwnersDb, key=%s", key);
               return new OwnersDb(
-                  projectState, accountCache, emails, key, repository, changeData, branch, files);
+                  projectState, accountCache, emails, key, repoManager, changeData, branch, files);
             }
           });
     } catch (ExecutionException e) {
       logger.atSevere().withCause(e).log(
           "Cache.get has exception for %s", Config.getChangeId(changeData));
       return new OwnersDb(
-          projectState, accountCache, emails, key, repository, changeData, branch, files);
+          projectState, accountCache, emails, key, repoManager, changeData, branch, files);
     }
   }
 

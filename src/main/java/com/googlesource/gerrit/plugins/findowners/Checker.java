@@ -19,6 +19,7 @@ import com.google.gerrit.reviewdb.client.Change.Status;
 import com.google.gerrit.reviewdb.client.PatchSetApproval;
 import com.google.gerrit.server.account.AccountCache;
 import com.google.gerrit.server.account.Emails;
+import com.google.gerrit.server.git.GitRepositoryManager;
 import com.google.gerrit.server.project.ProjectState;
 import com.google.gerrit.server.query.change.ChangeData;
 import com.google.gerrit.server.rules.StoredValues;
@@ -29,7 +30,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import org.eclipse.jgit.lib.Repository;
 
 /** Check if a change needs owner approval. */
 public class Checker {
@@ -39,12 +39,12 @@ public class Checker {
   private static final String EXEMPT_MESSAGE1 = "Exempt-From-Owner-Approval:";
   private static final String EXEMPT_MESSAGE2 = "Exempted-From-Owner-Approval:";
 
-  private Repository repository;
-  private ChangeData changeData;
+  private final GitRepositoryManager repoManager;
+  private final ChangeData changeData;
   private int minVoteLevel;
 
-  Checker(Repository repository, ChangeData changeData, int v) {
-    this.repository = repository;
+  Checker(GitRepositoryManager repoManager, ChangeData changeData, int v) {
+    this.repoManager = repoManager;
     this.changeData = changeData;
     minVoteLevel = v;
   }
@@ -115,10 +115,10 @@ public class Checker {
     try {
       changeData = StoredValues.CHANGE_DATA.get(engine);
       ProjectState projectState = StoredValues.PROJECT_STATE.get(engine);
+      GitRepositoryManager repoManager = StoredValues.REPO_MANAGER.get(engine);
       AccountCache accountCache = StoredValues.ACCOUNT_CACHE.get(engine);
       Emails emails = StoredValues.EMAILS.get(engine);
-      Repository repository = StoredValues.REPOSITORY.get(engine);
-      return new Checker(repository, changeData, minVoteLevel)
+      return new Checker(repoManager, changeData, minVoteLevel)
           .findApproval(projectState, accountCache, emails);
     } catch (OrmException | IOException e) {
       logger.atSevere().withCause(e).log("Exception for %s ", Config.getChangeId(changeData));
@@ -151,7 +151,7 @@ public class Checker {
     // One update to a Gerrit change can call submit_rule or submit_filter
     // many times. So this function should use cached values.
     OwnersDb db =
-        Cache.getInstance().get(true, projectState, accountCache, emails, repository, changeData);
+        Cache.getInstance().get(true, projectState, accountCache, emails, repoManager, changeData);
     if (db.getNumOwners() <= 0) {
       return 0;
     }

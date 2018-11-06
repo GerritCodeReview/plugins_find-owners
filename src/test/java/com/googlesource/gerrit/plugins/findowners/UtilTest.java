@@ -16,6 +16,7 @@ package com.googlesource.gerrit.plugins.findowners;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -122,20 +123,42 @@ public class UtilTest {
   }
 
   @Test
-  public void normalizeFilePathTest() {
+  public void addDotPrefixTest() {
     String[] files = {"", "./d1/", "d1/d2/f1.c", "d2/f2/", "d1"};
     String[] results = {"./", "./d1/", "./d1/d2/f1.c", "./d2/f2/", "./d1"};
     for (int i = 0; i < files.length; i++) {
-      assertThat(Util.normalizedFilePath(files[i])).isEqualTo(results[i]);
+      assertThat(Util.addDotPrefix(files[i])).isEqualTo(results[i]);
     }
   }
 
   @Test
-  public void normalizedDirPathTest() {
+  public void getParentDirTest() {
     String[] files = {"", "./d1/", "d1/d2/f1.c", "./d2/f2.c", "./d1"};
     String[] dirs = {null, ".", "./d1/d2", "./d2", "."};
     for (int i = 0; i < files.length; i++) {
-      assertThat(Util.normalizedDirPath(files[i])).isEqualTo(dirs[i]);
+      assertThat(Util.getParentDir(files[i])).isEqualTo(dirs[i]);
+    }
+  }
+
+  @Test
+  public void gitRepoFilePathTest() {
+    String[] inFiles = {null, "", "//", "./d1/", "d1/d2", "///d1/f//", "/././/f2", "/./f3"};
+    String[] outFiles = {"", "", "", "d1", "d1/d2", "d1/f", "f2", "f3"};
+    for (int i = 0; i < inFiles.length; i++) {
+      assertThat(Util.gitRepoFilePath(inFiles[i])).isEqualTo(outFiles[i]);
+    }
+  }
+
+  @Test
+  public void normalizedDirFilePathTest() throws IOException {
+    String[] dirs = {"", "", ".", "./d1/..", "/d1/d2/../..",
+      "d1", "d2/../d1", "/d1", "/d1", "/d1"};
+    String[] files = {"f0.c", "./f1.c", "./f2", "/f3", "f4",
+      "f5", "f6", "f7", "f8", "../d5/../d1/f9"};
+    String[] paths = {"./f0.c", "./f1.c", "./f2", "./f3", "./f4",
+      "./d1/f5", "./d1/f6", "./d1/f7", "./d1/f8", "./d1/f9"};
+    for (int i = 0; i < files.length; i++) {
+      assertThat(Util.normalizedDirFilePath(dirs[i], files[i])).isEqualTo(paths[i]);
     }
   }
 

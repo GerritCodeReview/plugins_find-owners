@@ -10,10 +10,10 @@ with some exceptions.
 Projects with **OWNERS** file should be configured with
 Prolog `submit_rule` or `submit_filter`, see [config.md](config.md).
 
-A **`Find Owners`** button is added to the Gerrit revision screen
-if a change needs owner approval.  The button pops up a window that contains
-* current reviewers and owners of changed files for users to select, and
-* optionally changed files without required *owner* code review vote.
+A **[FIND OWNERS]** action button is added to the Gerrit revision screen.
+The button pops up a window that contains
+* owners of changed files for users to select to add to the reviewers list, and
+* changed files without required *owner* code review vote.
 
 A REST API is added to get owners information of a change.
 The API is described in [rest-api.md](rest-api.md).

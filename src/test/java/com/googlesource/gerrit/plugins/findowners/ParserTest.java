@@ -34,9 +34,15 @@ public class ParserTest {
     return "./d1/d2/";
   }
 
+  private static String mockedProject() {
+    return "myTestProject";
+  }
+
   private static Parser.Result testLine(String line) {
     Parser.Result result = new Parser.Result();
-    Parser.parseLine(result, mockedTestDir(), "OWNERS", line, 3);
+    // Single line parser tests do not need repoManager.
+    Parser parser = new Parser(null, mockedProject(), "master", "OWNERS");
+    parser.parseLine(result, mockedTestDir(), line, 3);
     return result;
   }
 
@@ -158,6 +164,24 @@ public class ParserTest {
       assertThat(result.errors).hasSize(1);
       assertThat(result.errors.get(0)).isEqualTo(expected);
     }
+  }
+
+  private void testOneIncludeLine(
+      String project, String line, String parsedProject, String parsedFile) {
+    String[] results = Parser.parseInclude(project, line);
+    assertThat(results).hasLength(2);
+    assertThat(results[0]).isEqualTo(parsedProject);
+    assertThat(results[1]).isEqualTo(parsedFile);
+  }
+
+  @Test
+  public void includeLineTest() {
+    testOneIncludeLine("P0", "  include /common/OWNERS #comment", "P0", "/common/OWNERS");
+    testOneIncludeLine("P1", "include Other :  /Group ", "Other", "/Group");
+    testOneIncludeLine("P2", "include  /Common/Project: OWNER", "/Common/Project", "OWNER");
+    testOneIncludeLine("P3", "  include \tP2/D2:/D3/F.txt", "P2/D2", "/D3/F.txt");
+    testOneIncludeLine("P4", "\t include \t P2/D2:\t/D3/F2.txt\n", "P2/D2", "/D3/F2.txt");
+    testOneIncludeLine("P5", "include  ../d1/d2/F   \n", "P5", "../d1/d2/F");
   }
 
   @Test
