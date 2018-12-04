@@ -24,6 +24,7 @@ import com.google.gerrit.acceptance.LightweightPluginDaemonTest;
 import com.google.gerrit.acceptance.PushOneCommit;
 import com.google.gerrit.acceptance.RestResponse;
 import com.google.gerrit.acceptance.TestPlugin;
+import com.google.gerrit.acceptance.testsuite.project.ProjectOperations;
 import com.google.gerrit.extensions.api.accounts.EmailInput;
 import com.google.gerrit.extensions.api.changes.SubmitInput;
 import com.google.gerrit.extensions.client.ChangeStatus;
@@ -45,6 +46,8 @@ import org.eclipse.jgit.revwalk.RevObject;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.transport.RefSpec;
+import org.eclipse.jgit.treewalk.TreeWalk;
+import org.eclipse.jgit.treewalk.filter.PathFilterGroup;
 import org.junit.Test;
 
 /** Test find-owners plugin API. */
@@ -53,6 +56,7 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
 
   @Inject private Emails emails;
   @Inject private PluginConfigFactory configFactory;
+  @Inject private ProjectOperations projectOperations;
 
   @Test
   public void getOwnersTest() throws Exception {
@@ -362,14 +366,10 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
   public void includeProjectOwnerTest() throws Exception {
     // Test include directive with other project name.
     String testName = "includeProjectOwnerTest";
-    String projectA = "A1/A2/A3";
-    String projectB = "B1/B2/B3";
-    Project.NameKey pA = createProject(projectA);
-    Project.NameKey pB = createProject(projectB);
+    Project.NameKey pA = projectOperations.newProject().create();
+    Project.NameKey pB = projectOperations.newProject().create();
     String nameA = pA.get();
     String nameB = pB.get();
-    assertThat(nameA).isEqualTo(myProjectName(testName, projectA));
-    assertThat(nameB).isEqualTo(myProjectName(testName, projectB));
     switchProject(pA);
     addFile("1", "f1", "pAf1@g\ninclude ./d1/f1\n");
     addFile("2", "d1/f1", "pAd1f1@g\ninclude " + nameB + ":" + "/d2/f2\n");
@@ -510,7 +510,7 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
     assertThat(content).contains("\"id\": \"All-Users\",");
     assertThat(content).contains(idProject("projectTest", "project"));
     assertThat(content).doesNotContain(idProject("projectTest", "ProjectA"));
-    createProject("ProjectA");
+    projectOperations.newProject().name(name("ProjectA")).create();
     response = adminRestSession.get("/projects/?d");
     assertThat(response.getEntityContent()).contains(idProject("projectTest", "ProjectA"));
   }
@@ -519,8 +519,8 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
   public void ownersFileNameTest() throws Exception {
     Config.setVariables("find-owners", configFactory);
     // Default project is something like ....FindOwnersIT..._project
-    Project.NameKey pA = createProject("Project_A");
-    Project.NameKey pB = createProject("Project_B");
+    Project.NameKey pA = projectOperations.newProject().name(name("Project_A")).create();
+    Project.NameKey pB = projectOperations.newProject().name(name("Project_B")).create();
     // Add OWNERS and OWNERS.alpha file to Project_A.
     switchProject(pA);
     addFile("1", "OWNERS", "per-file *.c=x@x\n"); // default owner x@x
@@ -695,6 +695,16 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
     testRepo.reset(RefNames.REFS_CONFIG);
     RevWalk rw = testRepo.getRevWalk();
     RevTree tree = rw.parseTree(testRepo.getRepository().resolve("HEAD"));
+
+    try (TreeWalk treeWalk = new TreeWalk(rw.getObjectReader())) {
+      treeWalk.setFilter(PathFilterGroup.createFromStrings("project.config"));
+      treeWalk.reset(tree);
+      boolean hasProjectConfig = treeWalk.next();
+      if (!hasProjectConfig) {
+        return new org.eclipse.jgit.lib.Config();
+      }
+    }
+
     RevObject obj = rw.parseAny(testRepo.get(tree, "project.config"));
     ObjectLoader loader = rw.getObjectReader().open(obj);
     String text = new String(loader.getCachedBytes(), UTF_8);
