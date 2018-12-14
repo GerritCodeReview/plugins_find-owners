@@ -720,7 +720,6 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
     PushOneCommit.Result commit =
         pushFactory
             .create(
-                db,
                 admin.getIdent(), // normal user cannot change refs/meta/config
                 testRepo,
                 "Update project config",

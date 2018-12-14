@@ -71,7 +71,6 @@ public class PrologIT extends LightweightPluginDaemonTest {
     testRepo.reset("config");
     PushOneCommit push =
         pushFactory.create(
-            db,
             admin.getIdent(),
             testRepo,
             "Configure",
@@ -90,7 +89,7 @@ public class PrologIT extends LightweightPluginDaemonTest {
     testRepo.reset(oldHead);
     oldHead = getRemoteHead();
     PushOneCommit.Result result =
-        pushFactory.create(db, user.getIdent(), testRepo).to("refs/for/master");
+        pushFactory.create(user.getIdent(), testRepo).to("refs/for/master");
     testRepo.reset(oldHead);
     gApi.changes().id(result.getChangeId()).current().submit();
   }
