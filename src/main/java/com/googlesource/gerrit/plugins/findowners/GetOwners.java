@@ -19,7 +19,6 @@ import com.google.gerrit.extensions.annotations.PluginName;
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.Response;
 import com.google.gerrit.extensions.restapi.RestReadView;
-import com.google.gerrit.reviewdb.server.ReviewDb;
 import com.google.gerrit.server.CurrentUser;
 import com.google.gerrit.server.account.AccountCache;
 import com.google.gerrit.server.account.Emails;
@@ -29,7 +28,6 @@ import com.google.gerrit.server.git.GitRepositoryManager;
 import com.google.gerrit.server.project.ProjectCache;
 import com.google.gerrit.server.query.change.ChangeData;
 import com.google.gwtorm.server.OrmException;
-import com.google.gwtorm.server.SchemaFactory;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import java.io.IOException;
@@ -58,7 +56,6 @@ public class GetOwners implements RestReadView<ChangeResource> {
       @PluginName String pluginName,
       PluginConfigFactory configFactory,
       Provider<CurrentUser> userProvider,
-      SchemaFactory<ReviewDb> reviewDbProvider,
       ChangeData.Factory dataFactory,
       AccountCache accountCache,
       Emails emails,
@@ -69,7 +66,6 @@ public class GetOwners implements RestReadView<ChangeResource> {
             pluginName,
             configFactory,
             userProvider,
-            reviewDbProvider,
             dataFactory,
             accountCache,
             emails,

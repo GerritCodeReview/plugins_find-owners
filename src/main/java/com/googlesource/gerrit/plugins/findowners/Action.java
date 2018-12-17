@@ -26,7 +26,6 @@ import com.google.gerrit.extensions.restapi.RestReadView;
 import com.google.gerrit.extensions.webui.UiAction;
 import com.google.gerrit.reviewdb.client.Change;
 import com.google.gerrit.reviewdb.client.Change.Status;
-import com.google.gerrit.reviewdb.server.ReviewDb;
 import com.google.gerrit.server.CurrentUser;
 import com.google.gerrit.server.IdentifiedUser;
 import com.google.gerrit.server.account.AccountCache;
@@ -39,7 +38,6 @@ import com.google.gerrit.server.project.ProjectCache;
 import com.google.gerrit.server.project.ProjectState;
 import com.google.gerrit.server.query.change.ChangeData;
 import com.google.gwtorm.server.OrmException;
-import com.google.gwtorm.server.SchemaFactory;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import java.io.IOException;
@@ -61,7 +59,6 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
   private ChangeData.Factory changeDataFactory;
   private GitRepositoryManager repoManager;
   private Provider<CurrentUser> userProvider;
-  private SchemaFactory<ReviewDb> reviewDbProvider;
   private ProjectCache projectCache;
 
   static class Parameters {
@@ -75,14 +72,12 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
       @PluginName String pluginName,
       PluginConfigFactory configFactory,
       Provider<CurrentUser> userProvider,
-      SchemaFactory<ReviewDb> reviewDbProvider,
       ChangeData.Factory changeDataFactory,
       AccountCache accountCache,
       Emails emails,
       GitRepositoryManager repoManager,
       ProjectCache projectCache) {
     this.userProvider = userProvider;
-    this.reviewDbProvider = reviewDbProvider;
     this.changeDataFactory = changeDataFactory;
     this.accountCache = accountCache;
     this.emails = emails;
@@ -122,18 +117,10 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
     return apply(rev.getChangeResource(), new Parameters());
   }
 
-  // Used by both Action.apply and GetOwners.apply.
+  // Used by integration tests, because they do not have ReviewDb Provider.
   public Response<RestResult> apply(ChangeResource rsrc, Parameters params)
       throws IOException, OrmException, BadRequestException {
-    try (ReviewDb reviewDb = reviewDbProvider.open()) {
-      return apply(reviewDb, rsrc, params);
-    }
-  }
-
-  // Used by integration tests, because they do not have ReviewDb Provider.
-  public Response<RestResult> apply(ReviewDb reviewDb, ChangeResource rsrc, Parameters params)
-      throws IOException, OrmException, BadRequestException {
-    ChangeData changeData = changeDataFactory.create(reviewDb, rsrc.getChange());
+    ChangeData changeData = changeDataFactory.create(rsrc.getChange());
     return getChangeData(params, changeData);
   }
 
@@ -211,8 +198,8 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
   public Description getDescription(RevisionResource resource) {
     Change change = resource.getChangeResource().getChange();
     ChangeData changeData = null;
-    try (ReviewDb reviewDb = reviewDbProvider.open()) {
-      changeData = changeDataFactory.create(reviewDb, change);
+    try {
+      changeData = changeDataFactory.create(change);
       if (changeData.change().getDest().get() == null) {
         if (!Checker.isExemptFromOwnerApproval(changeData)) {
           logger.atSevere().log("Cannot get branch of change: %d", changeData.getId().get());
