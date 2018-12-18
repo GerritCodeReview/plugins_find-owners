@@ -605,17 +605,16 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
             "find-owners",
             null,
             null,
-            null,
             changeDataFactory,
             accountCache,
             emails,
             repoManager,
             projectCache);
-    Response<RestResult> response = action.apply(db, cr, param);
+    Response<RestResult> response = action.apply(cr, param);
     RestResult result = response.value();
     verifyRestResult(result, 1, 1, changeInfo._number, false);
     param.debug = true;
-    response = action.apply(db, cr, param);
+    response = action.apply(cr, param);
     result = response.value();
     verifyRestResult(result, 1, 1, changeInfo._number, true);
     assertThat(result.dbgmsgs.user).isEqualTo("?");
