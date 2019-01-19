@@ -175,3 +175,7 @@ e.g., to "OWNERS.android".
 [plugin "find-owners"]
     ownersFileName = OWNERS.android
 ```
+
+If ownersFileName is defined the project should have such a specified file
+at the root directory.
+Otherwise it would be considered a configuration or Gerrit server error.

@@ -27,11 +27,13 @@ import com.google.gerrit.acceptance.TestPlugin;
 import com.google.gerrit.acceptance.testsuite.project.ProjectOperations;
 import com.google.gerrit.extensions.api.accounts.EmailInput;
 import com.google.gerrit.extensions.api.changes.SubmitInput;
+import com.google.gerrit.extensions.api.projects.BranchApi;
 import com.google.gerrit.extensions.client.ChangeStatus;
 import com.google.gerrit.extensions.common.ChangeInfo;
 import com.google.gerrit.extensions.common.ChangeInput;
 import com.google.gerrit.extensions.restapi.Response;
 import com.google.gerrit.reviewdb.client.Account;
+import com.google.gerrit.reviewdb.client.Branch;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.reviewdb.client.RefNames;
 import com.google.gerrit.server.account.AccountState;
@@ -365,7 +367,6 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
   @Test
   public void includeProjectOwnerTest() throws Exception {
     // Test include directive with other project name.
-    String testName = "includeProjectOwnerTest";
     Project.NameKey pA = projectOperations.newProject().create();
     Project.NameKey pB = projectOperations.newProject().create();
     String nameA = pA.get();
@@ -523,14 +524,18 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
     Project.NameKey pB = projectOperations.newProject().name(name("Project_B")).create();
     // Add OWNERS and OWNERS.alpha file to Project_A.
     switchProject(pA);
+    createBranch("BranchX");
     addFile("1", "OWNERS", "per-file *.c=x@x\n"); // default owner x@x
     addFile("2", "OWNERS.alpha", "per-file *.c=a@a\n"); // alpha owner a@a
     PushOneCommit.Result cA = createChange("cA", "tA.c", "Hello A!");
+    PushOneCommit.Result cX = createChangeInBranch("BranchX", "cX", "tX.c", "Hello X!");
     // Add OWNERS and OWNERS.beta file to Project_B.
     switchProject(pB);
+    createBranch("BranchY");
     addFile("3", "OWNERS", "per-file *.c=y@y\n"); // default owner y@y
     addFile("4", "OWNERS.beta", "per-file *.c=b@b\n"); // beta owner b@b
     PushOneCommit.Result cB = createChange("cB", "tB.c", "Hello B!");
+    PushOneCommit.Result cY = createChangeInBranch("BranchY", "cY", "tY.c", "Hello Y!");
 
     // Default owners file name is "OWNERS".
     assertThat(Config.getDefaultOwnersFileName()).isEqualTo("OWNERS");
@@ -539,8 +544,33 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
 
     String ownerX = oneOwnerList("x@x");
     String ownerY = oneOwnerList("y@y");
-    assertThat(getOwnersResponse(cA)).contains(ownerX + ", files:[ tA.c ]");
-    assertThat(getOwnersResponse(cB)).contains(ownerY + ", files:[ tB.c ]");
+    String cAResponse = getOwnersDebugResponse(cA);
+    String cXResponse = getOwnersDebugResponse(cX);
+    String cBResponse = getOwnersDebugResponse(cB);
+    String cYResponse = getOwnersDebugResponse(cY);
+    assertThat(cAResponse).contains(ownerX + ", files:[ tA.c ]");
+    assertThat(cBResponse).contains(ownerY + ", files:[ tB.c ]");
+    assertThat(cXResponse).contains(", files:[ tX.c ]");
+    assertThat(cYResponse).contains(", files:[ tY.c ]");
+    assertThat(cXResponse).doesNotContain(ownerX);
+    assertThat(cYResponse).doesNotContain(ownerY);
+    assertThat(cAResponse).contains("branch:refs/heads/master");
+    assertThat(cBResponse).contains("branch:refs/heads/master");
+    assertThat(cXResponse).contains("branch:refs/heads/BranchX");
+    assertThat(cYResponse).contains("branch:refs/heads/BranchY");
+    assertThat(cAResponse).contains("ownersFileName:OWNERS, ");
+    assertThat(cBResponse).contains("ownersFileName:OWNERS, ");
+    assertThat(cXResponse).contains("ownersFileName:OWNERS, ");
+    assertThat(cYResponse).contains("ownersFileName:OWNERS, ");
+
+    // pA and pB use default OWNERS file name.
+    // cA and cB logs should not contain anything about Missing/Found root.
+    assertThat(cAResponse).doesNotContain("root");
+    assertThat(cBResponse).doesNotContain("root");
+    // cX and cY are not for the master branch.
+    // They should not contain anything about Missing/Found root.
+    assertThat(cXResponse).doesNotContain("root");
+    assertThat(cYResponse).doesNotContain("root");
 
     // Change owners file name to "OWNERS.alpha" and "OWNERS.beta"
     switchProject(pA);
@@ -552,22 +582,61 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
     assertThat(Config.getOwnersFileName(projectCache.get(pB), null)).isEqualTo("OWNERS.beta");
     String ownerA = oneOwnerList("a@a");
     String ownerB = oneOwnerList("b@b");
-    assertThat(getOwnersResponse(cA)).contains(ownerA + ", files:[ tA.c ]");
-    assertThat(getOwnersResponse(cB)).contains(ownerB + ", files:[ tB.c ]");
+    cAResponse = getOwnersDebugResponse(cA);
+    cBResponse = getOwnersDebugResponse(cB);
+    cXResponse = getOwnersDebugResponse(cX);
+    cYResponse = getOwnersDebugResponse(cY);
+    assertThat(cAResponse).contains("ownersFileName:OWNERS.alpha, ");
+    assertThat(cBResponse).contains("ownersFileName:OWNERS.beta, ");
+    assertThat(cXResponse).contains("ownersFileName:OWNERS.alpha, ");
+    assertThat(cYResponse).contains("ownersFileName:OWNERS.beta, ");
+    assertThat(cAResponse).contains(ownerA + ", files:[ tA.c ]");
+    assertThat(cBResponse).contains(ownerB + ", files:[ tB.c ]");
+    // pA and pB now use non-default OWNERS file name.
+    // cA and cB logs should contain "Found root ..."
+    assertThat(cAResponse).contains("FoundrootOWNERS.alphafor");
+    assertThat(cBResponse).contains("FoundrootOWNERS.betafor");
+    assertThat(cXResponse).doesNotContain("root");
+    assertThat(cYResponse).doesNotContain("root");
+
+    // Now change owners file name to "MAINTAINERS"
+    // logs should contain "Missing root ..."
+    switchProject(pA);
+    setProjectConfig("ownersFileName", "MAINTAINERS");
+    cAResponse = getOwnersDebugResponse(cA);
+    cXResponse = getOwnersDebugResponse(cX);
+    assertThat(cAResponse).contains("ownersFileName:MAINTAINERS, ");
+    assertThat(cXResponse).contains("ownersFileName:MAINTAINERS, ");
+    assertThat(cAResponse).contains("owners:[], ");
+    assertThat(cXResponse).contains("owners:[], ");
+    assertThat(cAResponse).contains("MissingrootMAINTAINERSfor");
+    // Gerrit server log file should contain: "Missing root MAINTAINERS for change "
+    // cX is not on the master branch, so we do not check for the root owners file.
+    assertThat(cXResponse).doesNotContain("root");
 
     // Change back to OWNERS in Project_A
     switchProject(pA);
     setProjectConfig("ownersFileName", "OWNERS");
     assertThat(Config.getOwnersFileName(projectCache.get(pA), null)).isEqualTo("OWNERS");
-    assertThat(getOwnersResponse(cA)).contains(ownerX + ", files:[ tA.c ]");
-    assertThat(getOwnersResponse(cB)).contains(ownerB + ", files:[ tB.c ]");
+    cAResponse = getOwnersDebugResponse(cA);
+    cBResponse = getOwnersDebugResponse(cB);
+    assertThat(cAResponse).contains(ownerX + ", files:[ tA.c ]");
+    assertThat(cBResponse).contains(ownerB + ", files:[ tB.c ]");
 
     // Change back to OWNERS.alpha in Project_B, but there is no OWNERS.alpha
     switchProject(pB);
     setProjectConfig("ownersFileName", "OWNERS.alpha");
     assertThat(Config.getOwnersFileName(projectCache.get(pB), null)).isEqualTo("OWNERS.alpha");
-    assertThat(getOwnersResponse(cA)).contains(ownerX + ", files:[ tA.c ]");
-    assertThat(getOwnersResponse(cB)).contains("owners:[], files:[ tB.c ]");
+    cAResponse = getOwnersDebugResponse(cA);
+    cBResponse = getOwnersDebugResponse(cB);
+    cYResponse = getOwnersDebugResponse(cY);
+    assertThat(cAResponse).contains("ownersFileName:OWNERS, ");
+    assertThat(cBResponse).contains("ownersFileName:OWNERS.alpha, ");
+    assertThat(cAResponse).contains(ownerX + ", files:[ tA.c ]");
+    assertThat(cBResponse).contains("owners:[], files:[ tB.c ]");
+    assertThat(cBResponse).contains("MissingrootOWNERS.alphafor");
+    // Gerrit server log file should contain: "Missing root OWNERS.alpha for change "
+    assertThat(cYResponse).doesNotContain("root");
 
     // Do not accept empty string or all-white-spaces for ownersFileName.
     setProjectConfig("ownersFileName", "   ");
@@ -773,5 +842,15 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
     } else {
       assertThat(result.dbgmsgs).isNull();
     }
+  }
+
+  private BranchApi createBranch(String branch) throws Exception {
+    return createBranch(new Branch.NameKey(project, branch));
+  }
+
+  private PushOneCommit.Result createChangeInBranch(
+      String branch, String subject, String fileName, String content) throws Exception {
+    PushOneCommit push = pushFactory.create(admin.getIdent(), testRepo, subject, fileName, content);
+    return push.to("refs/for/" + branch);
   }
 }

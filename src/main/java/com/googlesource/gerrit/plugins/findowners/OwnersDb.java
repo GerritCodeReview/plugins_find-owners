@@ -98,6 +98,20 @@ class OwnersDb {
       ObjectId id = getBranchId(repo, branch, changeData, logs);
       revision = "";
       if (id != null) {
+        if (!ownersFileName.equals(Config.OWNERS) && branch.equals("refs/heads/master")) {
+          // If ownersFileName is not the default "OWNERS", and current branch is master,
+          // this project should have a non-empty root file of that name.
+          // We added this requirement to detect errors in project config files
+          // and Gerrit server bugs that return wrong value of "ownersFileName".
+          String content = getFile(repo, id, "/" + ownersFileName, logs);
+          String found = "Found";
+          String changeId = Config.getChangeId(changeData);
+          if (content.isEmpty()) {
+            found = "Missing";
+            logger.atSevere().log("Missing root %s for %s", ownersFileName, changeId);
+          }
+          logs.add(found + " root " + ownersFileName + " for " + changeId);
+        }
         for (String fileName : files) {
           // Find OWNERS in fileName's directory and parent directories.
           // Stop looking for a parent directory if OWNERS has "set noparent".
