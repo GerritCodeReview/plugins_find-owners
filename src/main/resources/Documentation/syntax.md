@@ -38,14 +38,18 @@ SPACE      := any white space character
   (given) project root directory.
 
 * `per-file globs = directives` applies each `directive` only to files
-  matching any of the `globs`.
+  matching any of the `globs`. Number of globs does not need to be equal
+  to the number of directives.
 
 * A 'glob' does not contain directory path.
 
 * The email addresses should belong to registered Gerrit users.
+  A group mailing address can be used as long as it is associated to
+  a Gerrit user account.
 
 * The `*` directive means that no owner is specified for the directory
-  or file. Any user can approve that directory or file.
+  or file. Any user can approve that directory or files. All other specified
+  owner email addresses for the same directory or files are ignored.
 
 ### Examples
 
@@ -54,10 +58,14 @@ SPACE      := any white space character
 set noparent  # do not inherit owners defined in parent directories
 include P1/P2:/core/OWNERS  # include file core/OWNERS of project P1/P2
 include ../base/OWNERS  # include with relative path to the current directory
-per-file *.c,*.cpp = c@g.com,cpp@g.com  # special owners of .c and .cpp files
-per-file *.c = x@g.com  # .c file owners are c@g.com and x@g.com
-abc@g.com  # default owner, not for *.c and *.cpp files
-xyz@g.com  # another default owner, not for *.c and *.cpp files
-per-file README:*  # no specific owner for the README file
+per-file *.c,*.cpp = x@g.com,y@g.com,z@g.com
+         # x@, y@ and z@ are owners of all .c or .cpp files
+per-file *.c = c@g.com
+         # c@, x@, y@ and z@ are owners of all .c files
+abc@g.com  # one default owner
+xyz@g.com  # another default owner
+           # abc@ and xyz@ are owners for all files in this directory,
+           # except *.c, *.cpp, *.xml, and README files
+per-file *.xml,README:*  # no owner for *.xml and README files
 
 ```
