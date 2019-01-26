@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "6fb0601c_5b48d1b5",
+        "filename": "src/main/resources/Documentation/syntax.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2019-01-26T00:18:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa0bc2f8_18443cf3",
+      "range": {
+        "startLine": 47,
+        "startChar": 10,
+        "endLine": 47,
+        "endChar": 18
+      },
+      "revId": "e9fcdea41bd8164193443173e0dc9c06de77bd5d",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "95a322d9_db449843",
         "filename": "src/main/resources/Documentation/syntax.md",
         "patchSetId": 1
@@ -39,6 +63,24 @@
       "revId": "e9fcdea41bd8164193443173e0dc9c06de77bd5d",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dace6d13_60fed6d0",
+        "filename": "src/main/resources/Documentation/syntax.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2019-01-26T00:18:16Z",
+      "side": 1,
+      "message": "No, the \u0027*\u0027 overrides any owners.\nMaybe we can change the UI to show all owners in the next round update to the front-end.",
+      "parentUuid": "95a322d9_db449843",
+      "revId": "e9fcdea41bd8164193443173e0dc9c06de77bd5d",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
     }
   ]
 }
