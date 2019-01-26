@@ -81,6 +81,24 @@
       "revId": "e9fcdea41bd8164193443173e0dc9c06de77bd5d",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "28864738_3001adfd",
+        "filename": "src/main/resources/Documentation/syntax.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1034308
+      },
+      "writtenOn": "2019-01-26T02:11:24Z",
+      "side": 1,
+      "message": "Right, I want to keep the display of individuals, but use the \u0027*\u0027 to bypass any ACLs. This fixes at least one use-case we know of, and doesn\u0027t seem that problematic otherwise.",
+      "parentUuid": "dace6d13_60fed6d0",
+      "revId": "e9fcdea41bd8164193443173e0dc9c06de77bd5d",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
     }
   ]
 }
