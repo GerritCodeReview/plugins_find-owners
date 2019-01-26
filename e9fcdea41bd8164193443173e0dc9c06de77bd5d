@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa0bc2f8_18443cf3",
+        "filename": "src/main/resources/Documentation/syntax.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1034308
+      },
+      "writtenOn": "2019-01-26T00:10:04Z",
+      "side": 1,
+      "message": "mailing",
+      "range": {
+        "startLine": 47,
+        "startChar": 10,
+        "endLine": 47,
+        "endChar": 18
+      },
+      "revId": "e9fcdea41bd8164193443173e0dc9c06de77bd5d",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "95a322d9_db449843",
+        "filename": "src/main/resources/Documentation/syntax.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1034308
+      },
+      "writtenOn": "2019-01-26T00:10:04Z",
+      "side": 1,
+      "message": "For this particular example, is it ok to specify a bunch of people individually as reviewers and then * to allow anyone else to approve (i.e. no ACLs)? Would Find-Reviewers then show the individual names in the menu?",
+      "revId": "e9fcdea41bd8164193443173e0dc9c06de77bd5d",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    }
+  ]
+}
