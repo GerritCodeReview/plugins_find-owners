@@ -15,6 +15,7 @@
 package com.googlesource.gerrit.plugins.findowners;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Iterables;
 import com.google.common.flogger.FluentLogger;
 import com.google.gerrit.server.config.PluginConfig;
 import com.google.gerrit.server.config.PluginConfigFactory;
@@ -39,13 +40,13 @@ class Config {
   static final String PROLOG_NAMESPACE = "find_owners";
 
   // Global/plugin config parameters.
-  private static PluginConfigFactory config = null;
   private static boolean addDebugMsg = false;
   private static int minOwnerVoteLevel = 1;
   private static int maxCacheAge = 0;
   private static int maxCacheSize = 1000;
   private static boolean reportSyntaxError = false;
   private static boolean alwaysShowButton = false;
+  private static String ownersFileName = OWNERS;
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
@@ -53,8 +54,7 @@ class Config {
     if (conf == null) { // When called from integration tests.
       return;
     }
-    config = conf;
-    PluginConfig gc = config.getFromGerritConfig(pluginName, true);
+    PluginConfig gc = conf.getFromGerritConfig(pluginName, true);
     // Get config variables from the plugin section of gerrit.config
     addDebugMsg = gc.getBoolean(ADD_DEBUG_MSG, false);
     reportSyntaxError = gc.getBoolean(REPORT_SYNTAX_ERROR, false);
@@ -62,6 +62,7 @@ class Config {
     minOwnerVoteLevel = gc.getInt(MIN_OWNER_VOTE_LEVEL, 1);
     maxCacheAge = gc.getInt(MAX_CACHE_AGE, 0);
     maxCacheSize = gc.getInt(MAX_CACHE_SIZE, 1000);
+    ownersFileName = gc.getString(OWNERS_FILE_NAME, OWNERS);
   }
 
   static boolean getAddDebugMsg() {
@@ -92,26 +93,38 @@ class Config {
     return OWNERS;
   }
 
+  private static PluginConfig getPluginConfig(ProjectState state) {
+    ProjectState parent = Iterables.getFirst(state.parents(), null);
+    PluginConfig pluginConfig = state.getConfig().getPluginConfig(PLUGIN_NAME);
+    if (parent == null) {
+      return pluginConfig;
+    }
+    PluginConfig parentConfig = getPluginConfig(parent);
+    // Only combine/inherit two variables we have used now.
+    PluginConfig newConfig = new PluginConfig(PLUGIN_NAME, new org.eclipse.jgit.lib.Config());
+    newConfig.setString(OWNERS_FILE_NAME,
+        pluginConfig.getString(OWNERS_FILE_NAME, parentConfig.getString(OWNERS_FILE_NAME)));
+    newConfig.setInt(MIN_OWNER_VOTE_LEVEL,
+        pluginConfig.getInt(MIN_OWNER_VOTE_LEVEL, parentConfig.getInt(MIN_OWNER_VOTE_LEVEL, minOwnerVoteLevel)));
+    return newConfig;
+  }
+
   static String getOwnersFileName(ProjectState projectState, ChangeData c) {
     if (projectState == null) {
       logger.atSevere().log("Null projectState for change %s", getChangeId(c));
-    } else if (config != null) {
-      String name =
-          config
-              .getFromProjectConfigWithInheritance(projectState, PLUGIN_NAME)
-              .getString(OWNERS_FILE_NAME, OWNERS);
-      if (name.trim().equals("")) {
-        logger.atSevere().log(
-            "Project %s has wrong %s: \"%s\" for %s"
-                + projectState.getProject()
-                + OWNERS_FILE_NAME
-                + name
-                + getChangeId(c));
-        return OWNERS;
-      }
-      return name;
+      return OWNERS;
     }
-    return OWNERS;
+    String name = getPluginConfig(projectState).getString(OWNERS_FILE_NAME, ownersFileName);
+    if (name.trim().isEmpty()) {
+      logger.atSevere().log(
+          "Project %s has wrong %s: \"%s\" for %s"
+              + projectState.getProject()
+              + OWNERS_FILE_NAME
+              + name
+              + getChangeId(c));
+      return OWNERS;
+    }
+    return name;
   }
 
   @VisibleForTesting
@@ -123,12 +136,7 @@ class Config {
     if (projectState == null) {
       logger.atSevere().log("Null projectState for change %s", getChangeId(c));
       return minOwnerVoteLevel;
-    } else if (config == null) {
-      return minOwnerVoteLevel;
-    } else {
-      return config
-          .getFromProjectConfigWithInheritance(projectState, PLUGIN_NAME)
-          .getInt(MIN_OWNER_VOTE_LEVEL, minOwnerVoteLevel);
     }
+    return getPluginConfig(projectState).getInt(MIN_OWNER_VOTE_LEVEL, minOwnerVoteLevel);
   }
 }
