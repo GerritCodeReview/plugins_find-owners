@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "847b4061_9a3126cd",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Config.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1011842
+      },
+      "writtenOn": "2019-01-29T19:49:22Z",
+      "side": 1,
+      "message": "Are these mutable statics needed? In the googlesource.com virtual hosted setup (like https://gerrit-review.googlesource.com/c/gerrit/+/55761), they end up being more widely shared than intended.",
+      "revId": "9f72363e28afa442816f09dadd9fceeccb9119fb",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    }
+  ]
+}
