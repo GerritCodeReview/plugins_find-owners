@@ -16,6 +16,24 @@
       "revId": "9f72363e28afa442816f09dadd9fceeccb9119fb",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c4f4344d_5f9d4ea4",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Config.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2019-01-29T20:32:23Z",
+      "side": 1,
+      "message": "Although not all commonly used in a Gerrit configuration, they are useful for developers in local test configurations.\nIt would be nice not to define them as static, but I have trouble accessing gerrit.config file from Prolog PRED class.",
+      "parentUuid": "847b4061_9a3126cd",
+      "revId": "9f72363e28afa442816f09dadd9fceeccb9119fb",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
     }
   ]
 }
