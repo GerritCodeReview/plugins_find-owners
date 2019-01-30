@@ -101,12 +101,8 @@ class Config {
               .getFromProjectConfigWithInheritance(projectState, PLUGIN_NAME)
               .getString(OWNERS_FILE_NAME, OWNERS);
       if (name.trim().equals("")) {
-        logger.atSevere().log(
-            "Project %s has wrong %s: \"%s\" for %s"
-                + projectState.getProject()
-                + OWNERS_FILE_NAME
-                + name
-                + getChangeId(c));
+        logger.atSevere().log("Project %s has wrong %s: \"%s\" for %s",
+            projectState.getProject(), OWNERS_FILE_NAME, name, getChangeId(c));
         return OWNERS;
       }
       return name;
