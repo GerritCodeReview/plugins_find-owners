@@ -107,7 +107,8 @@ class OwnersDb {
           String found = "Found";
           if (content.isEmpty()) {
             String changeId = Config.getChangeId(changeData);
-            logger.atSevere().log("Missing root %s for %s", ownersFileName, changeId);
+            logger.atSevere().log("Missing root %s for %s of %s",
+                ownersFileName, changeId, projectName);
             found = "Missing";
           }
           logs.add(found + " root " + ownersFileName);
