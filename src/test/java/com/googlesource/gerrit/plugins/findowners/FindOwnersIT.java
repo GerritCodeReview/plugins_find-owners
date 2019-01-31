@@ -69,7 +69,7 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
         ")]}' { minOwnerVoteLevel:1, addDebugMsg:false, change:"
             + info1._number
             + ", patchset:1, file2owners:{}, reviewers:[], owners:[], files:[] }";
-    Cache cache = Cache.getInstance().init(0, 10); // reset, no Cache
+    Cache cache = getCache().init(0, 10); // reset, no Cache
     assertThat(cache.size()).isEqualTo(0L);
     // GetOwners GET API
     assertThat(getOwnersResponse(info1)).isEqualTo(expected);
@@ -367,8 +367,8 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
   @Test
   public void includeProjectOwnerTest() throws Exception {
     // Test include directive with other project name.
-    Project.NameKey pA = projectOperations.newProject().create();
-    Project.NameKey pB = projectOperations.newProject().create();
+    Project.NameKey pA = newProject("PA");
+    Project.NameKey pB = newProject("PB");
     String nameA = pA.get();
     String nameB = pB.get();
     switchProject(pA);
@@ -498,7 +498,7 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
     Multimap<String, Account.Id> email2ids = emails.getAccountsFor(wrongEmails);
     for (String email : wrongEmails) {
       assertThat(emails.getAccountFor(email)).isEmpty();
-      assertThat(email2ids.get(email)).isEmpty();
+      assertThat(email2ids).doesNotContainKey(email);
     }
   }
 
@@ -511,17 +511,42 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
     assertThat(content).contains("\"id\": \"All-Users\",");
     assertThat(content).contains(idProject("projectTest", "project"));
     assertThat(content).doesNotContain(idProject("projectTest", "ProjectA"));
-    projectOperations.newProject().name(name("ProjectA")).create();
+    newProject("ProjectA");
     response = adminRestSession.get("/projects/?d");
     assertThat(response.getEntityContent()).contains(idProject("projectTest", "ProjectA"));
   }
 
   @Test
+  public void projectInheritanceTest() throws Exception {
+    Project.NameKey pA = newProject("Project_A");
+    Project.NameKey pB = newProject("Project_B", pA);
+    Project.NameKey pC = newProject("Project_C", pB);
+    assertThat(projectOwnersFileName(pA)).isEqualTo("OWNERS");
+    assertThat(projectOwnersFileName(pB)).isEqualTo("OWNERS");
+    assertThat(projectOwnersFileName(pC)).isEqualTo("OWNERS");
+    switchProject(pA);
+    setProjectConfig("ownersFileName", "OWNERS_A");
+    assertThat(projectOwnersFileName(pA)).isEqualTo("OWNERS_A");
+    assertThat(projectOwnersFileName(pB)).isEqualTo("OWNERS_A");
+    assertThat(projectOwnersFileName(pC)).isEqualTo("OWNERS_A");
+    switchProject(pC);
+    setProjectConfig("ownersFileName", "OWNERS_C");
+    assertThat(projectOwnersFileName(pA)).isEqualTo("OWNERS_A");
+    assertThat(projectOwnersFileName(pB)).isEqualTo("OWNERS_A");
+    assertThat(projectOwnersFileName(pC)).isEqualTo("OWNERS_C");
+    switchProject(pB);
+    setProjectConfig("ownersFileName", "OWNERS_B");
+    assertThat(projectOwnersFileName(pA)).isEqualTo("OWNERS_A");
+    assertThat(projectOwnersFileName(pB)).isEqualTo("OWNERS_B");
+    assertThat(projectOwnersFileName(pC)).isEqualTo("OWNERS_C");
+    switchProject(pC);
+  }
+
+  @Test
   public void ownersFileNameTest() throws Exception {
-    Config.setVariables("find-owners", configFactory);
     // Default project is something like ....FindOwnersIT..._project
-    Project.NameKey pA = projectOperations.newProject().name(name("Project_A")).create();
-    Project.NameKey pB = projectOperations.newProject().name(name("Project_B")).create();
+    Project.NameKey pA = newProject("Project_A");
+    Project.NameKey pB = newProject("Project_B");
     // Add OWNERS and OWNERS.alpha file to Project_A.
     switchProject(pA);
     createBranch("BranchX");
@@ -538,9 +563,10 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
     PushOneCommit.Result cY = createChangeInBranch("BranchY", "cY", "tY.c", "Hello Y!");
 
     // Default owners file name is "OWNERS".
+    assertThat(Config.OWNERS).isEqualTo("OWNERS");
     assertThat(Config.getDefaultOwnersFileName()).isEqualTo("OWNERS");
-    assertThat(Config.getOwnersFileName(projectCache.get(pA), null)).isEqualTo("OWNERS");
-    assertThat(Config.getOwnersFileName(projectCache.get(pB), null)).isEqualTo("OWNERS");
+    assertThat(projectOwnersFileName(pA)).isEqualTo("OWNERS");
+    assertThat(projectOwnersFileName(pB)).isEqualTo("OWNERS");
 
     String ownerX = oneOwnerList("x@x");
     String ownerY = oneOwnerList("y@y");
@@ -578,8 +604,8 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
     switchProject(pB);
     setProjectConfig("ownersFileName", "OWNERS.beta");
 
-    assertThat(Config.getOwnersFileName(projectCache.get(pA), null)).isEqualTo("OWNERS.alpha");
-    assertThat(Config.getOwnersFileName(projectCache.get(pB), null)).isEqualTo("OWNERS.beta");
+    assertThat(projectOwnersFileName(pA)).isEqualTo("OWNERS.alpha");
+    assertThat(projectOwnersFileName(pB)).isEqualTo("OWNERS.beta");
     String ownerA = oneOwnerList("a@a");
     String ownerB = oneOwnerList("b@b");
     cAResponse = getOwnersDebugResponse(cA);
@@ -617,7 +643,7 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
     // Change back to OWNERS in Project_A
     switchProject(pA);
     setProjectConfig("ownersFileName", "OWNERS");
-    assertThat(Config.getOwnersFileName(projectCache.get(pA), null)).isEqualTo("OWNERS");
+    assertThat(projectOwnersFileName(pA)).isEqualTo("OWNERS");
     cAResponse = getOwnersDebugResponse(cA);
     cBResponse = getOwnersDebugResponse(cB);
     assertThat(cAResponse).contains(ownerX + ", files:[ tA.c ]");
@@ -626,7 +652,7 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
     // Change back to OWNERS.alpha in Project_B, but there is no OWNERS.alpha
     switchProject(pB);
     setProjectConfig("ownersFileName", "OWNERS.alpha");
-    assertThat(Config.getOwnersFileName(projectCache.get(pB), null)).isEqualTo("OWNERS.alpha");
+    assertThat(projectOwnersFileName(pB)).isEqualTo("OWNERS.alpha");
     cAResponse = getOwnersDebugResponse(cA);
     cBResponse = getOwnersDebugResponse(cB);
     cYResponse = getOwnersDebugResponse(cY);
@@ -640,11 +666,11 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
 
     // Do not accept empty string or all-white-spaces for ownersFileName.
     setProjectConfig("ownersFileName", "   ");
-    assertThat(Config.getOwnersFileName(projectCache.get(pB), null)).isEqualTo("OWNERS");
+    assertThat(projectOwnersFileName(pB)).isEqualTo("OWNERS");
     setProjectConfig("ownersFileName", " \t  ");
-    assertThat(Config.getOwnersFileName(projectCache.get(pB), null)).isEqualTo("OWNERS");
+    assertThat(projectOwnersFileName(pB)).isEqualTo("OWNERS");
     setProjectConfig("ownersFileName", "O");
-    assertThat(Config.getOwnersFileName(projectCache.get(pB), null)).isEqualTo("O");
+    assertThat(projectOwnersFileName(pB)).isEqualTo("O");
   }
 
   @Test
@@ -663,7 +689,7 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
 
   @Test
   public void actionApplyTest() throws Exception {
-    Cache cache = Cache.getInstance().init(0, 10);
+    Cache cache = getCache().init(0, 10);
     assertThat(cache.size()).isEqualTo(0);
     // TODO: create ChangeInput in a new project.
     ChangeInfo changeInfo = newChangeInfo("test Action.apply");
@@ -671,8 +697,8 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
     Action.Parameters param = new Action.Parameters();
     Action action =
         new Action(
-            "find-owners",
-            null,
+            Config.PLUGIN_NAME,
+            configFactory,
             null,
             changeDataFactory,
             accountCache,
@@ -800,7 +826,7 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
 
   private int checkApproval(PushOneCommit.Result r) throws Exception {
     Project.NameKey project = r.getChange().project();
-    Cache cache = Cache.getInstance().init(0, 0);
+    Cache cache = getCache().init(0, 0);
     OwnersDb db = cache.get(true, projectCache.get(project), accountCache, emails,
                             repoManager, r.getChange(), 1);
     Checker c = new Checker(repoManager, r.getChange(), 1);
@@ -852,5 +878,21 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
       String branch, String subject, String fileName, String content) throws Exception {
     PushOneCommit push = pushFactory.create(admin.getIdent(), testRepo, subject, fileName, content);
     return push.to("refs/for/" + branch);
+  }
+
+  private Project.NameKey newProject(String name) {
+    return newProject(name, project);
+  }
+
+  private Project.NameKey newProject(String myName, Project.NameKey parent) {
+    return projectOperations.newProject().parent(parent).name(name(myName)).create();
+  }
+
+  private String projectOwnersFileName(Project.NameKey name) {
+    return Config.getOwnersFileName(projectCache.get(name), null);
+  }
+
+  private Cache getCache() {
+    return Cache.getInstance();
   }
 }
