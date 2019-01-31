@@ -38,23 +38,25 @@ class Config {
   static final String PLUGIN_NAME = "find-owners";
   static final String PROLOG_NAMESPACE = "find_owners";
 
+  private final PluginConfigFactory configFactory;
+
   // Global/plugin config parameters.
-  private static PluginConfigFactory config = null;
-  private static boolean addDebugMsg = false;
-  private static int minOwnerVoteLevel = 1;
-  private static int maxCacheAge = 0;
-  private static int maxCacheSize = 1000;
-  private static boolean reportSyntaxError = false;
-  private static boolean alwaysShowButton = false;
+  private boolean addDebugMsg = false;
+  private int minOwnerVoteLevel = 1;
+  private int maxCacheAge = 0;
+  private int maxCacheSize = 1000;
+  private boolean reportSyntaxError = false;
+  private boolean alwaysShowButton = false;
+  private String ownersFileName = OWNERS;
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
-  static void setVariables(String pluginName, PluginConfigFactory conf) {
-    if (conf == null) { // When called from integration tests.
+  Config(PluginConfigFactory configFactory) {
+    this.configFactory = configFactory;
+    if (configFactory == null) { // When called from integration tests.
       return;
     }
-    config = conf;
-    PluginConfig gc = config.getFromGerritConfig(pluginName, true);
+    PluginConfig gc = configFactory.getFromGerritConfig(PLUGIN_NAME);
     // Get config variables from the plugin section of gerrit.config
     addDebugMsg = gc.getBoolean(ADD_DEBUG_MSG, false);
     reportSyntaxError = gc.getBoolean(REPORT_SYNTAX_ERROR, false);
@@ -62,25 +64,26 @@ class Config {
     minOwnerVoteLevel = gc.getInt(MIN_OWNER_VOTE_LEVEL, 1);
     maxCacheAge = gc.getInt(MAX_CACHE_AGE, 0);
     maxCacheSize = gc.getInt(MAX_CACHE_SIZE, 1000);
+    ownersFileName = gc.getString(OWNERS_FILE_NAME, OWNERS);
   }
 
-  static boolean getAddDebugMsg() {
+  boolean getAddDebugMsg() {
     return addDebugMsg; // defined globally, not per-project
   }
 
-  static int getMaxCacheAge() {
+  int getMaxCacheAge() {
     return maxCacheAge;
   }
 
-  static int getMaxCacheSize() {
+  int getMaxCacheSize() {
     return maxCacheSize;
   }
 
-  static boolean getReportSyntaxError() {
+  boolean getReportSyntaxError() {
     return reportSyntaxError;
   }
 
-  static boolean getAlwaysShowButton() {
+  boolean getAlwaysShowButton() {
     return alwaysShowButton;
   }
 
@@ -88,47 +91,39 @@ class Config {
     return data == null ? "(unknown change)" : ("change c/" + data.getId().get());
   }
 
-  static String getDefaultOwnersFileName() {
-    return OWNERS;
+  String getDefaultOwnersFileName() {
+    return ownersFileName; // could be defined in gerrit.config
   }
 
-  static String getOwnersFileName(ProjectState projectState, ChangeData c) {
+  private PluginConfig getPluginConfig(ProjectState state) {
+    return configFactory.getFromProjectConfigWithInheritance(state, PLUGIN_NAME);
+  }
+
+  String getOwnersFileName(ProjectState projectState, ChangeData c) {
+    String defaultName = getDefaultOwnersFileName();
     if (projectState == null) {
       logger.atSevere().log("Null projectState for change %s", getChangeId(c));
-    } else if (config != null) {
-      String name =
-          config
-              .getFromProjectConfigWithInheritance(projectState, PLUGIN_NAME)
-              .getString(OWNERS_FILE_NAME, OWNERS);
-      if (name.trim().equals("")) {
-        logger.atSevere().log(
-            "Project %s has wrong %s: \"%s\" for %s"
-                + projectState.getProject()
-                + OWNERS_FILE_NAME
-                + name
-                + getChangeId(c));
-        return OWNERS;
-      }
-      return name;
+      return defaultName;
     }
-    return OWNERS;
+    String name = getPluginConfig(projectState).getString(OWNERS_FILE_NAME, defaultName);
+    if (name.trim().isEmpty()) {
+      logger.atSevere().log("Project %s has wrong %s: \"%s\" for %s",
+          projectState.getProject(), OWNERS_FILE_NAME, name, getChangeId(c));
+      return defaultName;
+    }
+    return name;
   }
 
   @VisibleForTesting
-  static void setReportSyntaxError(boolean value) {
+  void setReportSyntaxError(boolean value) {
     reportSyntaxError = value;
   }
 
-  static int getMinOwnerVoteLevel(ProjectState projectState, ChangeData c) {
+  int getMinOwnerVoteLevel(ProjectState projectState, ChangeData c) {
     if (projectState == null) {
       logger.atSevere().log("Null projectState for change %s", getChangeId(c));
       return minOwnerVoteLevel;
-    } else if (config == null) {
-      return minOwnerVoteLevel;
-    } else {
-      return config
-          .getFromProjectConfigWithInheritance(projectState, PLUGIN_NAME)
-          .getInt(MIN_OWNER_VOTE_LEVEL, minOwnerVoteLevel);
     }
+    return getPluginConfig(projectState).getInt(MIN_OWNER_VOTE_LEVEL, minOwnerVoteLevel);
   }
 }

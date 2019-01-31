@@ -17,7 +17,6 @@ package com.googlesource.gerrit.plugins.findowners;
 import static com.google.common.truth.Truth.assertThat;
 
 import java.util.Arrays;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -25,11 +24,6 @@ import org.junit.runners.JUnit4;
 /** Test Parser class */
 @RunWith(JUnit4.class)
 public class ParserTest {
-  @Before
-  public void setUp() {
-    Config.setReportSyntaxError(true);
-  }
-
   private static String mockedTestDir() {
     return "./d1/d2/";
   }

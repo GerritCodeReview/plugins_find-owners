@@ -22,6 +22,7 @@ import com.google.gerrit.reviewdb.client.Account;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.account.AccountCache;
 import com.google.gerrit.server.account.Emails;
+import com.google.gerrit.server.config.PluginConfigFactory;
 import com.google.gerrit.server.git.GitRepositoryManager;
 import com.google.gerrit.server.project.ProjectState;
 import com.google.gerrit.server.query.change.ChangeData;
@@ -50,9 +51,10 @@ import org.eclipse.jgit.treewalk.TreeWalk;
 class OwnersDb {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
-  private AccountCache accountCache;
-  private GitRepositoryManager repoManager;
-  private Emails emails;
+  private final AccountCache accountCache;
+  private final GitRepositoryManager repoManager;
+  private final Emails emails;
+  private final Config config;
   private int numOwners = -1; // # of owners of all given files.
 
   String key = ""; // key to find this OwnersDb in a cache.
@@ -66,14 +68,13 @@ class OwnersDb {
   List<String> errors = new ArrayList<>(); // error messages
   List<String> logs = new ArrayList<>(); // trace/debug messages
 
-  OwnersDb() {}
-
   OwnersDb(
       ProjectState projectState,
       AccountCache accountCache,
       Emails emails,
       String key,
       GitRepositoryManager repoManager,
+      PluginConfigFactory configFactory,
       ChangeData changeData,
       String branch,
       Collection<String> files) {
@@ -81,6 +82,7 @@ class OwnersDb {
     this.repoManager = repoManager;
     this.emails = emails;
     this.key = key;
+    this.config = new Config(configFactory);
     try {
       InetAddress inetAddress = InetAddress.getLocalHost();
       logs.add("HostName:" + inetAddress.getHostName());
@@ -91,7 +93,7 @@ class OwnersDb {
     preferredEmails.put("*", "*");
     String projectName = projectState.getName();
     logs.add("project:" + projectName);
-    String ownersFileName = Config.getOwnersFileName(projectState, changeData);
+    String ownersFileName = config.getOwnersFileName(projectState, changeData);
     logs.add("ownersFileName:" + ownersFileName);
     try (Repository repo = repoManager.openRepository(projectState.getNameKey())) {
       // Some hacked CL could have a target branch that is not created yet.
@@ -107,7 +109,8 @@ class OwnersDb {
           String found = "Found";
           if (content.isEmpty()) {
             String changeId = Config.getChangeId(changeData);
-            logger.atSevere().log("Missing root %s for %s", ownersFileName, changeId);
+            logger.atSevere().log("Missing root %s for %s of %s",
+                ownersFileName, changeId, projectName);
             found = "Missing";
           }
           logs.add(found + " root " + ownersFileName);
@@ -150,7 +153,7 @@ class OwnersDb {
   }
 
   int getNumOwners() {
-    return (numOwners >= 0) ? numOwners : owner2Paths.keySet().size();
+    return (numOwners >= 0) ? numOwners : owner2Paths.size();
   }
 
   private void countNumOwners(Collection<String> files) {
@@ -161,7 +164,7 @@ class OwnersDb {
       file2Owners.values().forEach(emails::addAll);
       numOwners = emails.size();
     } else {
-      numOwners = owner2Paths.keySet().size();
+      numOwners = owner2Paths.size();
     }
   }
 
@@ -226,7 +229,7 @@ class OwnersDb {
         addOwnerPathPair(email, path);
       }
     }
-    if (Config.getReportSyntaxError()) {
+    if (config.getReportSyntaxError()) {
       result.warnings.forEach(w -> logger.atWarning().log(w));
       result.errors.forEach(w -> logger.atSevere().log(w));
     }
