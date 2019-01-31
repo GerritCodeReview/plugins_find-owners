@@ -46,7 +46,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -124,7 +123,7 @@ public class OwnersValidator implements CommitValidationListener {
   @Override
   public List<CommitValidationMessage> onCommitReceived(CommitReceivedEvent receiveEvent)
       throws CommitValidationException {
-    List<CommitValidationMessage> messages = new LinkedList<>();
+    List<CommitValidationMessage> messages = new ArrayList<>();
     try {
       Project.NameKey project = receiveEvent.project.getNameKey();
       PluginConfig cfg = cfgFactory.getFromProjectConfigWithInheritance(project, pluginName);
@@ -145,7 +144,7 @@ public class OwnersValidator implements CommitValidationListener {
   List<CommitValidationMessage> performValidation(
       RevCommit c, RevWalk revWalk, String ownersFileName, boolean verbose) throws IOException {
     // Collect all messages from all files.
-    List<CommitValidationMessage> messages = new LinkedList<>();
+    List<CommitValidationMessage> messages = new ArrayList<>();
     // Collect all email addresses from all files and check each address only once.
     Map<String, Set<String>> email2lines = new HashMap<>();
     Map<String, ObjectId> content = getChangedOwners(c, revWalk, ownersFileName);
