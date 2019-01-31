@@ -16,10 +16,8 @@ package com.googlesource.gerrit.plugins.findowners;
 
 import static java.util.stream.Collectors.toList;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Streams;
 import com.google.common.flogger.FluentLogger;
-import com.google.gerrit.extensions.annotations.PluginName;
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.Response;
 import com.google.gerrit.extensions.restapi.RestReadView;
@@ -54,12 +52,14 @@ import java.util.Set;
 class Action implements RestReadView<RevisionResource>, UiAction<RevisionResource> {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
-  private AccountCache accountCache;
-  private Emails emails;
-  private ChangeData.Factory changeDataFactory;
-  private GitRepositoryManager repoManager;
-  private Provider<CurrentUser> userProvider;
-  private ProjectCache projectCache;
+  private final AccountCache accountCache;
+  private final Emails emails;
+  private final ChangeData.Factory changeDataFactory;
+  private final GitRepositoryManager repoManager;
+  private final PluginConfigFactory configFactory;
+  private final Provider<CurrentUser> userProvider;
+  private final ProjectCache projectCache;
+  private final Config config;
 
   static class Parameters {
     Boolean debug; // REST API "debug" parameter, or null
@@ -69,7 +69,6 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
 
   @Inject
   Action(
-      @PluginName String pluginName,
       PluginConfigFactory configFactory,
       Provider<CurrentUser> userProvider,
       ChangeData.Factory changeDataFactory,
@@ -83,12 +82,9 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
     this.emails = emails;
     this.repoManager = repoManager;
     this.projectCache = projectCache;
-    Config.setVariables(pluginName, configFactory);
-    Cache.getInstance(); // Create a single Cache.
+    this.configFactory = configFactory;
+    this.config = new Config(configFactory);
   }
-
-  @VisibleForTesting
-  Action() {}
 
   private String getUserName() {
     if (userProvider != null && userProvider.get().getUserName().isPresent()) {
@@ -166,14 +162,14 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
     int patchset = getValidPatchsetNum(changeData, params.patchset);
     ProjectState projectState = projectCache.get(changeData.project());
     Boolean useCache = params.nocache == null || !params.nocache;
-    OwnersDb db = Cache.getInstance().get(
-        useCache, projectState, accountCache, emails, repoManager, changeData, patchset);
+    OwnersDb db = Cache.getInstance(configFactory, repoManager).get(
+        useCache, projectState, accountCache, emails, repoManager, configFactory, changeData, patchset);
     Collection<String> changedFiles = changeData.currentFilePaths();
     Map<String, Set<String>> file2Owners = db.findOwners(changedFiles);
 
-    Boolean addDebugMsg = (params.debug != null) ? params.debug : Config.getAddDebugMsg();
+    Boolean addDebugMsg = (params.debug != null) ? params.debug : config.getAddDebugMsg();
     RestResult obj =
-        new RestResult(Config.getMinOwnerVoteLevel(projectState, changeData), addDebugMsg);
+        new RestResult(config.getMinOwnerVoteLevel(projectState, changeData), addDebugMsg);
     obj.change = changeData.getId().get();
     obj.patchset = patchset;
     obj.ownerRevision = db.revision;
@@ -214,16 +210,17 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
               && status != Status.ABANDONED
               && status != Status.MERGED;
       // If alwaysShowButton is true, skip expensive owner lookup.
-      if (needFindOwners && !Config.getAlwaysShowButton()) {
+      if (needFindOwners && !config.getAlwaysShowButton()) {
         needFindOwners = false; // Show button only if some owner is found.
         OwnersDb db =
-            Cache.getInstance()
+            Cache.getInstance(configFactory, repoManager)
                 .get(
                     true, // use cached OwnersDb
                     projectCache.get(resource.getProject()),
                     accountCache,
                     emails,
                     repoManager,
+                    configFactory,
                     changeData);
         logger.atFiner().log("getDescription db key = %s", db.key);
         needFindOwners = db.getNumOwners() > 0;
