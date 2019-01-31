@@ -19,6 +19,7 @@ import com.google.gerrit.reviewdb.client.Change.Status;
 import com.google.gerrit.reviewdb.client.PatchSetApproval;
 import com.google.gerrit.server.account.AccountCache;
 import com.google.gerrit.server.account.Emails;
+import com.google.gerrit.server.config.PluginConfigFactory;
 import com.google.gerrit.server.git.GitRepositoryManager;
 import com.google.gerrit.server.project.ProjectState;
 import com.google.gerrit.server.query.change.ChangeData;
@@ -40,12 +41,19 @@ public class Checker {
   private static final String EXEMPT_MESSAGE2 = "Exempted-From-Owner-Approval:";
 
   private final GitRepositoryManager repoManager;
+  private final PluginConfigFactory configFactory;
+  private final Config config;
+  private final ProjectState projectState; // could be null when used by FindOwnersIT
   private final ChangeData changeData;
   private int minVoteLevel;
 
-  Checker(GitRepositoryManager repoManager, ChangeData changeData, int v) {
+  Checker(GitRepositoryManager repoManager, PluginConfigFactory configFactory,
+          ProjectState projectState, ChangeData changeData, int v) {
     this.repoManager = repoManager;
+    this.configFactory = configFactory;
+    this.projectState = projectState;
     this.changeData = changeData;
+    this.config = new Config(configFactory);
     minVoteLevel = v;
   }
 
@@ -97,7 +105,7 @@ public class Checker {
   /** Returns 1 if owner approval is found, -1 if missing, 0 if unneeded. */
   int findApproval(AccountCache accountCache, OwnersDb db) throws OrmException, IOException {
     Map<String, Set<String>> file2Owners = db.findOwners(changeData.currentFilePaths());
-    if (file2Owners.size() == 0) { // do not need owner approval
+    if (file2Owners.isEmpty()) { // do not need owner approval
       return 0;
     }
     Map<String, Integer> votes = getVotes(accountCache, changeData);
@@ -114,16 +122,39 @@ public class Checker {
     ChangeData changeData = null;
     try {
       changeData = StoredValues.CHANGE_DATA.get(engine);
-      ProjectState projectState = StoredValues.PROJECT_STATE.get(engine);
-      GitRepositoryManager repoManager = StoredValues.REPO_MANAGER.get(engine);
-      AccountCache accountCache = StoredValues.ACCOUNT_CACHE.get(engine);
-      Emails emails = StoredValues.EMAILS.get(engine);
-      return new Checker(repoManager, changeData, minVoteLevel)
-          .findApproval(projectState, accountCache, emails);
+      Checker checker = new Checker(
+          StoredValues.REPO_MANAGER.get(engine),
+          StoredValues.PLUGIN_CONFIG_FACTORY.get(engine),
+          StoredValues.PROJECT_STATE.get(engine),
+          changeData, minVoteLevel);
+      return checker.findApproval(
+          StoredValues.ACCOUNT_CACHE.get(engine),
+          StoredValues.EMAILS.get(engine));
     } catch (OrmException | IOException e) {
       logger.atSevere().withCause(e).log("Exception for %s ", Config.getChangeId(changeData));
       return 0; // owner approval may or may not be required.
     }
+  }
+
+  /** Returns 1 if owner approval is found, -1 if missing, 0 if unneeded. */
+  int findApproval(AccountCache accountCache, Emails emails)
+      throws OrmException, IOException {
+    if (isExemptFromOwnerApproval(changeData)) {
+      return 0;
+    }
+    // One update to a Gerrit change can call submit_rule or submit_filter
+    // many times. So this function should use cached values.
+    OwnersDb db =
+        Cache.getInstance(configFactory, repoManager)
+            .get(true, projectState, accountCache, emails, repoManager, configFactory, changeData);
+    if (db.getNumOwners() <= 0) {
+      return 0;
+    }
+    if (minVoteLevel <= 0) {
+      minVoteLevel = config.getMinOwnerVoteLevel(projectState, changeData);
+    }
+    logger.atFiner().log("findApproval db key = %s", db.key);
+    return findApproval(accountCache, db);
   }
 
   /** Returns true if exempt from owner approval. */
@@ -141,24 +172,5 @@ public class Checker {
     // Abandoned and merged changes do not need approval again.
     Status status = changeData.change().getStatus();
     return (status == Status.ABANDONED || status == Status.MERGED);
-  }
-
-  int findApproval(ProjectState projectState, AccountCache accountCache, Emails emails)
-      throws OrmException, IOException {
-    if (isExemptFromOwnerApproval(changeData)) {
-      return 0;
-    }
-    // One update to a Gerrit change can call submit_rule or submit_filter
-    // many times. So this function should use cached values.
-    OwnersDb db =
-        Cache.getInstance().get(true, projectState, accountCache, emails, repoManager, changeData);
-    if (db.getNumOwners() <= 0) {
-      return 0;
-    }
-    if (minVoteLevel <= 0) {
-      minVoteLevel = Config.getMinOwnerVoteLevel(projectState, changeData);
-    }
-    logger.atFiner().log("findApproval db key = %s", db.key);
-    return findApproval(accountCache, db);
   }
 }

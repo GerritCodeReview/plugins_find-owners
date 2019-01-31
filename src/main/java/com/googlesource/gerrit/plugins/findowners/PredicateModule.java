@@ -15,23 +15,14 @@
 package com.googlesource.gerrit.plugins.findowners;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.gerrit.extensions.annotations.PluginName;
 import com.google.gerrit.extensions.registration.DynamicSet;
-import com.google.gerrit.server.config.PluginConfigFactory;
 import com.google.gerrit.server.rules.PredicateProvider;
 import com.google.inject.AbstractModule;
-import com.google.inject.Inject;
 
 /** provides the Prolog predicate, even in a batch mode */
 public class PredicateModule extends AbstractModule {
   /** Prolog Predicate Provider. */
   static class FindOwnersProvider implements PredicateProvider {
-
-    @Inject
-    public FindOwnersProvider(@PluginName String pluginName, PluginConfigFactory configFactory) {
-      Config.setVariables(pluginName, configFactory);
-      Cache.getInstance(); // Create a single Cache.
-    }
 
     @Override
     public ImmutableSet<String> getPackages() {
