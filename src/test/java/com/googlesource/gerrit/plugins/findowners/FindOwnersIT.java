@@ -50,6 +50,7 @@ import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilterGroup;
+import org.junit.Before;
 import org.junit.Test;
 
 /** Test find-owners plugin API. */
@@ -59,6 +60,12 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
   @Inject private Emails emails;
   @Inject private PluginConfigFactory configFactory;
   @Inject private ProjectOperations projectOperations;
+  private Config config;
+
+  @Before
+  public void setConfig() {
+    config = new Config(configFactory);
+  }
 
   @Test
   public void getOwnersTest() throws Exception {
@@ -564,7 +571,7 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
 
     // Default owners file name is "OWNERS".
     assertThat(Config.OWNERS).isEqualTo("OWNERS");
-    assertThat(Config.getDefaultOwnersFileName()).isEqualTo("OWNERS");
+    assertThat(config.getDefaultOwnersFileName()).isEqualTo("OWNERS");
     assertThat(projectOwnersFileName(pA)).isEqualTo("OWNERS");
     assertThat(projectOwnersFileName(pB)).isEqualTo("OWNERS");
 
@@ -697,7 +704,6 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
     Action.Parameters param = new Action.Parameters();
     Action action =
         new Action(
-            Config.PLUGIN_NAME,
             configFactory,
             null,
             changeDataFactory,
@@ -828,8 +834,8 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
     Project.NameKey project = r.getChange().project();
     Cache cache = getCache().init(0, 0);
     OwnersDb db = cache.get(true, projectCache.get(project), accountCache, emails,
-                            repoManager, r.getChange(), 1);
-    Checker c = new Checker(repoManager, r.getChange(), 1);
+                            repoManager, configFactory, r.getChange(), 1);
+    Checker c = new Checker(repoManager, configFactory, null, r.getChange(), 1);
     return c.findApproval(accountCache, db);
   }
 
@@ -889,10 +895,10 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
   }
 
   private String projectOwnersFileName(Project.NameKey name) {
-    return Config.getOwnersFileName(projectCache.get(name), null);
+    return config.getOwnersFileName(projectCache.get(name), null);
   }
 
   private Cache getCache() {
-    return Cache.getInstance();
+    return Cache.getInstance(configFactory);
   }
 }

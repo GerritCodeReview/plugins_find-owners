@@ -15,7 +15,6 @@
 package com.googlesource.gerrit.plugins.findowners;
 
 import com.google.common.flogger.FluentLogger;
-import com.google.gerrit.extensions.annotations.PluginName;
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.Response;
 import com.google.gerrit.extensions.restapi.RestReadView;
@@ -53,7 +52,6 @@ public class GetOwners implements RestReadView<ChangeResource> {
 
   @Inject
   GetOwners(
-      @PluginName String pluginName,
       PluginConfigFactory configFactory,
       Provider<CurrentUser> userProvider,
       ChangeData.Factory dataFactory,
@@ -63,7 +61,6 @@ public class GetOwners implements RestReadView<ChangeResource> {
       ProjectCache projectCache) {
     this.action =
         new Action(
-            pluginName,
             configFactory,
             userProvider,
             dataFactory,

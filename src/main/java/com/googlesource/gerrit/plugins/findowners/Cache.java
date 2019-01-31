@@ -20,6 +20,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.flogger.FluentLogger;
 import com.google.gerrit.server.account.AccountCache;
 import com.google.gerrit.server.account.Emails;
+import com.google.gerrit.server.config.PluginConfigFactory;
 import com.google.gerrit.server.git.GitRepositoryManager;
 import com.google.gerrit.server.project.ProjectState;
 import com.google.gerrit.server.query.change.ChangeData;
@@ -58,8 +59,8 @@ class Cache {
   // we keep the cache in a static object for all HTTP requests.
   private com.google.common.cache.Cache<String, OwnersDb> dbCache;
 
-  private Cache() {
-    init(Config.getMaxCacheAge(), Config.getMaxCacheSize());
+  private Cache(int maxSeconds, int maxSize) {
+    init(maxSeconds, maxSize);
   }
 
   long size() {
@@ -93,6 +94,7 @@ class Cache {
       AccountCache accountCache,
       Emails emails,
       GitRepositoryManager repoManager,
+      PluginConfigFactory configFactory,
       ChangeData changeData)
       throws OrmException, IOException {
     return get(
@@ -101,6 +103,7 @@ class Cache {
         accountCache,
         emails,
         repoManager,
+        configFactory,
         changeData,
         changeData.currentPatchSet().getId().get());
   }
@@ -112,6 +115,7 @@ class Cache {
       AccountCache accountCache,
       Emails emails,
       GitRepositoryManager repoManager,
+      PluginConfigFactory configFactory,
       ChangeData changeData,
       int patchset)
       throws OrmException, IOException {
@@ -125,6 +129,7 @@ class Cache {
         emails,
         dbKey,
         repoManager,
+        configFactory,
         changeData,
         branch,
         changeData.currentFilePaths());
@@ -138,13 +143,14 @@ class Cache {
       Emails emails,
       String key,
       GitRepositoryManager repoManager,
+      PluginConfigFactory configFactory,
       ChangeData changeData,
       String branch,
       Collection<String> files) {
     if (dbCache == null || !useCache) { // Do not cache OwnersDb
       logger.atFiner().log("Create new OwnersDb, key=%s", key);
       return new OwnersDb(
-          projectState, accountCache, emails, key, repoManager, changeData, branch, files);
+          projectState, accountCache, emails, key, repoManager, configFactory, changeData, branch, files);
     }
     try {
       logger.atFiner().log(
@@ -156,14 +162,14 @@ class Cache {
             public OwnersDb call() {
               logger.atFiner().log("Create new OwnersDb, key=%s", key);
               return new OwnersDb(
-                  projectState, accountCache, emails, key, repoManager, changeData, branch, files);
+                  projectState, accountCache, emails, key, repoManager, configFactory, changeData, branch, files);
             }
           });
     } catch (ExecutionException e) {
       logger.atSevere().withCause(e).log(
           "Cache.get has exception for %s", Config.getChangeId(changeData));
       return new OwnersDb(
-          projectState, accountCache, emails, key, repoManager, changeData, branch, files);
+          projectState, accountCache, emails, key, repoManager, configFactory, changeData, branch, files);
     }
   }
 
@@ -174,9 +180,10 @@ class Cache {
     return change + ":" + patch + ":" + branch;
   }
 
-  public static Cache getInstance() {
+  public static Cache getInstance(PluginConfigFactory configFactory) {
     if (instance == null) {
-      instance = new Cache();
+      Config config = new Config(configFactory);
+      instance = new Cache(config.getMaxCacheAge(), config.getMaxCacheSize());
     }
     return instance;
   }
