@@ -17,7 +17,6 @@ package com.googlesource.gerrit.plugins.findowners;
 import static com.google.common.truth.Truth.assertThat;
 
 import java.util.Arrays;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -25,11 +24,6 @@ import org.junit.runners.JUnit4;
 /** Test Parser class */
 @RunWith(JUnit4.class)
 public class ParserTest {
-  @Before
-  public void setUp() {
-    Config.setReportSyntaxError(true);
-  }
-
   private static String mockedTestDir() {
     return "./d1/d2/";
   }
@@ -71,9 +65,8 @@ public class ParserTest {
     for (String s : lines) {
       Parser.Result result = testLine(s);
       assertThat(result.warnings).isEmpty();
-      assertThat(result.errors).hasSize(1);
       String expected = testLineErrorMsg(s);
-      assertThat(result.errors.get(0)).isEqualTo(expected);
+      assertThat(result.errors).containsExactly(expected);
     }
   }
 
@@ -97,7 +90,7 @@ public class ParserTest {
       Parser.Result result = testLine(lines[i]);
       assertThat(result.owner2paths).hasSize(1);
       String[] paths = result.owner2paths.get(emails[i]).toArray(new String[1]);
-      assertThat(paths.length).isEqualTo(1);
+      assertThat(paths).hasLength(1);
       assertThat(paths[0]).isEqualTo(mockedTestDir());
     }
   }
@@ -109,8 +102,7 @@ public class ParserTest {
     for (String s : lines) {
       Parser.Result result = testLine(s);
       String expected = testLineWarningMsg(s);
-      assertThat(result.warnings).hasSize(1);
-      assertThat(result.warnings.get(0)).isEqualTo(expected);
+      assertThat(result.warnings).containsExactly(expected);
     }
   }
 
@@ -140,7 +132,7 @@ public class ParserTest {
         Arrays.sort(globList);
         for (String email : emailList) {
           String[] paths = result.owner2paths.get(email).toArray(new String[1]);
-          assertThat(paths.length).isEqualTo(globList.length);
+          assertThat(paths).hasLength(globList.length);
           Arrays.sort(paths);
           for (int g = 0; g < globList.length; g++) {
             assertThat(paths[g]).isEqualTo(mockedTestDir() + globList[g]);
@@ -161,8 +153,7 @@ public class ParserTest {
       Parser.Result result = testLine(line);
       String expected = testLineErrorMsg(line);
       assertThat(result.warnings).isEmpty();
-      assertThat(result.errors).hasSize(1);
-      assertThat(result.errors.get(0)).isEqualTo(expected);
+      assertThat(result.errors).containsExactly(expected);
     }
   }
 

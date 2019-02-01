@@ -100,8 +100,8 @@ public class UtilTest {
     Set<String> s = new HashSet<>();
     assertThat(s).isEmpty();
     s.add("s1");
-    assertThat(s.contains("s1")).isTrue();
-    assertThat(s.contains("s2")).isFalse();
+    assertThat(s).contains("s1");
+    assertThat(s).doesNotContain("s2");
     assertThat(s).hasSize(1);
   }
 
