@@ -55,6 +55,41 @@
     },
     {
       "key": {
+        "uuid": "42fa0799_a1bf5f3c",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Cache.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1011842
+      },
+      "writtenOn": "2019-02-01T03:13:21Z",
+      "side": 1,
+      "message": "Ah, I see now that that\u0027s similar to what you are already doing: the actual effectively static field is dbCache.\n\nCan you make that static instead of having the singleton Cache object?",
+      "parentUuid": "e0d3354a_b49d2937",
+      "revId": "2a58209e022e03b82e6c8ff3383d233570dd5379",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "45a841c4_7009fa1e",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Cache.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1011842
+      },
+      "writtenOn": "2019-02-01T03:13:21Z",
+      "side": 1,
+      "message": "What do keys in dbCache look like? Can the comment above say?\n\nCan you use the PluginConfigFactory as key instead of making a custom key? That would avoid the possibility of collisions.",
+      "revId": "2a58209e022e03b82e6c8ff3383d233570dd5379",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "2a2cec48_85e2adf6",
         "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Cache.java",
         "patchSetId": 2
