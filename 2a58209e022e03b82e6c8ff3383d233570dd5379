@@ -91,6 +91,24 @@
     },
     {
       "key": {
+        "uuid": "440206e3_fb7ee8a9",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Cache.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2019-02-01T20:32:32Z",
+      "side": 1,
+      "message": "The idea of separating objects of different sites based on pluginConfigFactory should be the right direction but I got some problem within integration test.\n\nI tried to use one Cache for each PluginConfigFactory like:\n    private static WeakHashMap\u003cPluginConfigFactory, Cache\u003e cacheMap;\n\nIn FindOwnersIT.java, inherited pluginConfig (injected in AbstractDaemonTest) is a different PluginConfigFactory object from the one used by userRestSession.get(...).\nSo my Cache.getInstance(pluginConfig) in FindOwnersIT.java returns\ndifferent Cache object from the one used by userRestSession.get(...).\n\nIs there a way make userRestSession() use the same PluginConfigFactory object as the one injected into AbstractDaemonTest?\n\nThis is not only a problem in integration tests.\nIf it is not guaranteed that multiple REST requests to the same Gerrit\nserver process will share the same PluginConfigFactory object,\nthen we cannot share OwnersDb across multiple requests.\nThe alternative will be using a singleton Cache as in the current implementation and improve Cache.makeKey to separate different PluginConfigFactory. Of course one shared dbCache will have the same object expireAfterWrite time for all OwnersDb.",
+      "parentUuid": "aa2f34f0_30aed769",
+      "revId": "2a58209e022e03b82e6c8ff3383d233570dd5379",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "45a841c4_7009fa1e",
         "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Cache.java",
         "patchSetId": 2
