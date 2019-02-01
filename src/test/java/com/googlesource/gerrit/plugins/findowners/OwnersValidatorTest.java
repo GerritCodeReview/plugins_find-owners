@@ -31,8 +31,8 @@ import com.google.gerrit.server.git.validators.CommitValidationMessage;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -254,6 +254,17 @@ public class OwnersValidatorTest {
     return makeCommit(rw, repo, message, fileBytes);
   }
 
+  private static RevCommit makeCommit(
+      RevWalk rw, Repository repo, String message, Map<File, byte[]> files)
+      throws IOException, GitAPIException {
+    try (Git git = new Git(repo)) {
+      if (files != null) {
+        addFiles(git, files);
+      }
+      return rw.parseCommit(git.commit().setMessage(message).call());
+    }
+  }
+
   private List<String> validate(RevWalk rw, RevCommit c, boolean verbose, PluginConfig cfg)
       throws Exception {
     MockedEmails myEmails = new MockedEmails();
@@ -284,24 +295,13 @@ public class OwnersValidatorTest {
     ac.call();
   }
 
-  private static RevCommit makeCommit(
-      RevWalk rw, Repository repo, String message, Map<File, byte[]> files)
-      throws IOException, GitAPIException {
-    try (Git git = new Git(repo)) {
-      if (files != null) {
-        addFiles(git, files);
-      }
-      return rw.parseCommit(git.commit().setMessage(message).call());
-    }
-  }
-
   private static List<String> transformMessages(List<CommitValidationMessage> messages) {
     return Lists.transform(
         messages,
         new Function<CommitValidationMessage, String>() {
           @Override
           public String apply(CommitValidationMessage input) {
-            String pre = (input.isError()) ? "ERROR: " : "MSG: ";
+            String pre = input.isError() ? "ERROR: " : "MSG: ";
             return pre + input.getMessage();
           }
         });
@@ -309,7 +309,7 @@ public class OwnersValidatorTest {
 
   @Test
   public void testTransformer() {
-    List<CommitValidationMessage> messages = new LinkedList<>();
+    List<CommitValidationMessage> messages = new ArrayList<>();
     messages.add(new CommitValidationMessage("a message", false));
     messages.add(new CommitValidationMessage("an error", true));
     Set<String> expected = ImmutableSet.of("ERROR: an error", "MSG: a message");
