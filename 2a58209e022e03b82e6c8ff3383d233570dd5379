@@ -73,6 +73,24 @@
     },
     {
       "key": {
+        "uuid": "aa2f34f0_30aed769",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Cache.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2019-02-01T06:28:02Z",
+      "side": 1,
+      "message": "I think that will work and we can have unique key for each site+change+patchset. However, there is another problem of\nallowing each virtual site to have its own\n  config.getMaxCacheAge(), config.getMaxCacheSize()\nwhile sharing one static dbCache.\nI didn\u0027t know that a Gerrit server process could have multiple sites.",
+      "parentUuid": "42fa0799_a1bf5f3c",
+      "revId": "2a58209e022e03b82e6c8ff3383d233570dd5379",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "45a841c4_7009fa1e",
         "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Cache.java",
         "patchSetId": 2
@@ -84,6 +102,24 @@
       "writtenOn": "2019-02-01T03:13:21Z",
       "side": 1,
       "message": "What do keys in dbCache look like? Can the comment above say?\n\nCan you use the PluginConfigFactory as key instead of making a custom key? That would avoid the possibility of collisions.",
+      "revId": "2a58209e022e03b82e6c8ff3383d233570dd5379",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "108639c4_c0e53a00",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Cache.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2019-02-01T06:28:02Z",
+      "side": 1,
+      "message": "At new line 123:\n   String dbKey \u003d Cache.makeKey(changeData.getId().get(), patchset, branch);\nAt new line 176:\n   makeKey returns (change + \":\" + patch + \":\" + branch)\nNow I think that branch is redundant and change as old 32-bit int might not be enough.\n\nHow about the following key\n   String dbKey \u003d String.format(\"%H:%s:%d\",\n     configFactory, changeData.getKey().get(), patch);",
+      "parentUuid": "45a841c4_7009fa1e",
       "revId": "2a58209e022e03b82e6c8ff3383d233570dd5379",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": true
