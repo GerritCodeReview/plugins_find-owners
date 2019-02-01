@@ -1,0 +1,78 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bad4c8de_46351244",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Cache.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1011842
+      },
+      "writtenOn": "2019-02-01T01:36:29Z",
+      "side": 1,
+      "message": "Won\u0027t this run into the same cross-site value sharing problem that you ran into before?",
+      "revId": "2a58209e022e03b82e6c8ff3383d233570dd5379",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2a2cec48_85e2adf6",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Cache.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1011842
+      },
+      "writtenOn": "2019-02-01T01:36:29Z",
+      "side": 1,
+      "message": "optional, not about this change: can this use a Duration?",
+      "range": {
+        "startLine": 62,
+        "startChar": 16,
+        "endLine": 62,
+        "endChar": 30
+      },
+      "revId": "2a58209e022e03b82e6c8ff3383d233570dd5379",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "70d6c0d3_ad2fe5b3",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Cache.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 1011842
+      },
+      "writtenOn": "2019-02-01T01:36:29Z",
+      "side": 1,
+      "message": "optional: long line, google-java-format should help",
+      "revId": "2a58209e022e03b82e6c8ff3383d233570dd5379",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b85fad88_c8c57059",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Config.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1011842
+      },
+      "writtenOn": "2019-02-01T01:36:29Z",
+      "side": 1,
+      "message": "optional: no need to set values like \"\u003d false\" or \"\u003d 0\" here, since that\u0027s the default.",
+      "revId": "2a58209e022e03b82e6c8ff3383d233570dd5379",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    }
+  ]
+}
