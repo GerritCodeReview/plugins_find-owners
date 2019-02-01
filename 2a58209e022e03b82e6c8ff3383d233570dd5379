@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "e0d3354a_b49d2937",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Cache.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1011842
+      },
+      "writtenOn": "2019-02-01T02:23:13Z",
+      "side": 1,
+      "message": "Can you use e.g. a LoadingCache\u003cPluginConfigFactory, Cache\u003e? That way, there\u0027s no sharing, and you can set whatever expiration policy you want.",
+      "parentUuid": "6ce55d51_0a162afb",
+      "revId": "2a58209e022e03b82e6c8ff3383d233570dd5379",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "2a2cec48_85e2adf6",
         "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Cache.java",
         "patchSetId": 2
@@ -81,6 +99,30 @@
       "revId": "2a58209e022e03b82e6c8ff3383d233570dd5379",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2bfa8ecb_196cd29d",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Cache.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1011842
+      },
+      "writtenOn": "2019-02-01T02:23:13Z",
+      "side": 1,
+      "message": "I mean using a java.time.Duration object instead of an int. But it\u0027s orthogonal to this change.",
+      "parentUuid": "d54f466c_b3636181",
+      "range": {
+        "startLine": 62,
+        "startChar": 16,
+        "endLine": 62,
+        "endChar": 30
+      },
+      "revId": "2a58209e022e03b82e6c8ff3383d233570dd5379",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
     },
     {
       "key": {
