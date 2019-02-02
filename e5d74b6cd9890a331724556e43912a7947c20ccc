@@ -16,6 +16,24 @@
       "revId": "e5d74b6cd9890a331724556e43912a7947c20ccc",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e0e1ba86_91fd9109",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Cache.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2019-02-02T02:44:50Z",
+      "side": 1,
+      "message": "Done, use synchronizedMap for now, not sure about how/what to tune LoadingCache yet.",
+      "parentUuid": "aae50961_30136f83",
+      "revId": "e5d74b6cd9890a331724556e43912a7947c20ccc",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
     }
   ]
 }
