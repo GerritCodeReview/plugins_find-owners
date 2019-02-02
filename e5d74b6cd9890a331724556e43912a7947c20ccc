@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "aae50961_30136f83",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Cache.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1011842
+      },
+      "writtenOn": "2019-02-02T00:34:44Z",
+      "side": 1,
+      "message": "Should this use Collections.synchronizedMap to handle concurrency?\n\nUsing WeakHashMap feels subtle. I think it would be preferable to use a LoadingCache since that allows the entry lifetime and total resource usage to be tuned more explicitly.",
+      "revId": "e5d74b6cd9890a331724556e43912a7947c20ccc",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    }
+  ]
+}
