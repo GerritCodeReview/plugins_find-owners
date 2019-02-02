@@ -109,6 +109,24 @@
     },
     {
       "key": {
+        "uuid": "9b3ea6a1_089c312e",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Cache.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2019-02-02T00:24:49Z",
+      "side": 1,
+      "message": "I think a WeakHashMap\u003cGitRepositoryManager,Cache\u003e will work.",
+      "parentUuid": "440206e3_fb7ee8a9",
+      "revId": "2a58209e022e03b82e6c8ff3383d233570dd5379",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "45a841c4_7009fa1e",
         "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Cache.java",
         "patchSetId": 2
@@ -141,6 +159,24 @@
       "revId": "2a58209e022e03b82e6c8ff3383d233570dd5379",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6c9513d5_39f29f06",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Cache.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2019-02-02T00:24:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "108639c4_c0e53a00",
+      "revId": "2a58209e022e03b82e6c8ff3383d233570dd5379",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
     },
     {
       "key": {
@@ -215,6 +251,30 @@
     },
     {
       "key": {
+        "uuid": "a4a87c16_0546362c",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Cache.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2019-02-02T00:24:49Z",
+      "side": 1,
+      "message": "Ack.",
+      "parentUuid": "2bfa8ecb_196cd29d",
+      "range": {
+        "startLine": 62,
+        "startChar": 16,
+        "endLine": 62,
+        "endChar": 30
+      },
+      "revId": "2a58209e022e03b82e6c8ff3383d233570dd5379",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "70d6c0d3_ad2fe5b3",
         "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Cache.java",
         "patchSetId": 2
@@ -232,6 +292,24 @@
     },
     {
       "key": {
+        "uuid": "638e83de_4937fab6",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Cache.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2019-02-02T00:24:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "70d6c0d3_ad2fe5b3",
+      "revId": "2a58209e022e03b82e6c8ff3383d233570dd5379",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b85fad88_c8c57059",
         "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Config.java",
         "patchSetId": 2
@@ -246,6 +324,24 @@
       "revId": "2a58209e022e03b82e6c8ff3383d233570dd5379",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "93cfc934_f8428359",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Config.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2019-02-02T00:24:49Z",
+      "side": 1,
+      "message": "Ack. Should fix the style in another CL.",
+      "parentUuid": "b85fad88_c8c57059",
+      "revId": "2a58209e022e03b82e6c8ff3383d233570dd5379",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
     }
   ]
 }
