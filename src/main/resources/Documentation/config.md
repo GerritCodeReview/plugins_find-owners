@@ -6,7 +6,7 @@ details of each configuration rule and variable.
 
 ## Example from AOSP
 
-The **find-owners** plugin is used in Android Open Source Project (AOSP).
+The `find-owners` plugin is used in Android Open Source Project (AOSP).
 Here is [one AOSP change](https://android-review.googlesource.com/c/platform/build/+/734949)
 that modified multiple OWNERS files.
 If you sign in to the AOSP Gerrit server,
@@ -16,58 +16,52 @@ it will pop up a window with *owners* of the changed files.
 The AOSP Gerrit server and projects are configured with the
 following steps:
 
-1. Enable the plugin in Gerrit configuration file **gerrit.config**:
-
-    ```text
+1. Enable the plugin in Gerrit configuration file `gerrit.config`:
+    ```bash
     [plugin "find-owners"]
         enable = true
         maxCacheAge = 30
         maxCacheSize = 2000
         alwaysShowButton = true
     ```
+    * **enable = true** enables the plugin for all projects.
+    * **maxCacheAge** is the number of seconds owners info will stay in
+      a cache before refreshed. This reduces repeated access to the same
+      OWNERS files in a repository. If it is set to 0 (default), there will
+      be no cache.
+    * **maxCacheSize** limits the number of owners info stored in the
+      cache to reduce memory footprint.
+    * **alwaysShowButton** parameter is useful for older Gerrit UI.
+      Current Gerrit UI always displays the `[FIND OWNERS]` button.
 
-  * **maxCacheAge** is the number of seconds owners info will stay in
-    a cache before refreshed. This reduces repeated access to the same
-    OWNERS files in a repository. If it is set to 0 (default), there will
-    be no cache.
-  * **maxCacheSize** limits the number of owners info stored in the
-    cache to reduce memory footprint.
-  * **alwaysShowButton** parameter is useful for older Gerrit UI.
-    Current Gerrit UI always displays the `[FIND OWNERS]` button.
-
-2. Enable the upload validator in **project.config** of
-   the **All-Projects** project, in the **refs/meta/config** branch:
-
-    ```text
+1. Enable the upload validator in `project.config` of
+   the `All-Projects` project, in the `refs/meta/config` branch:
+    ```bash
     [plugin "find-owners"]
         rejectErrorInOwners = true
     ```
+    * The upload validator checks basic syntax of uploaded OWNERS files.
+      It also checks if all email addresses used in OWNERS files
+      belong to active Gerrit accounts.
+    * All other Gerrit projects inherit from `All-Projects`,
+      so they have the same enabled upload validator.
 
-  * The upload validator checks basic syntax of uploaded OWNERS files.
-  * It also checks if all email addresses used in OWNERS files
-    belong to active Gerrit accounts.
-  * All other Gerrit projects inherit from **All-Projects**,
-    so they have the same enabled upload validator.
-
-2. Optionally redefine **OWNERS** file name in **project.config** of
-   some projects, in the **refs/meta/config** branch:
-
-    ```text
+1. Optionally redefine **OWNERS** file name in `project.config` of
+   some projects, in the `refs/meta/config` branch:
+    ```bash
     [plugin "find-owners"]
         ownersFileName = OWNERS.android
     ```
+    * The AOSP `platform/external/v8` project keeps a copy of upstream
+      source from https://github.com/v8/v8.
+    * The v8 upstream source already has its `OWNERS` files
+      that do not work with AOSP Gerrit, because the Email addresses
+      in those files are not all active developers for AOSP.
+      So we need to use different *owners* files,
+      with the `OWNERS.android` file name.
 
-  * The AOSP **platform/external/v8** project keeps a copy of upstream
-    source from https://github.com/v8/v8.
-  * The v8 upstream source already has its **OWNERS** files
-    that do not work with AOSP Gerrit, because the Email addresses
-    in those files are not all active developers for AOSP.
-    So we need to use different *owners* files,
-    with the **OWNERS.android** file name.
-
-4. Call the submit filters in **rules.pl** of **All-Projects**,
-   in the **refs/meta/config** branch:
-
+1. Call the submit filters in `rules.pl` of `All-Projects`,
+   in the `refs/meta/config` branch:
     ```prolog
     % Special projects, branches, user accounts can opt out owners review.
     % To disable all find_owners rules, add opt_out_find_owners :- true.
@@ -116,16 +110,15 @@ following steps:
       change_find_owners_labels(T, R).
 
     ```
-
-  * With the predefined Gerrit Prolog rules, any project, branch, or
-    user can be matched and added to the **opt_out_find_owners**
-    or **opt_in_find_owners** rules.
-  * If the **submit_filter** output contains
-    **label('Owner-Review-Vote', need(_))**,
-    the Gerrit change cannot be submitted.
-  * For a simpler configuration without opt-out projects,
-    just call **find_owners:submit_filter**
-    and **change_find_owners_labels**.
+    * With the predefined Gerrit Prolog rules, any project, branch, or
+      user can be matched and added to the `opt_out_find_owners`
+      or `opt_in_find_owners` rules.
+    * If the `submit_filter` output contains
+      `label('Owner-Review-Vote', need(_))`,
+      the Gerrit change cannot be submitted.
+    * For a simpler configuration without opt-out projects,
+      just call `find_owners:submit_filter`
+      and `change_find_owners_labels`.
 
 
 ## The **`submit_rule`** and **`submit_filter`**
