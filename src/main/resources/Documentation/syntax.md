@@ -54,18 +54,25 @@ SPACE      := any white space character
 ### Examples
 
 ```bash
-  # a comment starts with # to EOL; leading spaces are ignored
-set noparent  # do not inherit owners defined in parent directories
+  # A comment starts with # to EOL; leading spaces are ignored.
+  # Empty lines are ignored.
+
+set noparent  # Do not inherit owners defined in parent directories.
+# By default, parent directories are searched upwardly, and all
+# found OWNERS files are included until a "set noparent" is found.
+
 include P1/P2:/core/OWNERS  # include file core/OWNERS of project P1/P2
-include ../base/OWNERS  # include with relative path to the current directory
+include ../base/OWNERS  # include <this_owner_file_dir>/../base/OWNERS
+
 per-file *.c,*.cpp = x@g.com,y@g.com,z@g.com
-         # x@, y@ and z@ are owners of all .c or .cpp files
+# x@, y@ and z@ are owners of all *.c or *.cpp files
 per-file *.c = c@g.com
-         # c@, x@, y@ and z@ are owners of all .c files
+# c@, x@, y@ and z@ are owners of all *.c files
+per-file *.xml,README:*
+# no owner for *.xml and README files
+
 abc@g.com  # one default owner
 xyz@g.com  # another default owner
-           # abc@ and xyz@ are owners for all files in this directory,
-           # except *.c, *.cpp, *.xml, and README files
-per-file *.xml,README:*  # no owner for *.xml and README files
-
+# abc@ and xyz@ are owners for all files in this directory,
+# except *.c, *.cpp, *.xml, and README files
 ```

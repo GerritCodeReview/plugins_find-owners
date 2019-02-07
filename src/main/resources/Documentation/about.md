@@ -6,14 +6,16 @@ Changes to those files or directories will
 need *owner's* review and approval before submission,
 with some exceptions.
 
-**OWNERS** files syntax is described in [syntax.md](syntax.md).
-Projects with **OWNERS** file should be configured with
-Prolog `submit_rule` or `submit_filter`, see [config.md](config.md).
+* Syntax and some examples of **OWNERS** files are described in [syntax.md](syntax.md).
 
-A **[FIND OWNERS]** action button is added to the Gerrit revision screen.
-The button pops up a window that contains
-* owners of changed files for users to select to add to the reviewers list, and
-* changed files without required *owner* code review vote.
+* Configuration examples of this plugin are included in [config.md](config.md).
+  Prolog `submit_rule` or `submit_filter` are used to enforce
+  *owner's* review and approval for projects with **OWNERS** files.
 
-A REST API is added to get owners information of a change.
-The API is described in [rest-api.md](rest-api.md).
+* A **[FIND OWNERS]** action button is added to the Gerrit revision screen.
+  The button pops up a window that contains
+    * owners of changed files for users to select to add to the reviewers list, and
+    * changed files without required *owner* code review vote.
+
+* A REST API is added to get owners information of a change.
+  The API is described in [rest-api.md](rest-api.md).
