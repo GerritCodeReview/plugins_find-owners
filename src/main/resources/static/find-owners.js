@@ -53,18 +53,13 @@ Gerrit.install(function(self) {
         'cursor: pointer;'
         );
     const HTML_BULLET = '<small>&#x2605;</small>'; // a Black Star
-    const HTML_HAS_APPROVAL_HEADER =
-        '<hr><b>Files with +1 or +2 Code-Review vote from owners:</b><br>';
     const HTML_IS_EXEMPTED =
-        '<b>This change is Exempt-From-Owner-Approval.</b>';
-    const HTML_NEED_REVIEWER_HEADER =
-        '<hr><b>Files without owner reviewer:</b><br>';
-    const HTML_NEED_APPROVAL_HEADER =
-        '<hr><b>Files without Code-Review vote from an owner:</b><br>';
+        '<b>This change is Exempt-From-Owner-Approval.</b><br>';
+
     const HTML_NO_OWNER =
         '<b>No owner was found for changed files.</b>';
     const HTML_ONSUBMIT_HEADER =
-        '<b>WARNING: Need owner approval vote before submit.</b><hr>';
+        '<b>WARNING: Need owner Code-Review vote before submit.</b><hr>';
     const HTML_OWNERS_HEADER = '<hr><b>Owners in alphabetical order:</b><br>';
     const HTML_SELECT_REVIEWERS =
         '<b>Check the box before owner names to select reviewers, ' +
@@ -76,13 +71,40 @@ Gerrit.install(function(self) {
         'Exempt-From-Owner-Approval:</span></b> ' +
         '<i>reasons...</i>" in the Commit Message.)</small><br>';
 
+    // Changed files are put into groups.
+    // Each group has a unique list of owners and
+    // belongs to one of the 5 types based on owner status.
+    // Groups of a type are displayed in one HTML section.
+    // Group type names are mapped to ordered numbers starting from 0.
+    const GROUP_TYPE = {
+        'NEED_REVIEWER':  0, // no owner in Reviewers list yet
+        'NEED_APPROVAL':  1, // no owner Code-Review +1 yet
+        'STAR_APPROVED':  2, // has '*', no need of owner vote
+        'OWNER_APPROVED': 3, // has owner approval
+        'HAS_NO_OWNER':   4, // no owner at all, only shown with other types
+    };
+    const NUM_GROUP_TYPES = 5;
+
+    const HTML_GROUP_TYPE_HEADER = [
+        '<hr><b>Files with owners but no owner is in the Reviewers list:</b><br>',
+        '<hr><b>Files with owners but no Code-Review vote from an owner:</b><br>',
+        '<hr><b>Files with owners but can be approved by anyone (*):</b><br>',
+        '<hr><b>Files with +1 or +2 Code-Review vote from owners:</b><br>',
+        '<hr><b>Files without any named owner:</b><br>',
+    ];
+
+    const GROUP_TYPE_DIV_ID = [
+        'FindOwners:NeedReviewer',
+        'FindOwners:NeedApproval',
+        'FindOwners:StarApproved',
+        'FindOwners:OwnerApproved',
+        'FindOwners:HasNoOwner',
+    ];
+
     const APPLY_BUTTON_ID = 'FindOwners:Apply';
     const CHECKBOX_ID = 'FindOwners:CheckBox';
     const HEADER_DIV_ID = 'FindOwners:Header';
     const OWNERS_DIV_ID = 'FindOwners:Owners';
-    const HAS_APPROVAL_DIV_ID = 'FindOwners:HasApproval';
-    const NEED_APPROVAL_DIV_ID = 'FindOwners:NeedApproval';
-    const NEED_REVIEWER_DIV_ID = 'FindOwners:NeedReviewer';
 
     // Aliases to values in the context.
     const branch = change.branch;
@@ -199,9 +221,19 @@ Gerrit.install(function(self) {
       setupReviewersMap(reviewerList);
       checkAddRemoveLists(); // update and pop up window at the end
     }
+    function hasStar(owners) {
+      return owners.some(function(owner) {
+        return owner == '*';
+      });
+    }
+    function hasNamedOwner(owners) {
+      return owners.some(function(owner) {
+        return owner != '*';
+      });
+    }
     function hasOwnerReviewer(reviewers, owners) {
       return owners.some(function(owner) {
-        return (owner in reviewers || owner == '*');
+        return owner in reviewers;
       });
     }
     function hasOwnerApproval(votes, owners) {
@@ -273,14 +305,15 @@ Gerrit.install(function(self) {
     function showFilesAndOwners(result, args) {
       var sortedOwners = result.owners.map(
           function(ownerInfo) { return ownerInfo.email; });
-      var groups = {};
-      // group name ==> {needReviewer, needApproval, owners}
-      var groupSize = {};
-      // group name ==> number of files in group
+      var groups = {}; // a map from group_name to
+          // {'type': 0..(NUM_GROUP_TYPES-1),
+          //  'size': num_of_files_in_this_group,
+          //  'owners': space_separated_owner_emails}
       var header = emptyDiv(HEADER_DIV_ID);
-      var needReviewerDiv = emptyDiv(NEED_REVIEWER_DIV_ID);
-      var needApprovalDiv = emptyDiv(NEED_APPROVAL_DIV_ID);
-      var hasApprovalDiv = emptyDiv(HAS_APPROVAL_DIV_ID);
+      var groupTypeDiv = Array(NUM_GROUP_TYPES);
+      for (var i = 0; i < NUM_GROUP_TYPES; i++) {
+        groupTypeDiv[i] = emptyDiv(GROUP_TYPE_DIV_ID[i]);
+      }
       addApplyButton();
       args.push(newButton('Cancel', hideFindOwnersPage));
       var ownersDiv = emptyDiv(OWNERS_DIV_ID);
@@ -329,6 +362,9 @@ Gerrit.install(function(self) {
         div.style.display = 'inline';
         div.appendChild(strElement(title));
         function addOwner(ownerEmail) {
+          if (ownerEmail == '*') {
+            return; // no need to list/select '*'
+          }
           numCheckBoxes++;
           var name = ownerEmail.replace(/@[^ ]*/g, '');
           owner2email[name] = ownerEmail;
@@ -351,9 +387,9 @@ Gerrit.install(function(self) {
         }
         keys.forEach(function(key) {
           var owners = groups[key].owners; // string of owner emails
-          var numFiles = groupSize[key];
+          var numFiles = groups[key].size;
           var item = HTML_BULLET + '&nbsp;<b>' + key + '</b>' +
-              ((numFiles > 1) ? (' (' + numFiles + ' files):') : ':');
+              ((numFiles > 1) ? (' (' + numFiles + ' files)') : '');
           var setOfOwners = new Set(owners.split(' '));
           function add2list(list, email) {
             if (setOfOwners.has(email)) {
@@ -361,8 +397,12 @@ Gerrit.install(function(self) {
             }
             return list;
           }
+          var reducedList = sortedOwners.reduce(add2list, []);
+          if (hasNamedOwner(reducedList)) {
+            item += ':';
+          }
           div.appendChild(strElement(item));
-          sortedOwners.reduce(add2list, []).forEach(addOwner);
+          reducedList.forEach(addOwner);
           div.appendChild(br());
         });
       }
@@ -375,59 +415,81 @@ Gerrit.install(function(self) {
         }
         result.owners.sort(compareOwnerInfo).forEach(function(ownerInfo) {
           var email = ownerInfo.email;
-          var vote = reviewerVote[email];
-          if ((email in reviewerVote) && vote != 0) {
-            email += ' <font color="' +
-                ((vote > 0) ? 'green">(+' : 'red">(') + vote + ')</font>';
+          if (email != '*') { // do not list special email *
+            var vote = reviewerVote[email];
+            if ((email in reviewerVote) && vote != 0) {
+              email += ' <font color="' +
+                  ((vote > 0) ? 'green">(+' : 'red">(') + vote + ')</font>';
+            }
+            div.appendChild(strElement('&nbsp;&nbsp;' + email + '<br>'));
           }
-          div.appendChild(strElement('&nbsp;&nbsp;' + email + '<br>'));
         });
       }
       function updateDivContent() {
-        var groupNeedReviewer = [];
-        var groupNeedApproval = [];
-        var groupHasApproval = [];
+        var listOfGroup = Array(NUM_GROUP_TYPES);
+        for (var i = 0; i < NUM_GROUP_TYPES; i++) {
+          listOfGroup[i] = [];
+        }
+        Object.keys(groups).sort().forEach(function(key) {
+          listOfGroup[groups[key].type].push(key);
+        });
+        showDiv(header, isExemptedFromOwnerApproval() ? HTML_IS_EXEMPTED :
+            ((onSubmit ? HTML_ONSUBMIT_HEADER : '') + HTML_SELECT_REVIEWERS));
         numCheckBoxes = 0;
         owner2boxes = {};
-        Object.keys(groups).sort().forEach(function(key) {
-          var g = groups[key];
-          if (g.needReviewer) {
-            groupNeedReviewer.push(key);
-          } else if (g.needApproval) {
-            groupNeedApproval.push(key);
-          } else {
-            groupHasApproval.push(key);
-          }
-        });
-        showDiv(header,
-                (onSubmit ? HTML_ONSUBMIT_HEADER : '') + HTML_SELECT_REVIEWERS);
-        addGroupsToDiv(needReviewerDiv, groupNeedReviewer,
-                       HTML_NEED_REVIEWER_HEADER);
-        addGroupsToDiv(needApprovalDiv, groupNeedApproval,
-                       HTML_NEED_APPROVAL_HEADER);
-        addGroupsToDiv(hasApprovalDiv, groupHasApproval,
-                       HTML_HAS_APPROVAL_HEADER);
+        for (var i = 0; i < NUM_GROUP_TYPES; i++) {
+          addGroupsToDiv(groupTypeDiv[i], listOfGroup[i], HTML_GROUP_TYPE_HEADER[i]);
+        }
         addOwnersDiv(ownersDiv, HTML_OWNERS_HEADER);
       }
       function createGroups() {
         var owners2group = {}; // owner list to group name
-        Object.keys(result.file2owners).sort().forEach(function(name) {
+        var firstNoOwnerFile = null;
+        var keysOfFile2Owners = Object.keys(result.file2owners);
+        keysOfFile2Owners.sort().forEach(function(name) {
           var splitOwners = result.file2owners[name];
           var owners = splitOwners.join(' ');
           if (owners in owners2group) {
-            groupSize[owners2group[owners]] += 1;
+            groups[owners2group[owners]].size += 1;
           } else {
             owners2group[owners] = name;
-            groupSize[name] = 1;
-            var needReviewer = !hasOwnerReviewer(reviewerId, splitOwners);
-            var needApproval = !needReviewer &&
-                !hasOwnerApproval(reviewerVote, splitOwners);
-            groups[name] = {
-              'needReviewer': needReviewer,
-              'needApproval': needApproval,
-              'owners': owners};
+            var type;
+            if (!hasNamedOwner(splitOwners)) {
+              firstNoOwnerFile = name;
+              type = GROUP_TYPE.HAS_NO_OWNER;
+            } else if (hasOwnerApproval(reviewerVote, splitOwners)) {
+              type = GROUP_TYPE.OWNER_APPROVED;
+            } else if (hasStar(splitOwners)) {
+              type = GROUP_TYPE.STAR_APPROVED;
+            } else if (!hasOwnerReviewer(reviewerId, splitOwners)) {
+              type = GROUP_TYPE.NEED_REVIEWER;
+            } else {
+              type = GROUP_TYPE.NEED_APPROVAL;
+            }
+            groups[name] = {'type':type, 'size':1, 'owners':owners};
           }
         });
+        var numNoOwnerFiles = result.files.length - keysOfFile2Owners.length;
+        if (keysOfFile2Owners.length > 0 && numNoOwnerFiles > 0) {
+          if (!!firstNoOwnerFile) {
+            // count other files as HAS_NO_OWNER
+            groups[firstNoOwnerFile].size += numNoOwnerFiles;
+          } else {
+            // use one of the no-owner-file as group name
+            for (var i = 0; i < result.files.length; i++) {
+              var name = result.files[i];
+              if (!(name in result.file2owners) &&
+                  !(('./' + name) in result.file2owners)) {
+                groups[name] = {
+                  'type': GROUP_TYPE.HAS_NO_OWNER,
+                  'size': numNoOwnerFiles,
+                  'owners': '*',
+                };
+                break;
+              }
+            }
+          }
+        }
       }
       createGroups();
       updateDivContent();
@@ -435,9 +497,7 @@ Gerrit.install(function(self) {
     function showFindOwnersResults(result) {
       function prepareElements() {
         var elems = [];
-        var text = isExemptedFromOwnerApproval() ? HTML_IS_EXEMPTED :
-            (Object.keys(result.file2owners).length <= 0 ?
-                HTML_NO_OWNER : null);
+        var text = Object.keys(result.file2owners).length <= 0 ? HTML_NO_OWNER : null;
         useContextPopup = !!context && !!text && !!context.popup;
         if (!!text) {
           if (useContextPopup) {

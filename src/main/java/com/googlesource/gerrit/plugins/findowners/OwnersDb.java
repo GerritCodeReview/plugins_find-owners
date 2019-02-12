@@ -90,7 +90,7 @@ class OwnersDb {
       logException(logs, "HostName:", e);
     }
     logs.add("key:" + key);
-    preferredEmails.put("*", "*");
+    preferredEmails.put("*", "*"); // '*' maps to itself, has no user account
     String projectName = projectState.getName();
     logs.add("project:" + projectName);
     String ownersFileName = config.getOwnersFileName(projectState, changeData);
@@ -291,7 +291,7 @@ class OwnersDb {
       int distance = 1;
       FileSystem fileSystem = FileSystems.getDefault();
       // Collect all matched (path, distance) in all OWNERS files for
-      // fileName. Add them only if there is no special "*" owner.
+      // fileName. Add all of them, even with the special "*" owner.
       ArrayList<String> paths = new ArrayList<>();
       ArrayList<Integer> distances = new ArrayList<>();
       boolean foundStar = false;
@@ -317,8 +317,7 @@ class OwnersDb {
         if (paths.size() == savedSizeOfPaths) {
           foundStar |= findStarOwner(dirPath + "/", distance, paths, distances);
         }
-        if (foundStar // This file can be approved by anyone, no owner.
-            || stopLooking.contains(dirPath + "/") // stop looking parent
+        if (stopLooking.contains(dirPath + "/") // stop looking parent
             || !dirPath.contains("/") /* root */) {
           break;
         }
@@ -327,11 +326,10 @@ class OwnersDb {
         }
         dirPath = Util.getDirName(dirPath); // go up one level
       }
-      if (!foundStar) {
-        addOwnerWeights(paths, distances, fileName, file2Owners, ownerWeights, logs);
-      } else {
+      if (foundStar) {
         logs.add("found * in:" + fileName);
       }
+      addOwnerWeights(paths, distances, fileName, file2Owners, ownerWeights, logs);
     }
     return file2Owners;
   }
