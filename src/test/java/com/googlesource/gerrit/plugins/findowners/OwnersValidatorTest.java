@@ -128,31 +128,46 @@ public class OwnersValidatorTest {
     }
   }
 
+  private static final String INCLUDE_STMT1 = "  include  p1/p2 : /d1/owners";
+
+  private static final String INCLUDE_STMT2 = "include  ../d2/owners ";
+
   private static final ImmutableMap<String, String> FILES_WITH_NO_ERROR =
       ImmutableMap.of(
           OWNERS,
           "\n\n#comments ...\n  ###  more comments\n"
+              + INCLUDE_STMT1 + "\n"
+              + INCLUDE_STMT2 + "\n"
               + "   user1@google.com # comment\n"
               + "u1+review@g.com###\n"
               + " * # everyone can approve\n"
               + "per-file   *.py=u2.m@g.com   \n"
               + "per-file *.c, *.java ,A*bp = u1@g.com, u1+review@g.com  ,u2.m@g.com#comment\n"
               + "  per-file *.txt = * # everyone can approve #  \n"
+              + "per-file *.java = set noparent #  \n"
               + "  set   noparent  # comment#\n");
 
   private static final ImmutableSet<String> EXPECTED_VERBOSE_OUTPUT =
       ImmutableSet.of(
           "MSG: validate: " + OWNERS,
+          "MSG: unchecked: OWNERS:5: " + INCLUDE_STMT1,
+          "MSG: unchecked: OWNERS:6: " + INCLUDE_STMT2,
           "MSG: owner: u1+review@g.com",
           "MSG: owner: u1@g.com",
           "MSG: owner: u2.m@g.com",
           "MSG: owner: user1@google.com");
 
+  private static final ImmutableSet<String> EXPECTED_NON_VERBOSE_OUTPUT =
+      ImmutableSet.of(
+          "MSG: unchecked: OWNERS:5: " + INCLUDE_STMT1,
+          "MSG: unchecked: OWNERS:6: " + INCLUDE_STMT2);
+
   @Test
   public void testGoodInput() throws Exception {
     try (RevWalk rw = new RevWalk(repo)) {
       RevCommit c = makeCommit(rw, "Commit good files", FILES_WITH_NO_ERROR);
-      assertThat(validate(rw, c, false, ENABLED_CONFIG)).isEmpty();
+      assertThat(validate(rw, c, false, ENABLED_CONFIG))
+          .containsExactlyElementsIn(EXPECTED_NON_VERBOSE_OUTPUT);
       assertThat(validate(rw, c, true, ENABLED_CONFIG))
           .containsExactlyElementsIn(EXPECTED_VERBOSE_OUTPUT);
     }

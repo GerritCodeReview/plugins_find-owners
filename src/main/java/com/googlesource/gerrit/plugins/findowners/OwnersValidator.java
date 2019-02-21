@@ -253,9 +253,11 @@ public class OwnersValidator implements CommitValidationListener {
       // no email address to check
     } else if ((email = Parser.parseEmail(line)) != null) {
       collectEmail(email2lines, email, path, lineNumber);
-    } else if ((emails = Parser.parsePerFileEmails(line)) != null) {
+    } else if ((emails = Parser.parsePerFileOwners(line)) != null) {
       for (String e : emails) {
-        collectEmail(email2lines, e, path, lineNumber);
+        if (!e.equals(Parser.TOK_SET_NOPARENT)) {
+          collectEmail(email2lines, e, path, lineNumber);
+        }
       }
     } else if (Parser.isInclude(line)) {
       // Included "OWNERS" files will be checked by themselves.
