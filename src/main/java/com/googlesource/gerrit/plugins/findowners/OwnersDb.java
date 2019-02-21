@@ -64,6 +64,7 @@ class OwnersDb {
   Map<String, Set<String>> path2Owners = new HashMap<>(); // dir or file glob to owner emails
   Set<String> readDirs = new HashSet<>(); // directories in which we have checked OWNERS
   Set<String> stopLooking = new HashSet<>(); // directories where OWNERS has "set noparent"
+  Set<String> noParentGlobs = new HashSet<>(); // per-file globs with "set noparent"
   Map<String, String> preferredEmails = new HashMap<>(); // owner email to preferred email
   List<String> errors = new ArrayList<>(); // error messages
   List<String> logs = new ArrayList<>(); // trace/debug messages
@@ -172,8 +173,12 @@ class OwnersDb {
     Util.addToMap(owner2Paths, owner, path);
     Util.addToMap(path2Owners, path, owner);
     if (path.length() > 0 && path.charAt(path.length() - 1) != '/') {
-      Util.addToMap(dir2Globs, Util.getDirName(path) + "/", path); // A file glob.
+      add2dir2Globs(Util.getDirName(path) + "/", path); // A file glob.
     }
+  }
+
+  void add2dir2Globs(String dir, String glob) {
+    Util.addToMap(dir2Globs, dir, glob);
   }
 
   void addPreferredEmails(Set<String> ownerEmails) {
@@ -222,12 +227,16 @@ class OwnersDb {
     if (result.stopLooking) {
       stopLooking.add(dirPath);
     }
+    noParentGlobs.addAll(result.noParentGlobs);
     addPreferredEmails(result.owner2paths.keySet());
     for (String owner : result.owner2paths.keySet()) {
       String email = preferredEmails.get(owner);
       for (String path : result.owner2paths.get(owner)) {
         addOwnerPathPair(email, path);
       }
+    }
+    for (String glob : result.noParentGlobs) {
+      add2dir2Globs(Util.getDirName(glob) + "/", glob);
     }
     if (config.getReportSyntaxError()) {
       result.warnings.forEach(w -> logger.atWarning().log(w));
@@ -286,7 +295,7 @@ class OwnersDb {
     for (String fileName : files) {
       fileName = Util.addDotPrefix(fileName);
       logs.add("checkFile:" + fileName);
-      String dirPath = Util.getParentDir(fileName);
+      String dirPath = Util.getParentDir(fileName); // ".", "./d1", "./d1/d2", etc.
       String baseName = fileName.substring(dirPath.length() + 1);
       int distance = 1;
       FileSystem fileSystem = FileSystems.getDefault();
@@ -298,26 +307,26 @@ class OwnersDb {
       while (true) {
         int savedSizeOfPaths = paths.size();
         logs.add("checkDir:" + dirPath);
+        boolean foundNoParentGlob = false;
         if (dir2Globs.containsKey(dirPath + "/")) {
           Set<String> patterns = dir2Globs.get(dirPath + "/");
           for (String pat : patterns) {
             PathMatcher matcher = fileSystem.getPathMatcher("glob:" + pat);
             if (matcher.matches(Paths.get(dirPath + "/" + baseName))) {
               foundStar |= findStarOwner(pat, distance, paths, distances);
+              foundNoParentGlob |= noParentGlobs.contains(pat);
               // Do not break here, a file could match multiple globs
               // with different owners.
               // OwnerWeights.add won't add duplicated files.
             }
           }
-          // NOTE: A per-file directive can only specify owner emails,
-          // not "set noparent".
         }
-        // If baseName does not match per-file glob, paths is not changed.
-        // Then we should check the general non-per-file owners.
-        if (paths.size() == savedSizeOfPaths) {
+        // Unless foundNoParentGlob, we should check the general non-per-file owners.
+        if (!foundNoParentGlob) {
           foundStar |= findStarOwner(dirPath + "/", distance, paths, distances);
         }
         if (stopLooking.contains(dirPath + "/") // stop looking parent
+            || foundNoParentGlob                // per-file "set noparent"
             || !dirPath.contains("/") /* root */) {
           break;
         }

@@ -31,34 +31,13 @@ import java.util.regex.Pattern;
 /**
  * Parse lines in an OWNERS file and put them into an OwnersDb.
  *
- * <p>OWNERS file syntax:
- *
- * <pre>
- * lines      := (\s* line? \s* "\n")*
- * line       := "set" \s+ "noparent"
- *            | "per-file" \s+ globs \s* "=" \s* directives
- *            | "file:" \s* glob
- *            | "include" SPACE+ (project SPACE* ":" SPACE*)? filePath
- *            | comment
- *            | directive
- * project    := a Gerrit absolute project path name without space or column character
- * filePath   := a file path name without space or column character
- * directives := directive (comma directive)*
- * directive  := email_address
- *            |  "*"
- * globs      := glob (comma glob)*
- * glob       := [a-zA-Z0-9_-*?.]+
- * comma      := \s* "," \s*
- * comment    := "#" [^"\n"]*
- * </pre>
- *
- * <p>The "file:" directive is not implemented yet.
- *
- * <p>"per-file globs = directives" applies each directive to files matching any of the globs.
- * A glob does not contain directory path.
+ * The syntax, semantics, and some examples are included in syntax.md.
  */
 class Parser {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
+  // Artifical owner token for "set noparent" when used in per-file.
+  protected static final String TOK_SET_NOPARENT = "set noparent";
 
   // Globs and emails are separated by commas with optional spaces around a comma.
   protected static final String COMMA = "[\\s]*,[\\s]*"; // used in unit tests
@@ -72,6 +51,8 @@ class Parser {
 
   // TODO: have a more precise email address pattern.
   private static final String  EMAIL_OR_STAR = "([^\\s<>@,]+@[^\\s<>@#,]+|\\*)";
+  private static final String  EMAIL_LIST =
+      "(" + EMAIL_OR_STAR + "(" + COMMA + EMAIL_OR_STAR + ")*)";
 
   // A Gerrit project name followed by a column and optional spaces.
   private static final String  PROJECT_NAME = "([^\\s:]+" + COLUMN + ")?";
@@ -81,21 +62,24 @@ class Parser {
 
   private static final String  PROJECT_AND_FILE = PROJECT_NAME + FILE_PATH;
 
+  private static final String  SET_NOPARENT = "set[\\s]+noparent";
+
   // Simple input lines with 0 or 1 sub-pattern.
   private static final Pattern PAT_COMMENT = Pattern.compile(BOL + EOL);
   private static final Pattern PAT_EMAIL = Pattern.compile(BOL + EMAIL_OR_STAR + EOL);
   private static final Pattern PAT_FILE = Pattern.compile(BOL + "file:.*" + EOL);
   private static final Pattern PAT_INCLUDE =
       Pattern.compile(BOL + "include[\\s]+" + PROJECT_AND_FILE + EOL);
-  private static final Pattern PAT_NO_PARENT = Pattern.compile(BOL + "set[\\s]+noparent" + EOL);
+  private static final Pattern PAT_NO_PARENT = Pattern.compile(BOL + SET_NOPARENT + EOL);
 
-  // Patterns to match trimmed globs and emails in per-file lines.
-  private static final Pattern PAT_EMAIL_LIST =
-      Pattern.compile("^(" + EMAIL_OR_STAR + "(" + COMMA + EMAIL_OR_STAR + ")*)$");
+  // Patterns to match trimmed globs, emails, and set noparent in per-file lines.
+  private static final Pattern PAT_PER_FILE_OWNERS =
+      Pattern.compile("^(" + EMAIL_LIST + "|(" + SET_NOPARENT + "))$");
   private static final Pattern PAT_GLOBS =
       Pattern.compile("^(" + GLOB + "(" + COMMA + GLOB + ")*)$");
   // PAT_PER_FILE matches a line to two groups: (1) globs, (2) emails
-  // Trimmed 1st group should match PAT_GLOBS; trimmed 2nd group should match PAT_EMAIL_LIST.
+  // Trimmed 1st group should match PAT_GLOBS;
+  // trimmed 2nd group should match PAT_PER_FILE_OWNERS.
   private static final Pattern PAT_PER_FILE =
       Pattern.compile(BOL + "per-file[\\s]+([^=#]+)=[\\s]*([^#]+)" + EOL);
 
@@ -165,18 +149,22 @@ class Parser {
     return parts;
   }
 
+  static String removeExtraSpaces(String s) {
+    return s.trim().replaceAll("[\\s]+", " ");
+  }
+
   static String[] parsePerFile(String line) {
     Matcher m = PAT_PER_FILE.matcher(line);
     if (!m.matches() || !isGlobs(m.group(1).trim())
-        || !PAT_EMAIL_LIST.matcher(m.group(2).trim()).matches()) {
+        || !PAT_PER_FILE_OWNERS.matcher(m.group(2).trim()).matches()) {
       return null;
     }
-    return new String[]{m.group(1).trim(), m.group(2).trim()};
+    return new String[]{removeExtraSpaces(m.group(1)), removeExtraSpaces(m.group(2))};
   }
 
-  static String[] parsePerFileEmails(String line) {
-    String[] globsAndEmails = parsePerFile(line);
-    return (globsAndEmails != null) ? globsAndEmails[1].split(COMMA, -1) : null;
+  static String[] parsePerFileOwners(String line) {
+    String[] globsAndOwners = parsePerFile(line);
+    return (globsAndOwners != null) ? globsAndOwners[1].split(COMMA, -1) : null;
   }
 
   static class Result {
@@ -184,23 +172,24 @@ class Parser {
     List<String> warnings; // warning messages
     List<String> errors; // error messages
     Map<String, Set<String>> owner2paths; // maps from owner email to pathGlobs
+    Set<String> noParentGlobs; // per-file dirpath+glob with "set noparent"
 
     Result() {
       stopLooking = false;
       warnings = new ArrayList<>();
       errors = new ArrayList<>();
       owner2paths = new HashMap<>();
+      noParentGlobs = new HashSet<>();
     }
 
     void append(Result r) {
       warnings.addAll(r.warnings);
-      errors.addAll(r.warnings);
+      errors.addAll(r.errors);
       stopLooking |= r.stopLooking; // included file's "set noparent" applies to the including file
       for (String key : r.owner2paths.keySet()) {
-        for (String dir : r.owner2paths.get(key)) {
-          Util.addToMap(owner2paths, key, dir);
-        }
+        Util.addAllToMap(owner2paths, key, r.owner2paths.get(key));
       }
+      noParentGlobs.addAll(r.noParentGlobs);
     }
   }
 
@@ -260,7 +249,7 @@ class Parser {
    */
   void parseLine(Result result, String dir, String line, int num) {
     String email;
-    String[] globsAndEmails;
+    String[] globsAndOwners;
     String[] projectAndFile;
     if (isNoParent(line)) {
       result.stopLooking = true;
@@ -268,11 +257,15 @@ class Parser {
       // ignore comment and empty lines.
     } else if ((email = parseEmail(line)) != null) {
       Util.addToMap(result.owner2paths, email, dir);
-    } else if ((globsAndEmails = parsePerFile(line)) != null) {
-      String[] emails = globsAndEmails[1].split(COMMA, -1);
-      for (String glob : globsAndEmails[0].split(COMMA, -1)) {
-        for (String e : emails) {
-          Util.addToMap(result.owner2paths, e, dir + glob);
+    } else if ((globsAndOwners = parsePerFile(line)) != null) {
+      String[] owners = globsAndOwners[1].split(COMMA, -1);
+      for (String glob : globsAndOwners[0].split(COMMA, -1)) {
+        for (String e : owners) {
+          if (e.equals(Parser.TOK_SET_NOPARENT)) {
+            result.noParentGlobs.add(dir + glob);
+          } else {
+            Util.addToMap(result.owner2paths, e, dir + glob);
+          }
         }
       }
     } else if (isFile(line)) {
