@@ -71,6 +71,39 @@ public class ParserTest {
   }
 
   @Test
+  public void appendResultTest() {
+    String s1 = "a@b@c";
+    String s2 = "**";
+    String e1 = testLineErrorMsg(s1);
+    String e2 = testLineErrorMsg(s2);
+    String w1 = testLineWarningMsg("w1");
+    String w2 = testLineWarningMsg("w2");
+    String b1 = "d1/*.c";
+    String b2 = "d2/*.java";
+    Parser.Result r1 = testLine(s1);
+    Parser.Result r2 = testLine(s2);
+    assertThat(r1.warnings).isEmpty();
+    assertThat(r2.warnings).isEmpty();
+    assertThat(r1.noParentGlobs).isEmpty();
+    assertThat(r2.noParentGlobs).isEmpty();
+    assertThat(r1.errors).containsExactly(e1);
+    assertThat(r2.errors).containsExactly(e2);
+    r1.warnings.add(w1);
+    r2.warnings.add(w2);
+    r1.noParentGlobs.add(b1);
+    r2.noParentGlobs.add(b2);
+    r2.append(r1);
+    assertThat(r2.warnings).containsExactly(w2, w1);
+    assertThat(r2.noParentGlobs).containsExactly(b2, b1);
+    assertThat(r1.noParentGlobs).containsExactly(b1);
+    assertThat(r2.errors).containsExactly(e2, e1);
+    r1.append(r2);
+    assertThat(r1.warnings).containsExactly(w1, w2, w1);
+    assertThat(r1.noParentGlobs).containsExactly(b2, b1); // set union
+    assertThat(r1.errors).containsExactly(e1, e2, e1);
+  }
+
+  @Test
   public void commentLineTest() {
     String[] lines = {"", "   ", "# comment #data", "#any", "  # comment"};
     for (String s : lines) {
@@ -120,22 +153,35 @@ public class ParserTest {
   public void perFileGoodDirectiveTest() {
     String[] directives = {
       "abc@google.com#comment", "  *# comment", "  xyz@gmail.com # comment",
-      "a@g.com  ,  xyz@gmail.com , *  # comment", "*,*#comment", "  a@b,c@d  "
+      "a@g.com  ,  xyz@gmail.com , *  # comment", "*,*#comment", "  a@b,c@d  ",
+      "  set   noparent  ", "\tset\t\tnoparent\t"
     };
     String[] globsList = {"*", "*,*.c", "  *test*.java , *.cc, *.cpp  ", "*.bp,*.mk ,A*  "};
     for (String directive : directives) {
       for (String globs : globsList) {
         String line = "per-file " + globs + "=" + directive;
         Parser.Result result = testLine(line);
-        String[] emailList = directive.replaceAll("#.*$", "").trim().split(Parser.COMMA, -1);
+        String[] directiveList = directive.replaceAll("#.*$", "").trim().split(Parser.COMMA, -1);
         String[] globList = globs.trim().split(Parser.COMMA);
         Arrays.sort(globList);
-        for (String email : emailList) {
-          String[] paths = result.owner2paths.get(email).toArray(new String[1]);
-          assertThat(paths).hasLength(globList.length);
-          Arrays.sort(paths);
-          for (int g = 0; g < globList.length; g++) {
-            assertThat(paths[g]).isEqualTo(mockedTestDir() + globList[g]);
+        String[] owners = Parser.parsePerFileOwners(line);
+        assertThat(owners).hasLength(directiveList.length);
+        for (String email : owners) {
+          String e = email.trim();
+          assertThat(result.stopLooking).isFalse();
+          if (e.equals(Parser.TOK_SET_NOPARENT)) {
+            assertThat(result.owner2paths).isEmpty(); // no other owners in this per-file
+            assertThat(result.noParentGlobs).hasSize(globList.length);
+            for (String glob : globList) {
+              assertThat(result.noParentGlobs).contains(mockedTestDir() + glob);
+            }
+          } else {
+            String[] paths = result.owner2paths.get(e).toArray(new String[1]);
+            assertThat(paths).hasLength(globList.length);  // should not work for "set noparent"
+            Arrays.sort(paths);
+            for (int g = 0; g < globList.length; g++) {
+              assertThat(paths[g]).isEqualTo(mockedTestDir() + globList[g]);
+            }
           }
         }
       }
@@ -145,8 +191,8 @@ public class ParserTest {
   @Test
   public void perFileBadDirectiveTest() {
     String[] directives = {
-      "file://OWNERS", " ** ", "a b@c .co", "a@b@c  #com", "a.<b>@zc#", " set  noparent ",
-      " , a@b  ", "a@b, , c@d  #"
+      "file://OWNERS", " ** ", "a b@c .co", "a@b@c  #com", "a.<b>@zc#",
+      " , a@b  ", "a@b, , c@d  #", "a@b, set noparent"
     };
     for (String directive : directives) {
       String line = "per-file *test*.c=" + directive;

@@ -327,12 +327,12 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
     String ownerA = ownerJson("a@a");
     String ownerB = ownerJson("b@b");
     String ownerC = ownerJson("c@c");
+    String ownerABC = "owners:[ " +ownerA + ", " + ownerB + ", " + ownerC;
     String ownerX = ownerJson("x@x");
-    assertThat(getOwnersResponse(c2)).contains("owners:[ " + ownerX + " ], files:[ t.c ]");
-    // Add "t.txt" file, which has new owners.
+    assertThat(getOwnersResponse(c2)).contains(ownerABC + ", " + ownerX + " ], files:[ t.c ]");
+    // Add "t.txt" file, which has only global default owners.
     PushOneCommit.Result c3 = createChange("3", "t.txt", "Test!");
-    assertThat(getOwnersResponse(c3))
-        .contains("owners:[ " + ownerA + ", " + ownerB + ", " + ownerC + " ], files:[ t.txt ]");
+    assertThat(getOwnersResponse(c3)).contains(ownerABC + " ], files:[ t.txt ]");
   }
 
   @Test
@@ -342,9 +342,31 @@ public class FindOwnersIT extends LightweightPluginDaemonTest {
     PushOneCommit.Result c2 = addFile("2", "d1/OWNERS", "d1@g\nper-file OWNERS=d1o@g\n");
     PushOneCommit.Result c3 = addFile("3", "d2/d1/OWNERS", "d2d1@g\ninclude ../../d1/d1/OWNERS\n");
     PushOneCommit.Result c4 = addFile("4", "d2/OWNERS", "d2@g\nper-file OWNERS=d2o@g");
-    assertThat(getOwnersResponse(c1)).contains("{ ./d1/d1/OWNERS:[ d1d1o@g, d1o@g ] }");
+    // Files that match per-file globs now inherit global default owners.
+    assertThat(getOwnersResponse(c1)).contains(
+        "{ ./d1/d1/OWNERS:[ d1@g, d1d1@g, d1d1o@g, d1o@g ] }");
+    assertThat(getOwnersResponse(c2)).contains("{ ./d1/OWNERS:[ d1@g, d1o@g ] }");
+    assertThat(getOwnersResponse(c3)).contains(
+        "{ ./d2/d1/OWNERS:[ d1d1@g, d1d1o@g, d2@g, d2d1@g, d2o@g ] }");
+    assertThat(getOwnersResponse(c4)).contains("{ ./d2/OWNERS:[ d2@g, d2o@g ] }");
+  }
+
+  @Test
+  public void includePerFileNoParentTest() throws Exception {
+    // Test included file with per-file and set noparent, which affects the including file.
+    PushOneCommit.Result c1 = addFile("1", "d1/d1/OWNERS",
+        "d1d1@g\nper-file OW* = set noparent\nper-file OWNERS=d1d1o@g\n");
+    PushOneCommit.Result c2 = addFile("2", "d1/OWNERS",
+        "d1@g\nper-file OWNERS=d1o@g\nper-file * = set noparent\n");
+    PushOneCommit.Result c3 = addFile( "3", "d2/d1/OWNERS",
+        "per-file O*S=d2d1o@g\nd2d1@g\ninclude ../../d1/d1/OWNERS\n");
+    PushOneCommit.Result c4 = addFile("4",
+        "d2/OWNERS", "d2@g\nper-file OWNERS=d2o@g\nper-file *S=set  noparent \n");
+    // Files that match per-file globs with set noparent do not inherit global default owners.
+    // But include directive can include more per-file owners as in c3.
+    assertThat(getOwnersResponse(c1)).contains("{ ./d1/d1/OWNERS:[ d1d1o@g ] }");
     assertThat(getOwnersResponse(c2)).contains("{ ./d1/OWNERS:[ d1o@g ] }");
-    assertThat(getOwnersResponse(c3)).contains("{ ./d2/d1/OWNERS:[ d1d1o@g, d2o@g ] }");
+    assertThat(getOwnersResponse(c3)).contains("{ ./d2/d1/OWNERS:[ d1d1o@g, d2d1o@g ] }");
     assertThat(getOwnersResponse(c4)).contains("{ ./d2/OWNERS:[ d2o@g ] }");
   }
 

@@ -144,6 +144,7 @@ public class OwnersValidatorTest {
               + "per-file   *.py=u2.m@g.com   \n"
               + "per-file *.c, *.java ,A*bp = u1@g.com, u1+review@g.com  ,u2.m@g.com#comment\n"
               + "  per-file *.txt = * # everyone can approve #  \n"
+              + "per-file *.java = set noparent #  \n"
               + "  set   noparent  # comment#\n");
 
   private static final ImmutableSet<String> EXPECTED_VERBOSE_OUTPUT =
