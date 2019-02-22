@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "08455bfe_e8dff054",
+        "filename": "src/test/java/com/googlesource/gerrit/plugins/findowners/UtilTest.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 204,
+      "author": {
+        "id": 1034308
+      },
+      "writtenOn": "2019-02-22T22:18:09Z",
+      "side": 1,
+      "message": "Is containsExactly() the right choice for any/all of these here? A HashSet doesn\u0027t necessarily have an order, and so I think that containsExactlyInAnyOrder() might be more appropriate.",
+      "range": {
+        "startLine": 204,
+        "startChar": 29,
+        "endLine": 204,
+        "endChar": 44
+      },
+      "revId": "929b532deda6f85acc0eca16c190111ddd93fbfe",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    }
+  ]
+}
