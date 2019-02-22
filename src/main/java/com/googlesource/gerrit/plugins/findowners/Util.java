@@ -94,10 +94,19 @@ class Util {
     return result;
   }
 
-  static void addToMap(Map<String, Set<String>> map, String key, String value) {
+  static void addKeyToMap(Map<String, Set<String>> map, String key) {
     if (map.get(key) == null) {
       map.put(key, new HashSet<>());
     }
+  }
+
+  static void addToMap(Map<String, Set<String>> map, String key, String value) {
+    addKeyToMap(map, key);
     map.get(key).add(value);
+  }
+
+  static void addAllToMap(Map<String, Set<String>> map, String key, Set<String> values) {
+    addKeyToMap(map, key);
+    map.get(key).addAll(values);
   }
 }

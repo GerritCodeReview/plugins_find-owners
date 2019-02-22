@@ -16,6 +16,7 @@ package com.googlesource.gerrit.plugins.findowners;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.google.common.collect.ImmutableSet;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -172,6 +173,54 @@ public class UtilTest {
     for (String s : noStrs) {
       assertThat(Util.parseBoolean(s)).isFalse();
     }
+  }
+
+  @Test
+  public void addKeyToMapTest() {
+     Map<String, Set<String>> m = new HashMap<>();
+     String key1 = "key1";
+     String key2 = "key2";
+     assertThat(m).isEmpty();
+     Util.addKeyToMap(m, key1);
+     assertThat(m).hasSize(1);
+     assertThat(m.get(key1)).isEmpty();
+     Util.addKeyToMap(m, key1);
+     assertThat(m).hasSize(1);
+     assertThat(m.get(key1)).isEmpty();
+     Util.addKeyToMap(m, key2);
+     assertThat(m).hasSize(2);
+     assertThat(m.get(key1)).isEmpty();
+     assertThat(m.get(key2)).isEmpty();
+  }
+
+  @Test
+  public void addToMapTest() {
+     Map<String, Set<String>> m = new HashMap<>();
+     String key1 = "key1";
+     String key2 = "key2";
+     Util.addToMap(m, key1, "v1");
+     Util.addToMap(m, key2, "v2");
+     Util.addToMap(m, key2, "v3");
+     assertThat(m.get(key1)).containsExactlyElementsIn(ImmutableSet.of("v1"));
+     assertThat(m.get(key2)).containsExactlyElementsIn(ImmutableSet.of("v2", "v3"));
+  }
+
+  @Test
+  public void addAllToMapTest() {
+     Map<String, Set<String>> m = new HashMap<>();
+     Set<String> s0 = new HashSet();
+     Set<String> s1 = ImmutableSet.of("v1");
+     Set<String> s2 = ImmutableSet.of("v2");
+     Set<String> s3 = ImmutableSet.of("v2", "v1", "v3");
+     String key = "key";
+     Util.addAllToMap(m, key, s0);
+     assertThat(m.get(key)).containsExactlyElementsIn(s0);
+     Util.addAllToMap(m, key, s1);
+     assertThat(m.get(key)).containsExactlyElementsIn(s1);
+     Util.addAllToMap(m, key, s2);
+     assertThat(m.get(key)).containsExactlyElementsIn(ImmutableSet.of("v2", "v1"));
+     Util.addAllToMap(m, key, s3);
+     assertThat(m.get(key)).containsExactlyElementsIn(s3);
   }
 
   @Test
