@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -146,16 +147,40 @@ public class OwnersValidatorTest {
     }
   }
 
-  private static final String INCLUDE_STMT1 = "  include  p1/p2 : /d1/owners";
+  private static final String[] INCLUDE_STMTS = new String[]{
+      "  include  p1/p2 : /d1/owners",
+      "include  p1/p2://d1/owners #comment",
+      "include ../d2/owners",
+      " per-file *.java = file:  //d2/OWNERS.java #",
+      "per-file *.cpp,*cc=file:p1/p2:/c++owners",
+      "  file:   p1/p2 : /d1/owners ",
+      "file:  p1/p2://d1/owners #comment",
+      "file: ../d2/owners",
+      "file: //OWNERS",
+      "file:///OWNERS.android"};
 
-  private static final String INCLUDE_STMT2 = "include  ../d2/owners ";
+  private static String allIncludeStatements() {
+    String statement = "";
+    for (String s: INCLUDE_STMTS) {
+      statement += s + "\n";
+    }
+    return statement;
+  };
+
+  private static Set<String> allIncludeMsgs() {
+    Set<String> msgs = new HashSet<>();
+    for (int i = 0; i < INCLUDE_STMTS.length; i++) {
+      msgs.add("MSG: unchecked: OWNERS:" + (i + 1)
+          + ": " + Parser.getIncludeOrFile(INCLUDE_STMTS[i]));
+    }
+    return msgs;
+  };
 
   private static final ImmutableMap<String, String> FILES_WITH_NO_ERROR =
       ImmutableMap.of(
           OWNERS,
-          "\n\n#comments ...\n  ###  more comments\n"
-              + INCLUDE_STMT1 + "\n"
-              + INCLUDE_STMT2 + "\n"
+          allIncludeStatements()
+              + "\n\n#comments ...\n  ###  more comments\n"
               + "   user1@google.com # comment\n"
               + "u1+review@g.com###\n"
               + " * # everyone can approve\n"
@@ -165,20 +190,20 @@ public class OwnersValidatorTest {
               + "per-file *.java = set noparent #  \n"
               + "  set   noparent  # comment#\n");
 
-  private static final ImmutableSet<String> EXPECTED_VERBOSE_OUTPUT =
-      ImmutableSet.of(
-          "MSG: validate: " + OWNERS,
-          "MSG: unchecked: OWNERS:5: " + INCLUDE_STMT1,
-          "MSG: unchecked: OWNERS:6: " + INCLUDE_STMT2,
-          "MSG: owner: u1+review@g.com",
-          "MSG: owner: u1@g.com",
-          "MSG: owner: u2.m@g.com",
-          "MSG: owner: user1@google.com");
+  private static Set<String> allVerboseMsgs() {
+    Set<String> msgs = allIncludeMsgs();
+    msgs.add("MSG: validate: " + OWNERS);
+    msgs.add("MSG: owner: u1+review@g.com");
+    msgs.add("MSG: owner: u1@g.com");
+    msgs.add("MSG: owner: u2.m@g.com");
+    msgs.add("MSG: owner: user1@google.com");
+    return msgs;
+  };
 
+  private static final ImmutableSet<String> EXPECTED_VERBOSE_OUTPUT =
+      ImmutableSet.copyOf(allVerboseMsgs());
   private static final ImmutableSet<String> EXPECTED_NON_VERBOSE_OUTPUT =
-      ImmutableSet.of(
-          "MSG: unchecked: OWNERS:5: " + INCLUDE_STMT1,
-          "MSG: unchecked: OWNERS:6: " + INCLUDE_STMT2);
+      ImmutableSet.copyOf(allIncludeMsgs());
 
   @Test
   public void testGoodInput() throws Exception {
@@ -198,27 +223,23 @@ public class OwnersValidatorTest {
           OWNERS,
           "\n\n\nwrong syntax\n#comment\nuser1@google.com\n",
           "d2/" + OWNERS,
-          "u1@g.com\nu3@g.com\n*\n",
-          "d3/" + OWNERS,
-          "\n\nfile: common/Owners\n");
+          "u1@g.com\n\nu3@g.com\n*\n");
+
 
   private static final ImmutableSet<String> EXPECTED_WRONG_SYNTAX =
       ImmutableSet.of(
           "ERROR: syntax: " + OWNERS + ":4: wrong syntax",
-          "ERROR: unknown: u3@g.com at d2/" + OWNERS + ":2",
-          "ERROR: ignored: d3/" + OWNERS + ":3: file: common/Owners");
+          "ERROR: unknown: u3@g.com at d2/" + OWNERS + ":3");
 
   private static final ImmutableSet<String> EXPECTED_VERBOSE_WRONG_SYNTAX =
       ImmutableSet.of(
-          "MSG: validate: d3/" + OWNERS,
           "MSG: validate: d2/" + OWNERS,
           "MSG: validate: " + OWNERS,
           "MSG: owner: user1@google.com",
           "MSG: owner: u1@g.com",
           "MSG: owner: u3@g.com",
           "ERROR: syntax: " + OWNERS + ":4: wrong syntax",
-          "ERROR: unknown: u3@g.com at d2/" + OWNERS + ":2",
-          "ERROR: ignored: d3/" + OWNERS + ":3: file: common/Owners");
+          "ERROR: unknown: u3@g.com at d2/" + OWNERS + ":3");
 
   @Test
   public void testWrongSyntax() throws Exception {
