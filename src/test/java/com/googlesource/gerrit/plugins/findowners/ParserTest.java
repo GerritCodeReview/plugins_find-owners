@@ -35,7 +35,7 @@ public class ParserTest {
   private static Parser.Result testLine(String line) {
     Parser.Result result = new Parser.Result();
     // Single line parser tests do not need repoManager.
-    Parser parser = new Parser(null, mockedProject(), "master", "OWNERS");
+    Parser parser = new Parser(null, null, mockedProject(), "master", "OWNERS");
     parser.parseLine(result, mockedTestDir(), line, 3);
     return result;
   }
@@ -92,15 +92,25 @@ public class ParserTest {
     r2.warnings.add(w2);
     r1.noParentGlobs.add(b1);
     r2.noParentGlobs.add(b2);
-    r2.append(r1);
+    assertThat(r1.owner2paths).isEmpty();
+    assertThat(r2.owner2paths).isEmpty();
+    r2.append(r1, "", true);
+    assertThat(r1.owner2paths).isEmpty();
+    assertThat(r2.owner2paths).isEmpty();
     assertThat(r2.warnings).containsExactly(w2, w1);
     assertThat(r2.noParentGlobs).containsExactly(b2, b1);
     assertThat(r1.noParentGlobs).containsExactly(b1);
     assertThat(r2.errors).containsExactly(e2, e1);
-    r1.append(r2);
-    assertThat(r1.warnings).containsExactly(w1, w2, w1);
-    assertThat(r1.noParentGlobs).containsExactly(b2, b1); // set union
-    assertThat(r1.errors).containsExactly(e1, e2, e1);
+    r1.append(r2, "", true);
+    assertThat(r1.owner2paths).isEmpty();
+    assertThat(r2.owner2paths).isEmpty();
+    // warnings, errors, and noParentGlobs are sets of strings.
+    // containsExctly does not check order of elements.
+    assertThat(r1.warnings).containsExactly(w1, w2);
+    assertThat(r1.warnings).containsExactly(w2, w1);
+    assertThat(r1.noParentGlobs).containsExactly(b2, b1);
+    assertThat(r1.errors).containsExactly(e1, e2);
+    assertThat(r1.errors).containsExactly(e2, e1);
   }
 
   @Test
@@ -130,13 +140,20 @@ public class ParserTest {
 
   @Test
   public void fileLineTest() {
-    // file: directive is not implemented yet.
+    // file: statement should work like include.
     String[] lines = {"file://owners", " file: //d1/owner", "file:owner #"};
     for (String s : lines) {
       Parser.Result result = testLine(s);
-      String expected = testLineWarningMsg(s);
-      assertThat(result.warnings).containsExactly(expected);
+      assertThat(result.warnings).isEmpty();
+      assertThat(result.errors).isEmpty();
     }
+    testOneFileLine("P0", "  file: //common/OWNERS #comment", "P0", "//common/OWNERS");
+    testOneFileLine("P1", "file: Other :  /Group ", "Other", "/Group");
+    testOneFileLine("P2", "file:  /Common/Project: OWNER", "/Common/Project", "OWNER");
+    testOneFileLine("P3", "  file: \tP2/D2:/D3/F.txt", "P2/D2", "/D3/F.txt");
+    testOneFileLine("P4", "  file: \tP2/D2://D3/F.txt", "P2/D2", "//D3/F.txt");
+    testOneFileLine("P5", "\t file: \t P2/D2:\t/D3/F2.txt\n", "P2/D2", "/D3/F2.txt");
+    testOneFileLine("P6", "file:  ../d1/d2/F   \n", "P6", "../d1/d2/F");
   }
 
   @Test
@@ -154,7 +171,8 @@ public class ParserTest {
     String[] directives = {
       "abc@google.com#comment", "  *# comment", "  xyz@gmail.com # comment",
       "a@g.com  ,  xyz@gmail.com , *  # comment", "*,*#comment", "  a@b,c@d  ",
-      "  set   noparent  ", "\tset\t\tnoparent\t"
+      "  set   noparent  ", "\tset\t\tnoparent\t",
+      "file://java.owners", "  file:  p1/p2  :  /OWNERS  "
     };
     String[] globsList = {"*", "*,*.c", "  *test*.java , *.cc, *.cpp  ", "*.bp,*.mk ,A*  "};
     for (String directive : directives) {
@@ -175,6 +193,10 @@ public class ParserTest {
             for (String glob : globList) {
               assertThat(result.noParentGlobs).contains(mockedTestDir() + glob);
             }
+          } else if (e.startsWith("file:")) {
+            // If per-file has file: directive, it cannot have any other directive.
+            assertThat(e).isEqualTo(Parser.removeExtraSpaces(directive));
+            assertThat(owners).hasLength(1);
           } else {
             String[] paths = result.owner2paths.get(e).toArray(new String[1]);
             assertThat(paths).hasLength(globList.length);  // should not work for "set noparent"
@@ -191,8 +213,9 @@ public class ParserTest {
   @Test
   public void perFileBadDirectiveTest() {
     String[] directives = {
-      "file://OWNERS", " ** ", "a b@c .co", "a@b@c  #com", "a.<b>@zc#",
-      " , a@b  ", "a@b, , c@d  #", "a@b, set noparent"
+      " ** ", "a b@c .co", "a@b@c  #com", "a.<b>@zc#",
+      " , a@b  ", "a@b, , c@d  #", "a@b, set noparent",
+      "a@b, file://java.owners", "*,file:OWNERS"
     };
     for (String directive : directives) {
       String line = "per-file *test*.c=" + directive;
@@ -203,12 +226,21 @@ public class ParserTest {
     }
   }
 
-  private void testOneIncludeLine(
-      String project, String line, String parsedProject, String parsedFile) {
+  private void testOneIncludeOrFileLine(
+      String project, String line, String keyword, String projectName, String filePath) {
     String[] results = Parser.parseInclude(project, line);
-    assertThat(results).hasLength(2);
-    assertThat(results[0]).isEqualTo(parsedProject);
-    assertThat(results[1]).isEqualTo(parsedFile);
+    assertThat(results).hasLength(3);
+    assertThat(results[0]).isEqualTo(keyword);
+    assertThat(results[1]).isEqualTo(projectName);
+    assertThat(results[2]).isEqualTo(filePath);
+  }
+
+  private void testOneFileLine(String project, String line, String projectName, String filePath) {
+    testOneIncludeOrFileLine(project, line, "file", projectName, filePath);
+  }
+
+  private void testOneIncludeLine(String project, String line, String projectName, String filePath) {
+    testOneIncludeOrFileLine(project, line, "include", projectName, filePath);
   }
 
   @Test
@@ -219,6 +251,31 @@ public class ParserTest {
     testOneIncludeLine("P3", "  include \tP2/D2:/D3/F.txt", "P2/D2", "/D3/F.txt");
     testOneIncludeLine("P4", "\t include \t P2/D2:\t/D3/F2.txt\n", "P2/D2", "/D3/F2.txt");
     testOneIncludeLine("P5", "include  ../d1/d2/F   \n", "P5", "../d1/d2/F");
+  }
+
+  @Test
+  public void getIncludeOrFileTest() {
+    String[] line = new String[] {
+      "", "wrong input", "INCLUDE X",
+      "include //f2.txt # ",
+      "  include  P1/P2:  ../f1 # ",
+      "  file://f3 # ",
+      "file:  P1:f3",
+      "  per-file *.c,file.c = file:  /OWNERS  # ",
+      "per-file  *=file:P1/P2:  /O# ",
+    };
+    String[] expected = new String[] {
+      "", "", "",
+      "include //f2.txt",
+      "include P1/P2:../f1",
+      "file://f3",
+      "file:P1:f3",
+      "file:/OWNERS",
+      "file:P1/P2:/O",
+    };
+    for (int i = 0; i < line.length; i++) {
+      assertThat(Parser.getIncludeOrFile(line[i])).isEqualTo(expected[i]);
+    }
   }
 
   @Test
