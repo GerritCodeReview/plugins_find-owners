@@ -16,6 +16,7 @@ package com.googlesource.gerrit.plugins.findowners;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+import com.google.common.collect.Ordering;
 import com.google.common.collect.Multimap;
 import com.google.common.flogger.FluentLogger;
 import com.google.gerrit.reviewdb.client.Account;
@@ -100,13 +101,17 @@ class OwnersDb {
       // Some hacked CL could have a target branch that is not created yet.
       ObjectId id = getBranchId(repo, branch, changeData, logs);
       revision = "";
+      // For the same repo and branch id, keep content of all read files to avoid
+      // repeated read. This cache of files should be passed down to the Parser to
+      // avoid reading the same file through "include" or "file:" statements.
+      Map<String, String> readFiles = new HashMap<>();
       if (id != null) {
         if (!ownersFileName.equals(Config.OWNERS) && branch.equals("refs/heads/master")) {
           // If ownersFileName is not the default "OWNERS", and current branch is master,
           // this project should have a non-empty root file of that name.
           // We added this requirement to detect errors in project config files
           // and Gerrit server bugs that return wrong value of "ownersFileName".
-          String content = getFile(repo, id, "/" + ownersFileName, logs);
+          String content = getFile(readFiles, repo, projectName, id, "/" + ownersFileName, logs);
           String found = "Found";
           if (content.isEmpty()) {
             String changeId = Config.getChangeId(changeData);
@@ -122,13 +127,20 @@ class OwnersDb {
           fileName = Util.addDotPrefix(fileName); // e.g.   "./" "./d1/f1" "./d2/d3/"
           String dir = Util.getParentDir(fileName); // e.g. "."  "./d1"    "./d2"
           logs.add("findOwnersFileFor:" + fileName);
+          // Multiple changed files can be in one directory, but each directory
+          // is only searched once for an OWNERS file.
+          // However one OWNERS or any file can be included by OWNERS files in
+          // different directories. In that case, the included file could be parsed
+          // multiple times for different "dir".
+          // Since open/read a Gerrit repositoy file could be slow, getFile should keep
+          // a copy of all read files to avoid repeated read of the same file.
           while (!readDirs.contains(dir)) {
             readDirs.add(dir);
             logs.add("findOwnersFileIn:" + dir);
             String filePath = dir + "/" + ownersFileName;
-            String content = getFile(repo, id, filePath, logs);
+            String content = getFile(readFiles, repo, projectName, id, filePath, logs);
             if (content != null && !content.isEmpty()) {
-              addFile(projectName, branch, dir + "/", dir + "/" + ownersFileName,
+              addFile(readFiles, projectName, branch, dir + "/", dir + "/" + ownersFileName,
                       content.split("\\R+"));
             }
             if (stopLooking.contains(dir + "/") || !dir.contains("/")) {
@@ -221,8 +233,9 @@ class OwnersDb {
     }
   }
 
-  void addFile(String project, String branch, String dirPath, String filePath, String[] lines) {
-    Parser parser = new Parser(repoManager, project, branch, filePath, logs);
+  void addFile(Map<String, String> readFiles, String project, String branch,
+      String dirPath, String filePath, String[] lines) {
+    Parser parser = new Parser(readFiles, repoManager, project, branch, filePath, logs);
     Parser.Result result = parser.parseFile(dirPath, lines);
     if (result.stopLooking) {
       stopLooking.add(dirPath);
@@ -239,8 +252,8 @@ class OwnersDb {
       add2dir2Globs(Util.getDirName(glob) + "/", glob);
     }
     if (config.getReportSyntaxError()) {
-      result.warnings.forEach(w -> logger.atWarning().log(w));
-      result.errors.forEach(w -> logger.atSevere().log(w));
+      Ordering.natural().sortedCopy(result.warnings).forEach(w -> logger.atWarning().log(w));
+      Ordering.natural().sortedCopy(result.errors).forEach(e -> logger.atSevere().log(e));
     }
   }
 
@@ -380,14 +393,14 @@ class OwnersDb {
   }
 
   /** Returns file content or empty string; uses project+branch+file names. */
-  public static String getRepoFile(GitRepositoryManager repoManager,
+  public static String getRepoFile(Map<String, String> readFiles, GitRepositoryManager repoManager,
       String project, String branch, String file, List<String> logs) {
     // 'file' must be an absolute path from the root of 'project'.
     logs.add("getRepoFile:" + project + ":" + branch + ":" + file);
     try (Repository repo = repoManager.openRepository(new Project.NameKey(project))) {
       ObjectId id = repo.resolve(branch);
       if (id != null) {
-        return getFile(repo, id, file, logs);
+        return getFile(readFiles, repo, project, id, file, logs);
       }
       logs.add("getRepoFile not found branch " + branch);
     } catch (Exception e) {
@@ -399,25 +412,33 @@ class OwnersDb {
   }
 
   /** Returns file content or empty string; uses Repository. */
-  private static String getFile(
-      Repository repo, ObjectId id, String file, List<String> logs) {
+  private static String getFile(Map<String, String> readFiles,
+      Repository repo, String project, ObjectId id, String file, List<String> logs) {
     file = Util.gitRepoFilePath(file);
     String header = "getFile:" + file;
+    String key = project + ":" + file;
+    if (readFiles != null && readFiles.get(key) != null) {
+      return readFiles.get(key);
+    }
+    String content = "";
     try (RevWalk revWalk = new RevWalk(repo)) {
       RevTree tree = revWalk.parseCommit(id).getTree();
       ObjectReader reader = revWalk.getObjectReader();
       TreeWalk treeWalk = TreeWalk.forPath(reader, file, tree);
       if (treeWalk != null) {
-        String content = new String(reader.open(treeWalk.getObjectId(0)).getBytes(), UTF_8);
-        logs.add(header + ":" + content);
-        return content;
+        content = new String(reader.open(treeWalk.getObjectId(0)).getBytes(), UTF_8);
+        logs.add(header + ":(...)");
+      } else {
+        logs.add(header + " (NOT FOUND)");
       }
-      logs.add(header + " (NOT FOUND)");
     } catch (Exception e) {
       logger.atSevere().withCause(e).log("get file %s", file);
       logException(logs, "getFile", e);
     }
-    return "";
+    if (readFiles != null) {
+      readFiles.put(key, content);
+    }
+    return content;
   }
 
   /** Adds a header + exception message to the logs. */

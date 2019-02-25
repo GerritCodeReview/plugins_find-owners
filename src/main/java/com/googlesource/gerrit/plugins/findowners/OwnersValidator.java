@@ -241,6 +241,13 @@ public class OwnersValidator implements CommitValidationListener {
     messages.add(new CommitValidationMessage(msg, error));
   }
 
+  private static void checkIncludeOrFile(
+      List<CommitValidationMessage> messages, String path, int num, String line) {
+    // TODO: Check if an included file exists and with valid syntax.
+    // An included file could be a new file added by a CL and not in the repository yet
+    add(messages, "unchecked: " + path + ":" + num + ": " + Parser.getIncludeOrFile(line), false);
+  }
+
   private static void checkLine(
       List<CommitValidationMessage> messages,
       Map<String, Set<String>> email2lines,
@@ -255,17 +262,14 @@ public class OwnersValidator implements CommitValidationListener {
       collectEmail(email2lines, email, path, lineNumber);
     } else if ((emails = Parser.parsePerFileOwners(line)) != null) {
       for (String e : emails) {
-        if (!e.equals(Parser.TOK_SET_NOPARENT)) {
+        if (e.startsWith("file:")) {
+          checkIncludeOrFile(messages, path, lineNumber, line);
+        } else if (!e.equals(Parser.TOK_SET_NOPARENT)) {
           collectEmail(email2lines, e, path, lineNumber);
         }
       }
     } else if (Parser.isInclude(line)) {
-      // Included "OWNERS" files will be checked by themselves.
-      // TODO: Check if the include file path is valid and existence of the included file.
-      // TODO: Check an included file syntax if it is not named as the project ownersFileName.
-      add(messages, "unchecked: " + path + ":" + lineNumber + ": " + line, false);
-    } else if (Parser.isFile(line)) {
-      add(messages, "ignored: " + path + ":" + lineNumber + ": " + line, true);
+      checkIncludeOrFile(messages, path, lineNumber, line);
     } else {
       add(messages, "syntax: " + path + ":" + lineNumber + ": " + line, true);
     }
