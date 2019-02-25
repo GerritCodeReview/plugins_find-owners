@@ -12,7 +12,9 @@ line       := comment
            |  noparent
            |  ownerEmail
            |  "per-file" SPACE+ globs SPACE* "=" SPACE* owners
-           |  "include" SPACE+ (project SPACE* ":" SPACE*)? filePath
+           |  include (project SPACE* ":" SPACE*)? filePath
+include    := "include" SPACE+
+           |  "file:" SPACE*
 comment    := "#" ANYCHAR*
 noparent   := "set" SPACE+ "noparent"
 ownerEmail := email
@@ -39,8 +41,31 @@ SPACE      := any white space character
   of the current including file directory and then searched from the
   (given) project root directory.
 
-* An OWNERS file inherit rules in OWNERS files of parent directories
+* The `file: ...` statement is similar to `include ...`
+    * To be compatible to Google's old OWNERS `file:` directive,
+      the `file: ...` statement ignores the `per-file ...` and
+      `set noparent` lines in the directly or indirectly included files.
+      The `include ...` statement takes all statements in the
+      directly included file.
+    * The `include ...` statement is more general and should be
+      used in new OWNERS files.
+        * Google's `file: <file>` directive only includes files
+          in the same repository. The syntax does not accept a
+          "project path" like the `include ...` statement.
+        * Google's `file: <file>` directive requires the include file
+          to have a name with the 'OWNERS' substring,
+          but `include ...` statement can include any file.
+
+* Recursive or repeated inclusion of the same file is avoided by not
+  including the same file again. However, if a file has been included by
+  the `file: ...` statement, it could be included by `include ...`
+  once more because the `file: ...` statement could have ignored the
+  `set noparent` and `per-file` statements in the included file.
+
+* An OWNERS file inherits rules in OWNERS files of parent directories
   by default, unless `set noparent` is specified.
+  Note that when a file is included into other files,
+  it does not inherit rules in its parent directory's OWNERS files.
 
 * A "glob" is UNIX globbing pathname without the directory path.
 
@@ -50,7 +75,7 @@ SPACE      := any white space character
 
 * `per-file globs = set noparent` is like `set noparent` but applies only to
   files matching any of the `globs`. OWNERS files in parent directories
-  are not considrered for files matching those globs. Even default ownerEmails
+  are not considered for files matching those globs. Even default ownerEmails
   specified in the current OWNERS file are not included.
 
 * Without the `per-file globs = set noparent`, all global ownerEmails also

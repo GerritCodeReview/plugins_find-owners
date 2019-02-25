@@ -264,8 +264,6 @@ public class OwnersValidator implements CommitValidationListener {
       // TODO: Check if the include file path is valid and existence of the included file.
       // TODO: Check an included file syntax if it is not named as the project ownersFileName.
       add(messages, "unchecked: " + path + ":" + lineNumber + ": " + line, false);
-    } else if (Parser.isFile(line)) {
-      add(messages, "ignored: " + path + ":" + lineNumber + ": " + line, true);
     } else {
       add(messages, "syntax: " + path + ":" + lineNumber + ": " + line, true);
     }
