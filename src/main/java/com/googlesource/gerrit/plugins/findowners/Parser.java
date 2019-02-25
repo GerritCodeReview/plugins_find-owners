@@ -67,9 +67,8 @@ class Parser {
   // Simple input lines with 0 or 1 sub-pattern.
   private static final Pattern PAT_COMMENT = Pattern.compile(BOL + EOL);
   private static final Pattern PAT_EMAIL = Pattern.compile(BOL + EMAIL_OR_STAR + EOL);
-  private static final Pattern PAT_FILE = Pattern.compile(BOL + "file:.*" + EOL);
   private static final Pattern PAT_INCLUDE =
-      Pattern.compile(BOL + "include[\\s]+" + PROJECT_AND_FILE + EOL);
+      Pattern.compile(BOL + "(file:[\\s]*|include[\\s]+)" + PROJECT_AND_FILE + EOL);
   private static final Pattern PAT_NO_PARENT = Pattern.compile(BOL + SET_NOPARENT + EOL);
 
   // Patterns to match trimmed globs, emails, and set noparent in per-file lines.
@@ -86,9 +85,21 @@ class Parser {
   // A parser keeps current repoManager, project, branch, included file path, and debug/trace logs.
   private GitRepositoryManager repoManager;
   private String branch; // All owners files are read from the same branch.
-  private Deque<String[]> includeStack; // Keeps include stack of [projectName,filePath].
-  private Set<String> included; // Keeps included files of projectName:filePath
+  private Deque<IncludeInfo> includeStack; // Keeps info of nested included files.
+  private Set<String> includedFiles; // Keeps keyword:projectName:filePath
   private List<String> logs; // Keeps debug/trace messages.
+
+  static class IncludeInfo {
+    String projectName; // project/repository name of included file
+    String filePath; // absolute or relative path of included file
+    boolean includeAll; // include also "set noparent" and "per-file"
+
+    IncludeInfo(String projectName, String filePath, boolean includeAll) {
+      this.projectName = projectName;
+      this.filePath = filePath;
+      this.includeAll = includeAll;
+    }
+  }
 
   Parser(GitRepositoryManager repoManager, String project, String branch, String file) {
     init(repoManager, project, branch, file, new ArrayList<>());
@@ -105,16 +116,13 @@ class Parser {
     this.branch = branch;
     this.logs = logs;
     includeStack = new ArrayDeque<>();
-    included = new HashSet<>();
-    pushProjectFilePaths(project, normalizedRepoDirFilePath(".", file));
+    includedFiles = new HashSet<>();
+    // The first parsed OWNERS file is treated as an "include" file.
+    pushIncludeInfo(project, normalizedRepoDirFilePath(".", file), true);
   }
 
   static boolean isComment(String line) {
     return PAT_COMMENT.matcher(line).matches();
-  }
-
-  static boolean isFile(String line) {
-    return PAT_FILE.matcher(line).matches();
   }
 
   static boolean isInclude(String line) {
@@ -139,14 +147,18 @@ class Parser {
     if (!m.matches()) {
       return null;
     }
-    String[] parts = new String[]{m.group(1), m.group(2).trim()};
-    if (parts[0] != null && parts[0].length() > 0) {
-      // parts[0] has project name followed by ':'
-      parts[0] = parts[0].split(COLUMN, -1)[0].trim();
-    } else {
-      parts[0] = project; // default project name
+    String keyword = m.group(1).trim();
+    if (keyword.equals("file:")) {
+      keyword = "file";
     }
-    return parts;
+    String projectName = m.group(2);
+    if (projectName != null && projectName.length() > 1) {
+      // PROJECT_NAME ends with ':'
+      projectName = projectName.split(COLUMN, -1)[0].trim();
+    } else {
+      projectName = project; // default project name
+    }
+    return new String[]{keyword, projectName, m.group(3).trim()};
   }
 
   static String removeExtraSpaces(String s) {
@@ -207,21 +219,32 @@ class Parser {
     return result;
   }
 
-  private String currentProject() {
-    return includeStack.peek()[0];
+  private boolean currentIncludeAll() {
+    return includeStack.peek().includeAll;
+  }
+
+  private String currentProjectName() {
+    return includeStack.peek().projectName;
   }
 
   private String currentFilePath() {
-    return includeStack.peek()[1];
+    return includeStack.peek().filePath;
   }
 
-  private String combineProjectAndFile(String project, String file) {
-    return project + ":" + file;
+  private String makeIncludedKey(String projectName, String filePath, boolean includeAll) {
+    return (includeAll ? "include:" : "file:") + projectName + ":" + filePath;
   }
 
-  private void pushProjectFilePaths(String project, String file) {
-    includeStack.push(new String[]{project, file});
-    included.add(combineProjectAndFile(project, file));
+  private void pushIncludeInfo(String projectName, String filePath, boolean includeAll) {
+    includeStack.push(new IncludeInfo(projectName, filePath, includeAll));
+    includedFiles.add(makeIncludedKey(projectName, filePath, includeAll));
+  }
+
+  private boolean hasBeenIncluded(String projectName, String filePath, boolean includeAll) {
+    if (includedFiles.contains(makeIncludedKey(projectName, filePath, true))) {
+      return true;
+    }
+    return (!includeAll && includedFiles.contains(makeIncludedKey(projectName, filePath, false)));
   }
 
   private void popProjectFilePaths() {
@@ -250,48 +273,54 @@ class Parser {
   void parseLine(Result result, String dir, String line, int num) {
     String email;
     String[] globsAndOwners;
-    String[] projectAndFile;
+    String[] parsedKPF; // parsed keyword, projectName, filePath
+    boolean includeAll = currentIncludeAll();
     if (isNoParent(line)) {
-      result.stopLooking = true;
+      if (!includeAll) { // ignored if included by the "file:" statement
+        logs.add("parseLine:ignore:" + line);
+      } else {
+        result.stopLooking = true;
+      }
     } else if (isComment(line)) {
       // ignore comment and empty lines.
     } else if ((email = parseEmail(line)) != null) {
       Util.addToMap(result.owner2paths, email, dir);
     } else if ((globsAndOwners = parsePerFile(line)) != null) {
-      String[] owners = globsAndOwners[1].split(COMMA, -1);
-      for (String glob : globsAndOwners[0].split(COMMA, -1)) {
-        for (String e : owners) {
-          if (e.equals(Parser.TOK_SET_NOPARENT)) {
-            result.noParentGlobs.add(dir + glob);
-          } else {
-            Util.addToMap(result.owner2paths, e, dir + glob);
+      if (!includeAll) { // ignored if included by the "file:" statement
+        logs.add("parseLine:ignore:" + line);
+      } else {
+        String[] owners = globsAndOwners[1].split(COMMA, -1);
+        for (String glob : globsAndOwners[0].split(COMMA, -1)) {
+          for (String e : owners) {
+            if (e.equals(Parser.TOK_SET_NOPARENT)) {
+              result.noParentGlobs.add(dir + glob);
+            } else {
+              Util.addToMap(result.owner2paths, e, dir + glob);
+            }
           }
         }
       }
-    } else if (isFile(line)) {
-      // file: directive is parsed but ignored.
-      result.warnings.add(warningMsg(currentFilePath(), num, "ignored", line));
-      logs.add("parseLine:file");
-    } else if ((projectAndFile = parseInclude(currentProject(), line)) != null) {
-      String project = projectAndFile[0];
-      String file = projectAndFile[1];
-      String includePath = combineProjectAndFile(project, file);
-      // Like C/C++ #include, when f1 includes f2 with a relative path projectAndFile[1],
+    } else if ((parsedKPF = parseInclude(currentProjectName(), line)) != null) {
+      String keyword = parsedKPF[0];
+      String project = parsedKPF[1];
+      String file = parsedKPF[2];
+      String includeKPF = keyword + ":" + project + ":" + file;
+      boolean nestedIncludeAll = includeAll && !keyword.equals("file");
+      // Like C/C++ #include, when f1 includes f2 with a relative file path,
       // use f1's directory, not 'dir', as the base for relative path.
       // 'dir' is the directory of OWNERS file, which might include f1 indirectly.
       String repoFile = normalizedRepoDirFilePath(Util.getParentDir(currentFilePath()), file);
-      String repoProjectFile = combineProjectAndFile(project, repoFile);
-      if (included.contains(repoProjectFile)) {
-        logs.add("parseLine:skip:include:" + includePath);
+      if (hasBeenIncluded(project, repoFile, nestedIncludeAll)) {
+        logs.add("parseLine:skip:" + includeKPF);
       } else {
-        pushProjectFilePaths(project, repoFile);
-        logs.add("parseLine:include:" + includePath);
+        pushIncludeInfo(project, repoFile, nestedIncludeAll);
+        logs.add("parseLine:" + includeKPF);
         String content =
             OwnersDb.getRepoFile(repoManager, project, branch, repoFile, logs);
         if (content != null && !content.isEmpty()) {
           result.append(parseFile(dir, content.split("\\R+")));
         } else {
-          logs.add("parseLine:include:(empty)");
+          logs.add("parseLine:" + keyword + ":(empty)");
         }
         popProjectFilePaths();
       }

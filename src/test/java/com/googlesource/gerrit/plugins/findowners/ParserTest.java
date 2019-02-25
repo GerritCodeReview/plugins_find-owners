@@ -130,13 +130,20 @@ public class ParserTest {
 
   @Test
   public void fileLineTest() {
-    // file: directive is not implemented yet.
+    // file: statement should work like include.
     String[] lines = {"file://owners", " file: //d1/owner", "file:owner #"};
     for (String s : lines) {
       Parser.Result result = testLine(s);
-      String expected = testLineWarningMsg(s);
-      assertThat(result.warnings).containsExactly(expected);
+      assertThat(result.warnings).isEmpty();
+      assertThat(result.errors).isEmpty();
     }
+    testOneFileLine("P0", "  file: //common/OWNERS #comment", "P0", "//common/OWNERS");
+    testOneFileLine("P1", "file: Other :  /Group ", "Other", "/Group");
+    testOneFileLine("P2", "file:  /Common/Project: OWNER", "/Common/Project", "OWNER");
+    testOneFileLine("P3", "  file: \tP2/D2:/D3/F.txt", "P2/D2", "/D3/F.txt");
+    testOneFileLine("P4", "  file: \tP2/D2://D3/F.txt", "P2/D2", "//D3/F.txt");
+    testOneFileLine("P5", "\t file: \t P2/D2:\t/D3/F2.txt\n", "P2/D2", "/D3/F2.txt");
+    testOneFileLine("P6", "file:  ../d1/d2/F   \n", "P6", "../d1/d2/F");
   }
 
   @Test
@@ -203,12 +210,21 @@ public class ParserTest {
     }
   }
 
-  private void testOneIncludeLine(
-      String project, String line, String parsedProject, String parsedFile) {
+  private void testOneIncludeOrFileLine(
+      String project, String line, String keyword, String projectName, String filePath) {
     String[] results = Parser.parseInclude(project, line);
-    assertThat(results).hasLength(2);
-    assertThat(results[0]).isEqualTo(parsedProject);
-    assertThat(results[1]).isEqualTo(parsedFile);
+    assertThat(results).hasLength(3);
+    assertThat(results[0]).isEqualTo(keyword);
+    assertThat(results[1]).isEqualTo(projectName);
+    assertThat(results[2]).isEqualTo(filePath);
+  }
+
+  private void testOneFileLine(String project, String line, String projectName, String filePath) {
+    testOneIncludeOrFileLine(project, line, "file", projectName, filePath);
+  }
+
+  private void testOneIncludeLine(String project, String line, String projectName, String filePath) {
+    testOneIncludeOrFileLine(project, line, "include", projectName, filePath);
   }
 
   @Test
