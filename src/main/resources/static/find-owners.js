@@ -13,11 +13,6 @@
 // limitations under the License.
 
 Gerrit.install(function(self) {
-  if (window.Polymer) {
-    // Install deprecated APIs to mimic GWT UI API.
-    self.deprecated.install();
-  }
-
   // If context.popup API exists and popup content is small,
   // use the API and set useContextPopup,
   // otherwise, use pageDiv and set its visibility.
@@ -141,23 +136,19 @@ Gerrit.install(function(self) {
       console.log('UNIMPLEMENTED: ' + msg);
       callback();
     }
-    function gerritGet(url, callback) {
-      (!!Gerrit.get) ? Gerrit.get(url, callback) :
-          ((!!self.get) ? self.get('/../..' + url, callback) :
-              httpGet(url, callback));
+    function restApiGet(url, callback) {
+      self.restApi().get('/../..' + url).then(callback);
     }
-    function gerritPost(url, data, callback) {
-      (!!Gerrit.post) ? Gerrit.post(url, data, callback) :
-          ((!!self.post) ? self.post('/../..' + url, data, callback) :
-              httpError('POST ' + url, callback));
+    function restApiPost(url, data, callback) {
+      self.restApi().post('/../..' + url, data).then(callback) ;
     }
-    function gerritDelete(url, callback) {
-      (!!Gerrit.delete) ? Gerrit.delete(url, callback) :
-          ((!!self.delete) ? self.delete('/../..' + url, callback) :
-              httpError('DELETE ' + url, callback));
+    function restApiDelete(url, callback, errMessage) {
+      self.restApi().delete('/../..' + url).then(callback).catch((e) => {
+          alert(errMessage);
+      });
     }
     function getReviewers(change, callBack) {
-      gerritGet('/changes/' + change + '/reviewers', callBack);
+      restApiGet('/changes/' + change + '/reviewers', callBack);
     }
     function setupReviewersMap(reviewerList) {
       reviewerId = {};
@@ -193,9 +184,9 @@ Gerrit.install(function(self) {
           // Gerrit core UI shows the error dialog and does not provide
           // a way for plugins to handle the error yet.
           needRefresh = true;
-          gerritPost('/changes/' + changeId + '/reviewers',
-                     {'reviewer': email},
-                     checkAddRemoveLists);
+          restApiPost('/changes/' + changeId + '/reviewers',
+                      {'reviewer': email},
+                      checkAddRemoveLists);
           return;
         }
       }
@@ -204,9 +195,10 @@ Gerrit.install(function(self) {
         if (email in reviewerId) {
           removeList = removeList.slice(i + 1, removeList.length);
           needRefresh = true;
-          gerritDelete('/changes/' + changeId +
-                       '/reviewers/' + reviewerId[email],
-                       checkAddRemoveLists);
+          restApiDelete('/changes/' + changeId +
+                        '/reviewers/' + reviewerId[email],
+                        checkAddRemoveLists,
+                        'Cannot delete reviewer: ' + email);
           return;
         }
       }
@@ -553,7 +545,7 @@ Gerrit.install(function(self) {
     function callServer(callBack) {
       // Use the plugin REST API; pass only changeId;
       // let server get current patch set, project and branch info.
-      gerritGet('/changes/' + changeId + '/owners', showFindOwnersResults);
+      restApiGet('/changes/' + changeId + '/owners', showFindOwnersResults);
     }
     event.stopPropagation();
     callServer(showFindOwnersResults);
@@ -579,7 +571,7 @@ Gerrit.install(function(self) {
       changeActions.removeTapListener(actionKey);
       changeActions.remove(actionKey);
     }
-    actionKey = changeActions.add('revision', '[Find Owners]');
+    actionKey = changeActions.add('revision', '[FIND OWNERS]');
     changeActions.setIcon(actionKey, 'robot');
     changeActions.setTitle(actionKey, 'Find owners of changed files');
     changeActions.addTapListener(actionKey,
@@ -596,15 +588,10 @@ Gerrit.install(function(self) {
       }
     }
   }
-  // When the "Find Owners" button is clicked, call onFindOwners.
-  if (!!self.onAction) { // PolyGerrit does not have self.onAction
-    self.onAction('revision', 'find-owners', onFindOwners);
-  } else {
-    console.log('WARNING, no handler for the Find Owners button');
-  }
-  // When using PolyGerrit, move "Find Owners" button out of the 'MORE' list.
   if (window.Polymer) {
     self.on('showchange', onShowChangePolyGerrit);
+  } else {
+    console.log('WARNING, no [FIND OWNERS] button');
   }
   // When the "Submit" button is clicked, call onSubmit.
   self.on('submitchange', onSubmit);
