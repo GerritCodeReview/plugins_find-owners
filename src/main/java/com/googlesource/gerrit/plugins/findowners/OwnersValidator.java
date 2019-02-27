@@ -135,6 +135,9 @@ public class OwnersValidator implements CommitValidationListener {
       throw new CommitValidationException("failed to check owners files", e);
     }
     if (hasError(messages)) {
+      add(messages, "See OWNERS file syntax document at "
+          + "https://gerrit.googlesource.com/plugins/find-owners/+/"
+          + "master/src/main/resources/Documentation/syntax.md", true);
       throw new CommitValidationException("found invalid owners file", messages);
     }
     return messages;
