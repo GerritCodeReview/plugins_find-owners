@@ -70,6 +70,24 @@
       "revId": "a21e6e06920ff3782410bcf33165f44ba061a56a",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4cfa37f2_62d0ca78",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1034308
+      },
+      "writtenOn": "2019-02-27T17:53:24Z",
+      "side": 1,
+      "message": "Ah, sorry David. I did intend for it to be an accessible link (if possible), but the only information I could quickly find was that link. I\u0027m glad chh found something more explanatory though. :)",
+      "parentUuid": "2aebd1aa_92198598",
+      "revId": "a21e6e06920ff3782410bcf33165f44ba061a56a",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
     }
   ]
 }
