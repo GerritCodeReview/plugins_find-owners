@@ -52,6 +52,24 @@
       "revId": "a21e6e06920ff3782410bcf33165f44ba061a56a",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2aebd1aa_92198598",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2019-02-27T17:48:32Z",
+      "side": 1,
+      "message": "Done, added reference to\nhttps://gerrit-review.googlesource.com/c/gerrit/+/137131",
+      "parentUuid": "b575b491_39755b87",
+      "revId": "a21e6e06920ff3782410bcf33165f44ba061a56a",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
     }
   ]
 }
