@@ -577,7 +577,7 @@ Gerrit.install(function(self) {
     changeActions.addTapListener(actionKey,
         () => popupFindOwnersPage(null, change, revision, false));
   }
-  function onClick(e) {
+  function onClick(event) {
     if (pageDiv.style.visibility != 'hidden' && !useContextPopup) {
       var x = event.clientX;
       var y = event.clientY;
