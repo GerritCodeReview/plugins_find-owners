@@ -47,12 +47,44 @@ gerrit_plugin(
     ],
 )
 
+java_library(
+    name = "find-owners-junit",
+    testonly = 1,
+    srcs = glob(["src/test/java/**/Watcher.java"]),
+    deps = PLUGIN_TEST_DEPS,
+)
+
+java_library(
+    name = "find-owners-IT",
+    testonly = 1,
+    srcs = glob(["src/test/java/**/FindOwners.java"]),
+    deps = PLUGIN_TEST_DEPS + [
+        ":find-owners-junit",
+        ":find-owners-lib",
+        ":find-owners__plugin",
+    ],
+)
+
+# Separate fast junit tests from slow interation (IT) tests.
 junit_tests(
-    name = "findowners_tests",
-    srcs = glob(["src/test/java/**/*.java"]),
+    name = "findowners_junit_tests",
+    srcs = glob(["src/test/java/**/*Test.java"]),
     tags = ["findowners"],
     deps = PLUGIN_DEPS + PLUGIN_TEST_DEPS + [
         "@commons-io//jar",
+        ":find-owners-junit",
+        ":find-owners-lib",
+    ],
+)
+
+junit_tests(
+    name = "findowners_IT_tests",
+    srcs = glob(["src/test/java/**/*IT.java"]),
+    tags = ["findowners"],
+    deps = PLUGIN_DEPS + PLUGIN_TEST_DEPS + [
+        "@commons-io//jar",
+        ":find-owners-junit",
+        ":find-owners-IT",
         ":find-owners-lib",
         ":find-owners-prolog-rules",
         ":find-owners__plugin",
