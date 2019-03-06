@@ -291,7 +291,7 @@ class Parser {
         if (content != null && !content.isEmpty()) {
           result.append(parseFile(dir, content.split("\\R")));
         } else {
-          logs.add("parseLine:include:(empty)");
+          logs.add("parseLine:include:()");
         }
         popProjectFilePaths();
       }
