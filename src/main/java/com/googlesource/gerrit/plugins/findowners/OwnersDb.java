@@ -409,7 +409,7 @@ class OwnersDb {
       TreeWalk treeWalk = TreeWalk.forPath(reader, file, tree);
       if (treeWalk != null) {
         String content = new String(reader.open(treeWalk.getObjectId(0)).getBytes(), UTF_8);
-        logs.add(header + ":" + content);
+        logs.add(header + ":(...)");
         return content;
       }
       logs.add(header + " (NOT FOUND)");
