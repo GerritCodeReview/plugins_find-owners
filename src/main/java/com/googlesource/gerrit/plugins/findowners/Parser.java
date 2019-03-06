@@ -289,7 +289,7 @@ class Parser {
         String content =
             OwnersDb.getRepoFile(repoManager, project, branch, repoFile, logs);
         if (content != null && !content.isEmpty()) {
-          result.append(parseFile(dir, content.split("\\R+")));
+          result.append(parseFile(dir, content.split("\\R")));
         } else {
           logs.add("parseLine:include:(empty)");
         }

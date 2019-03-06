@@ -129,7 +129,7 @@ class OwnersDb {
             String content = getFile(repo, id, filePath, logs);
             if (content != null && !content.isEmpty()) {
               addFile(projectName, branch, dir + "/", dir + "/" + ownersFileName,
-                      content.split("\\R+"));
+                      content.split("\\R"));
             }
             if (stopLooking.contains(dir + "/") || !dir.contains("/")) {
               break; // stop looking through parent directory
@@ -146,8 +146,7 @@ class OwnersDb {
         }
       }
     } catch (Exception e) {
-      logger.atSevere().withCause(e).log(
-          "Fail to find repository of project %s", projectName);
+      logger.atSevere().log("OwnersDb failed to find repository of project %s", projectName);
       logException(logs, "OwnersDb get repository", e);
     }
     countNumOwners(files);
@@ -384,16 +383,17 @@ class OwnersDb {
       String project, String branch, String file, List<String> logs) {
     // 'file' must be an absolute path from the root of 'project'.
     logs.add("getRepoFile:" + project + ":" + branch + ":" + file);
-    try (Repository repo = repoManager.openRepository(new Project.NameKey(project))) {
-      ObjectId id = repo.resolve(branch);
-      if (id != null) {
-        return getFile(repo, id, file, logs);
+    if (repoManager != null) { // ParserTest can call with null repoManager
+      try (Repository repo = repoManager.openRepository(new Project.NameKey(project))) {
+        ObjectId id = repo.resolve(branch);
+        if (id != null) {
+          return getFile(repo, id, file, logs);
+        }
+        logs.add("getRepoFile not found branch " + branch);
+      } catch (Exception e) {
+        logger.atSevere().log("getRepoFile failed to find repository of project %s", project);
+        logException(logs, "getRepoFile", e);
       }
-      logs.add("getRepoFile not found branch " + branch);
-    } catch (Exception e) {
-      logger.atSevere().withCause(e).log(
-          "Fail to find repository of project %s", project);
-      logException(logs, "getRepoFile", e);
     }
     return "";
   }
