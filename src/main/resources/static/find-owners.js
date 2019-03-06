@@ -597,4 +597,6 @@ Gerrit.install(function(self) {
   self.on('submitchange', onSubmit);
   // Clicks outside the pop up window should close the window.
   document.body.addEventListener('click', onClick);
+  // Leaving page should close the window.
+  window.addEventListener('popstate', () => hideFindOwnersPage());
 });
