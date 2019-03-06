@@ -177,17 +177,17 @@ public class OwnersValidatorTest {
           "README",
           "# some content\nu2@g.com\n",
           OWNERS,
-          "\nwrong syntax\n#comment\nuser1@google.com\n",
+          "\n\n\nwrong syntax\n#comment\nuser1@google.com\n",
           "d2/" + OWNERS,
           "u1@g.com\nu3@g.com\n*\n",
           "d3/" + OWNERS,
-          "\nfile: common/Owners\n");
+          "\n\nfile: common/Owners\n");
 
   private static final ImmutableSet<String> EXPECTED_WRONG_SYNTAX =
       ImmutableSet.of(
-          "ERROR: syntax: " + OWNERS + ":2: wrong syntax",
+          "ERROR: syntax: " + OWNERS + ":4: wrong syntax",
           "ERROR: unknown: u3@g.com at d2/" + OWNERS + ":2",
-          "ERROR: ignored: d3/" + OWNERS + ":2: file: common/Owners");
+          "ERROR: ignored: d3/" + OWNERS + ":3: file: common/Owners");
 
   private static final ImmutableSet<String> EXPECTED_VERBOSE_WRONG_SYNTAX =
       ImmutableSet.of(
@@ -197,9 +197,9 @@ public class OwnersValidatorTest {
           "MSG: owner: user1@google.com",
           "MSG: owner: u1@g.com",
           "MSG: owner: u3@g.com",
-          "ERROR: syntax: " + OWNERS + ":2: wrong syntax",
+          "ERROR: syntax: " + OWNERS + ":4: wrong syntax",
           "ERROR: unknown: u3@g.com at d2/" + OWNERS + ":2",
-          "ERROR: ignored: d3/" + OWNERS + ":2: file: common/Owners");
+          "ERROR: ignored: d3/" + OWNERS + ":3: file: common/Owners");
 
   @Test
   public void testWrongSyntax() throws Exception {
