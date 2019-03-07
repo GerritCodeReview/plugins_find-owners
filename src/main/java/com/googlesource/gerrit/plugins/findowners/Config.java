@@ -48,7 +48,6 @@ class Config {
   private boolean reportSyntaxError = false;
   private boolean alwaysShowButton = false;
   private String ownersFileName = OWNERS;
-
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   Config(PluginConfigFactory configFactory) {
@@ -127,3 +126,5 @@ class Config {
     return getPluginConfig(projectState).getInt(MIN_OWNER_VOTE_LEVEL, minOwnerVoteLevel);
   }
 }
+
+
