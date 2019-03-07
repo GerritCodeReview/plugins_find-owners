@@ -34,7 +34,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
 /** Save OwnersDb in a cache for multiple calls to submit_filter. */
-class Cache {
+public class Cache {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   // The OwnersDb is created from OWNERS files in directories that
@@ -90,7 +90,7 @@ class Cache {
   }
 
   /** Returns a cached or new OwnersDb, for the current patchset. */
-  OwnersDb get(
+  public OwnersDb get(
       Boolean useCache,
       ProjectState projectState,
       AccountCache accountCache,

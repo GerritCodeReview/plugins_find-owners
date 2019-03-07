@@ -47,7 +47,7 @@ public class Checker {
   private final ChangeData changeData;
   private int minVoteLevel;
 
-  Checker(GitRepositoryManager repoManager, PluginConfigFactory configFactory,
+  public Checker(GitRepositoryManager repoManager, PluginConfigFactory configFactory,
           ProjectState projectState, ChangeData changeData, int v) {
     this.repoManager = repoManager;
     this.configFactory = configFactory;
@@ -103,7 +103,7 @@ public class Checker {
   }
 
   /** Returns 1 if owner approval is found, -1 if missing, 0 if unneeded. */
-  int findApproval(AccountCache accountCache, OwnersDb db) throws OrmException, IOException {
+  public int findApproval(AccountCache accountCache, OwnersDb db) throws OrmException, IOException {
     Map<String, Set<String>> file2Owners = db.findOwners(changeData.currentFilePaths());
     if (file2Owners.isEmpty()) { // do not need owner approval
       return 0;

@@ -48,7 +48,7 @@ import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.treewalk.TreeWalk;
 
 /** Keep all information about owners and owned files. */
-class OwnersDb {
+public class OwnersDb {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private final AccountCache accountCache;

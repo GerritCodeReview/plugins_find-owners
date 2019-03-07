@@ -21,7 +21,9 @@ import com.google.gerrit.extensions.registration.DynamicSet;
 import com.google.gerrit.extensions.restapi.RestApiModule;
 import com.google.gerrit.extensions.webui.JavaScriptPlugin;
 import com.google.gerrit.extensions.webui.WebUiPlugin;
+import com.google.gerrit.server.rules.SubmitRule;
 import com.google.inject.AbstractModule;
+import com.googlesource.gerrit.plugins.findowners.submit_rules.OwnersFileRule;
 
 /** find-owners plugin module */
 public class Module extends AbstractModule {
@@ -38,6 +40,8 @@ public class Module extends AbstractModule {
         });
     DynamicSet.bind(binder(), WebUiPlugin.class)
         .toInstance(new JavaScriptPlugin(Config.PLUGIN_NAME + ".js"));
+
+    DynamicSet.bind(binder(), SubmitRule.class).to(OwnersFileRule.class);
 
     install(new PredicateModule());
   }
