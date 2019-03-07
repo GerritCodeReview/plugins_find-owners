@@ -22,7 +22,7 @@ import com.google.gerrit.server.project.ProjectState;
 import com.google.gerrit.server.query.change.ChangeData;
 
 /** find-owners configuration parameters */
-class Config {
+public class Config {
   // Name of config parameters.
   static final String ADD_DEBUG_MSG = "addDebugMsg";
   static final String ALWAYS_SHOW_BUTTON = "alwaysShowButton"; // always show "Find Owners" button
@@ -87,7 +87,7 @@ class Config {
     return alwaysShowButton;
   }
 
-  static String getChangeId(ChangeData data) {
+  public static String getChangeId(ChangeData data) {
     return data == null ? "(unknown change)" : ("change c/" + data.getId().get());
   }
 
