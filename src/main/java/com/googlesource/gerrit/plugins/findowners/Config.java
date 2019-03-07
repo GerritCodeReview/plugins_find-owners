@@ -22,7 +22,7 @@ import com.google.gerrit.server.project.ProjectState;
 import com.google.gerrit.server.query.change.ChangeData;
 
 /** find-owners configuration parameters */
-class Config {
+public class Config {
   // Name of config parameters.
   static final String ADD_DEBUG_MSG = "addDebugMsg";
   static final String ALWAYS_SHOW_BUTTON = "alwaysShowButton"; // always show "Find Owners" button
@@ -48,6 +48,7 @@ class Config {
   private boolean reportSyntaxError = false;
   private boolean alwaysShowButton = false;
   private String ownersFileName = OWNERS;
+
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
@@ -126,4 +127,10 @@ class Config {
     }
     return getPluginConfig(projectState).getInt(MIN_OWNER_VOTE_LEVEL, minOwnerVoteLevel);
   }
+}
+
+
+enum EnforcementLevel {
+  DISABLED, WARN, ENFORCE;
+  static final String CONFIG_NAME = "ENFORCE_LEVEL";
 }

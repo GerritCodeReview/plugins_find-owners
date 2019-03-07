@@ -48,7 +48,7 @@ public class Checker {
   private int minVoteLevel;
 
   Checker(GitRepositoryManager repoManager, PluginConfigFactory configFactory,
-          ProjectState projectState, ChangeData changeData, int v) {
+      ProjectState projectState, ChangeData changeData, int v) {
     this.repoManager = repoManager;
     this.configFactory = configFactory;
     this.projectState = projectState;
