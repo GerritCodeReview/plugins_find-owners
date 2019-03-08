@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fb4fad30_83086531",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/submit_rules/OwnersFileRule.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1026112
+      },
+      "writtenOn": "2019-03-08T12:57:54Z",
+      "side": 1,
+      "message": "This looks promising!\n\nchh@ is right in that if you move this over to the other package, you can omit making all the classes public.\n\nIt would be great to add a test. Existing examples are:\n- IgnoreSelfApprovalRuleIT (tests the rule directly)\n- ChangeSubmitRequirementIT (tests it from the API\u0027s perspective)",
+      "revId": "f1be6fe3b16dfaa7b45696ce9c47113401b3a5dd",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "df57b35a_e86c1b84",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/submit_rules/OwnersFileRule.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1026112
+      },
+      "writtenOn": "2019-03-08T12:57:54Z",
+      "side": 1,
+      "message": "Please add a config flag here to make sure we are returning ImmutableList.of() in case using SubmitRules is not explicitly turned on.\n\nThis is easy to do if you use PluginConfigFactory#getFromProjectConfigWithInheritance -\u003e get boolean",
+      "revId": "f1be6fe3b16dfaa7b45696ce9c47113401b3a5dd",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4c232a89_91f79cba",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/submit_rules/OwnersFileRule.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1026112
+      },
+      "writtenOn": "2019-03-08T12:57:54Z",
+      "side": 1,
+      "message": "return a submit requirement that blocks submission:\n    SubmitRecord rec \u003d new SubmitRecord();\n    rec.status \u003d SubmitRecord.Status.RULE_ERROR;\n    rec.errorMessage \u003d err;\n    return Collections.singletonList(rec);",
+      "range": {
+        "startLine": 72,
+        "startChar": 6,
+        "endLine": 72,
+        "endChar": 17
+      },
+      "revId": "f1be6fe3b16dfaa7b45696ce9c47113401b3a5dd",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    }
+  ]
+}
