@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ed51245_d30922fd",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Config.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2019-03-11T19:10:18Z",
+      "side": 1,
+      "message": "Is this for gerrit.config or also for project.config?\nPlease use config parameter naming convention in line 27 to 35.",
+      "range": {
+        "startLine": 134,
+        "startChar": 37,
+        "endLine": 134,
+        "endChar": 50
+      },
+      "revId": "94fbee9cc715ab95ef53420ed4964f2281f581cf",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    }
+  ]
+}
