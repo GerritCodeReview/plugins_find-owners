@@ -20,6 +20,7 @@ import static com.google.gerrit.reviewdb.client.RefNames.REFS_CONFIG;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.collect.Multimap;
+import com.google.common.flogger.FluentLogger;
 import com.google.gerrit.acceptance.LightweightPluginDaemonTest;
 import com.google.gerrit.acceptance.PushOneCommit;
 import com.google.gerrit.acceptance.RestResponse;
@@ -50,11 +51,28 @@ import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilterGroup;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestWatcher;
+import org.junit.runner.Description;
 
 /** Test find-owners plugin API. */
 @TestPlugin(name = "find-owners", sysModule = "com.googlesource.gerrit.plugins.findowners.Module")
 public class FindOwnersIT extends LightweightPluginDaemonTest {
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
+  @Rule
+  public TestWatcher watcher = new TestWatcher() {
+    @Override
+    public void starting(final Description method) {
+      logger.atInfo().log("Test starting: " + method.getMethodName());
+    }
+
+    @Override
+    public void finished(final Description method) {
+      logger.atInfo().log("Test finished: " + method.getMethodName());
+    }
+  };
 
   @Inject private Emails emails;
   @Inject private ProjectOperations projectOperations;

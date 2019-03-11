@@ -16,6 +16,7 @@ package com.googlesource.gerrit.plugins.findowners;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.google.common.flogger.FluentLogger;
 import com.google.gerrit.acceptance.GitUtil;
 import com.google.gerrit.acceptance.LightweightPluginDaemonTest;
 import com.google.gerrit.acceptance.PushOneCommit;
@@ -31,13 +32,31 @@ import find_owners.PRED_submit_filter_3;
 import find_owners.PRED_submit_rule_1;
 import find_owners.PRED_submit_rule_2;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestWatcher;
+import org.junit.runner.Description;
 
 /** Test existence of compiled find-owners plugin Prolog predicates. */
 @TestPlugin(name = "find-owners", sysModule = "com.googlesource.gerrit.plugins.findowners.Module")
 public class PrologIT extends LightweightPluginDaemonTest {
   // This class now only tests existence of compiled Prolog predicates.
   // Later we can test the functionality of the predicates.
+
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
+  @Rule
+  public TestWatcher watcher = new TestWatcher() {
+    @Override
+    public void starting(final Description method) {
+      logger.atInfo().log("Test starting: " + method.getMethodName());
+    }
+
+    @Override
+    public void finished(final Description method) {
+      logger.atInfo().log("Test finished: " + method.getMethodName());
+    }
+  };
 
   @Test
   public void predefinedPredicateTest() throws Exception {
