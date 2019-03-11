@@ -16,18 +16,37 @@ package com.googlesource.gerrit.plugins.findowners;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.google.common.flogger.FluentLogger;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestWatcher;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+import org.junit.runner.Description;
 
 /** Test Util class */
 @RunWith(JUnit4.class)
 public class UtilTest {
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
+  @Rule
+  public TestWatcher watcher = new TestWatcher() {
+    @Override
+    public void starting(final Description method) {
+      logger.atInfo().log("Test starting: " + method.getMethodName());
+    }
+
+    @Override
+    public void finished(final Description method) {
+      logger.atInfo().log("Test finished: " + method.getMethodName());
+    }
+  };
+
 
   @Test
   public void getOwner2WeightsTest() {

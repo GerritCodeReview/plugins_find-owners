@@ -24,6 +24,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Lists;
+import com.google.common.flogger.FluentLogger;
 import com.google.gerrit.reviewdb.client.Account;
 import com.google.gerrit.server.account.Emails;
 import com.google.gerrit.server.config.PluginConfig;
@@ -47,13 +48,31 @@ import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestWatcher;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+import org.junit.runner.Description;
 
 /** Test OwnersValidator, which checks syntax of changed OWNERS files. */
 @RunWith(JUnit4.class)
 public class OwnersValidatorTest {
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
+  @Rule
+  public TestWatcher watcher = new TestWatcher() {
+    @Override
+    public void starting(final Description method) {
+      logger.atInfo().log("Test starting: " + method.getMethodName());
+    }
+
+    @Override
+    public void finished(final Description method) {
+      logger.atInfo().log("Test finished: " + method.getMethodName());
+    }
+  };
+
 
   private static class MockedEmails extends Emails {
     Set<String> registered;
