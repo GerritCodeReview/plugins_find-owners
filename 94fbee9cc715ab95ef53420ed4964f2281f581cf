@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "6c1ff139_33d14c02",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Config.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1071989
+      },
+      "writtenOn": "2019-03-12T16:41:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b00f18d4_922612fd",
+      "range": {
+        "startLine": 51,
+        "startChar": 0,
+        "endLine": 51,
+        "endChar": 2
+      },
+      "revId": "94fbee9cc715ab95ef53420ed4964f2281f581cf",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ed51245_d30922fd",
         "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Config.java",
         "patchSetId": 4
@@ -36,6 +60,30 @@
       "writtenOn": "2019-03-11T19:10:18Z",
       "side": 1,
       "message": "Is this for gerrit.config or also for project.config?\nPlease use config parameter naming convention in line 27 to 35.",
+      "range": {
+        "startLine": 134,
+        "startChar": 37,
+        "endLine": 134,
+        "endChar": 50
+      },
+      "revId": "94fbee9cc715ab95ef53420ed4964f2281f581cf",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "db0a865d_19c4d82d",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Config.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 1071989
+      },
+      "writtenOn": "2019-03-12T16:41:04Z",
+      "side": 1,
+      "message": "\"enforceLevel\" will be in project.config. What do you think about renaming the current Config class to something like GlobalOptions or GerritOptions and making a new class called something like LocalOptions or PerProjectOptions? That would make it more clear (in my opinion) which config settings are being read from gerrit.config and which from project.config.",
+      "parentUuid": "5ed51245_d30922fd",
       "range": {
         "startLine": 134,
         "startChar": 37,
@@ -62,6 +110,24 @@
       "revId": "94fbee9cc715ab95ef53420ed4964f2281f581cf",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "935b71aa_382de85a",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/OwnersFileRule.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1071989
+      },
+      "writtenOn": "2019-03-12T16:41:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "781ad35e_aad35177",
+      "revId": "94fbee9cc715ab95ef53420ed4964f2281f581cf",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
     }
   ]
 }
