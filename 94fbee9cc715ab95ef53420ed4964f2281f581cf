@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "1aef009e_23495668",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Config.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2019-03-12T22:14:22Z",
+      "side": 1,
+      "message": "As I understand better the purpose of WARN, I suspect that it would soon disappear as I did before in adding non-blocking labels. Opt-in, Opt-out, and several ways to override any or all blocking labels is the accepted UI now.\n\nAs for getting config parameters, current implementation does not do it all correctly, but it should follow Gerrit plugin config rules in https://gerrit-review.googlesource.com/Documentation/dev-plugins.html#simple-configuration.\nSo, it is not getting local or global config specifically, but just its parameters through difficult inheritance layers.\nBut, it\u0027s difficult for users to manage tens or hundreds of project.config. So, now we put everything, except project specific ownersFileName, in the global gerrit.config and rules.pl.\n\nWe need to focus on the design of moving existing simple global config rules from rules.pl to gerrit.config, not to .java files or project.config.",
+      "parentUuid": "db0a865d_19c4d82d",
+      "range": {
+        "startLine": 134,
+        "startChar": 37,
+        "endLine": 134,
+        "endChar": 50
+      },
+      "revId": "94fbee9cc715ab95ef53420ed4964f2281f581cf",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "781ad35e_aad35177",
         "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/OwnersFileRule.java",
         "patchSetId": 4
