@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "b00f18d4_922612fd",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Config.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1026112
+      },
+      "writtenOn": "2019-03-12T16:31:23Z",
+      "side": 1,
+      "message": "nit:remove",
+      "range": {
+        "startLine": 51,
+        "startChar": 0,
+        "endLine": 51,
+        "endChar": 2
+      },
+      "revId": "94fbee9cc715ab95ef53420ed4964f2281f581cf",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "5ed51245_d30922fd",
         "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Config.java",
         "patchSetId": 4
@@ -19,6 +42,23 @@
         "endLine": 134,
         "endChar": 50
       },
+      "revId": "94fbee9cc715ab95ef53420ed4964f2281f581cf",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "781ad35e_aad35177",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/OwnersFileRule.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1026112
+      },
+      "writtenOn": "2019-03-12T16:31:23Z",
+      "side": 1,
+      "message": "nit: if you are only ever using this as a list, just store the list in your static final member.",
       "revId": "94fbee9cc715ab95ef53420ed4964f2281f581cf",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": true
