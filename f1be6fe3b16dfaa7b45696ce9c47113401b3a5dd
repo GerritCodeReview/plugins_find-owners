@@ -56,6 +56,30 @@
       "revId": "f1be6fe3b16dfaa7b45696ce9c47113401b3a5dd",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "db8bb57d_04e0442f",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/submit_rules/OwnersFileRule.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2019-03-12T22:14:22Z",
+      "side": 1,
+      "message": "Patrick, could this class adds a \u0027Owner-Review-Vote\u0027 need label as used in https://android.googlesource.com/All-Projects/+/refs/meta/config/rules.pl.\nAssuming this is evaluated before other Prolog rules in rules.pl,\nthe same label will let Prolog rules to override it or avoid repeated check.\nOtherwise, how should future Android project be configured to use both submit rules during the migration period?",
+      "parentUuid": "4c232a89_91f79cba",
+      "range": {
+        "startLine": 72,
+        "startChar": 6,
+        "endLine": 72,
+        "endChar": 17
+      },
+      "revId": "f1be6fe3b16dfaa7b45696ce9c47113401b3a5dd",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
     }
   ]
 }
