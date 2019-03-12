@@ -16,14 +16,33 @@ package com.googlesource.gerrit.plugins.findowners;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.google.common.flogger.FluentLogger;
 import java.util.Arrays;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestWatcher;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+import org.junit.runner.Description;
 
 /** Test Parser class */
 @RunWith(JUnit4.class)
 public class ParserTest {
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
+  @Rule
+  public TestWatcher watcher = new TestWatcher() {
+    @Override
+    public void starting(final Description method) {
+      logger.atInfo().log("Test starting: " + method.getMethodName());
+    }
+
+    @Override
+    public void finished(final Description method) {
+      logger.atInfo().log("Test finished: " + method.getMethodName());
+    }
+  };
+
   private static String mockedTestDir() {
     return "./d1/d2/";
   }
