@@ -16,6 +16,24 @@
       "revId": "9e82b93e43e72c2bc6b86543682494a9cb3879c0",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e9b2eb15_05e15830",
+        "filename": "src/test/java/com/googlesource/gerrit/plugins/findowners/FindOwnersIT.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2019-03-12T01:40:06Z",
+      "side": 1,
+      "message": "The forEnclosingClass() function will return the base class, so we cannot inherit the \"logger\" variables. I tried to use a getLogger() function inside the watcher starting/finished function,\nto let child classes inherit starting/finished but redefine their own getLogger(). That works with Gerrit build environment but not with Google\u0027s. Somehow my starting/finished functions still get base class logger.",
+      "parentUuid": "3ce6c673_0bbf89ee",
+      "revId": "9e82b93e43e72c2bc6b86543682494a9cb3879c0",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
     }
   ]
 }
