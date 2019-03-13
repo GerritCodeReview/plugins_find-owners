@@ -120,6 +120,30 @@
     },
     {
       "key": {
+        "uuid": "fdd0429c_e66c2e20",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Config.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 1026112
+      },
+      "writtenOn": "2019-03-13T08:34:09Z",
+      "side": 1,
+      "message": "\u003e We need to focus on the design of moving existing simple global config rules from rules.pl to gerrit.config, not to .java files or project.config.\n\nCan you share what you mean by that?",
+      "parentUuid": "1aef009e_23495668",
+      "range": {
+        "startLine": 134,
+        "startChar": 37,
+        "endLine": 134,
+        "endChar": 50
+      },
+      "revId": "94fbee9cc715ab95ef53420ed4964f2281f581cf",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "781ad35e_aad35177",
         "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/OwnersFileRule.java",
         "patchSetId": 4

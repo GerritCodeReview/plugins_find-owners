@@ -80,6 +80,30 @@
       "revId": "f1be6fe3b16dfaa7b45696ce9c47113401b3a5dd",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d08225c2_b1d35238",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/submit_rules/OwnersFileRule.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1026112
+      },
+      "writtenOn": "2019-03-13T08:34:09Z",
+      "side": 1,
+      "message": "The layer that aggregates all submit rules is doing so by composition, so you can\u0027t add something here and remove it in Prolog then - also because execution order is not guaranteed.\n\nWe also want to move away from the concept of a \u0027label\u0027 towards a \u0027submit requirement\u0027 the fact that an owner did not yet approve isn\u0027t really a label but a unfulfilled requirement.\n\nThat said, the API would let you add labels to the result, but that is discouraged.",
+      "parentUuid": "db8bb57d_04e0442f",
+      "range": {
+        "startLine": 72,
+        "startChar": 6,
+        "endLine": 72,
+        "endChar": 17
+      },
+      "revId": "f1be6fe3b16dfaa7b45696ce9c47113401b3a5dd",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
     }
   ]
 }
