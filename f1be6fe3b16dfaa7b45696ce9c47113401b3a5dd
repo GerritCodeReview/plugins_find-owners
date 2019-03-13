@@ -104,6 +104,30 @@
       "revId": "f1be6fe3b16dfaa7b45696ce9c47113401b3a5dd",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8db224b6_bc6e6106",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/submit_rules/OwnersFileRule.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2019-03-13T17:07:17Z",
+      "side": 1,
+      "message": "Can we change Gerrit to guarantee submit rule evaluation order, at least Prolog vs Java?\nMultiple plugins and independent code in rules.pl have been depending and manipulating labels. If Gerrit wants to remove its Prolog engine, those rules need a migration period to coexist with new mechanism.",
+      "parentUuid": "d08225c2_b1d35238",
+      "range": {
+        "startLine": 72,
+        "startChar": 6,
+        "endLine": 72,
+        "endChar": 17
+      },
+      "revId": "f1be6fe3b16dfaa7b45696ce9c47113401b3a5dd",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
     }
   ]
 }
