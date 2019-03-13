@@ -144,6 +144,30 @@
     },
     {
       "key": {
+        "uuid": "e3a252db_62819a60",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Config.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2019-03-13T17:07:17Z",
+      "side": 1,
+      "message": "Java files are not as easy to update as rules.pl. Multiple project.config files are difficult to manage than one gerrit.config. To provide easiest migration for All-Projects rules.pl users, we need to provide for those code equivalent configuration parameters in gerrit.config.\nThis WIP is based on the assumption and a solution for removing rules.pl and Prolog engine.\nIf not, isn\u0027t it just one duplicated interface?",
+      "parentUuid": "fdd0429c_e66c2e20",
+      "range": {
+        "startLine": 134,
+        "startChar": 37,
+        "endLine": 134,
+        "endChar": 50
+      },
+      "revId": "94fbee9cc715ab95ef53420ed4964f2281f581cf",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "781ad35e_aad35177",
         "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/OwnersFileRule.java",
         "patchSetId": 4
