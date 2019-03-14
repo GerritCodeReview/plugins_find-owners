@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1c0c6f44_34969753",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Parser.java",
+        "patchSetId": 11
+      },
+      "lineNbr": 411,
+      "author": {
+        "id": 1034308
+      },
+      "writtenOn": "2019-03-14T19:46:47Z",
+      "side": 1,
+      "message": "combine is what this is doing, but I still would prefer something more descriptive here. getFileID(...) or maybe getFileKey() could work. In general these are just the singular internal representation of this information that uniquely identifies an OWNERS file.",
+      "revId": "a6b4f51284136fbd94a705e883a770fc64686f85",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    }
+  ]
+}
