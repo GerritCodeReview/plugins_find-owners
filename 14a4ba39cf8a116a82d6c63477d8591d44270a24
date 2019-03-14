@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "c6418847_6189832b",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/OwnersDb.java",
+        "patchSetId": 10
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2019-03-14T07:07:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "709f95a4_490ddff6",
+      "range": {
+        "startLine": 132,
+        "startChar": 21,
+        "endLine": 132,
+        "endChar": 43
+      },
+      "revId": "14a4ba39cf8a116a82d6c63477d8591d44270a24",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a5b0b45b_3e155fd2",
         "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/OwnersDb.java",
         "patchSetId": 10
@@ -45,6 +69,30 @@
       "revId": "14a4ba39cf8a116a82d6c63477d8591d44270a24",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3349f2e2_57d0db41",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/OwnersDb.java",
+        "patchSetId": 10
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2019-03-14T07:07:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a5b0b45b_3e155fd2",
+      "range": {
+        "startLine": 135,
+        "startChar": 38,
+        "endLine": 135,
+        "endChar": 47
+      },
+      "revId": "14a4ba39cf8a116a82d6c63477d8591d44270a24",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "adbb7fc4_938f1f2c",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/OwnersDb.java",
+        "patchSetId": 10
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2019-03-14T07:07:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "76b658d5_9971f1b1",
+      "range": {
+        "startLine": 136,
+        "startChar": 56,
+        "endLine": 136,
+        "endChar": 60
+      },
+      "revId": "14a4ba39cf8a116a82d6c63477d8591d44270a24",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e7143d63_3228eb19",
         "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/OwnersDb.java",
         "patchSetId": 10
@@ -85,6 +157,24 @@
       "revId": "14a4ba39cf8a116a82d6c63477d8591d44270a24",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "673e9210_815b5276",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/OwnersDb.java",
+        "patchSetId": 10
+      },
+      "lineNbr": 255,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2019-03-14T07:07:03Z",
+      "side": 1,
+      "message": "Done. The logger is Gerrit server log file, which is usually searched by keywords. So I think putting errors before warning is better.",
+      "parentUuid": "e7143d63_3228eb19",
+      "revId": "14a4ba39cf8a116a82d6c63477d8591d44270a24",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
     },
     {
       "key": {
@@ -111,6 +201,30 @@
     },
     {
       "key": {
+        "uuid": "39857ff9_f9010707",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/OwnersDb.java",
+        "patchSetId": 10
+      },
+      "lineNbr": 405,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2019-03-14T07:07:03Z",
+      "side": 1,
+      "message": "Done. Use Parser.combine, which is also used in Parser.",
+      "parentUuid": "1b8e7b54_436c03a7",
+      "range": {
+        "startLine": 405,
+        "startChar": 20,
+        "endLine": 405,
+        "endChar": 40
+      },
+      "revId": "14a4ba39cf8a116a82d6c63477d8591d44270a24",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "93de1215_0f73aaa8",
         "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/OwnersValidator.java",
         "patchSetId": 10
@@ -131,6 +245,30 @@
       "revId": "14a4ba39cf8a116a82d6c63477d8591d44270a24",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b83ea54e_77eeff3f",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/OwnersValidator.java",
+        "patchSetId": 10
+      },
+      "lineNbr": 249,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2019-03-14T07:07:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "93de1215_0f73aaa8",
+      "range": {
+        "startLine": 249,
+        "startChar": 50,
+        "endLine": 249,
+        "endChar": 54
+      },
+      "revId": "14a4ba39cf8a116a82d6c63477d8591d44270a24",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
     },
     {
       "key": {
@@ -157,6 +295,30 @@
     },
     {
       "key": {
+        "uuid": "5807b0a4_a7f16405",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Parser.java",
+        "patchSetId": 10
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2019-03-14T07:07:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "44b968ce_ca45a627",
+      "range": {
+        "startLine": 113,
+        "startChar": 39,
+        "endLine": 113,
+        "endChar": 48
+      },
+      "revId": "14a4ba39cf8a116a82d6c63477d8591d44270a24",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2b6bde18_c2a75109",
         "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Parser.java",
         "patchSetId": 10
@@ -171,6 +333,24 @@
       "revId": "14a4ba39cf8a116a82d6c63477d8591d44270a24",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fb960b74_3f2e80ce",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Parser.java",
+        "patchSetId": 10
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2019-03-14T07:07:03Z",
+      "side": 1,
+      "message": "Current check of savedResults is in between the call of contains() and push().\nIf we move those checks and error messages into push, this IncludeStack looks more complicated.\nNow most logic is in the includeFile function.",
+      "parentUuid": "2b6bde18_c2a75109",
+      "revId": "14a4ba39cf8a116a82d6c63477d8591d44270a24",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
     },
     {
       "key": {
@@ -197,6 +377,30 @@
     },
     {
       "key": {
+        "uuid": "fa9c5ab6_dada860d",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Parser.java",
+        "patchSetId": 10
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2019-03-14T07:07:03Z",
+      "side": 1,
+      "message": "Done. Use combine(project, file).",
+      "parentUuid": "771df33b_8a48a84b",
+      "range": {
+        "startLine": 125,
+        "startChar": 19,
+        "endLine": 125,
+        "endChar": 39
+      },
+      "revId": "14a4ba39cf8a116a82d6c63477d8591d44270a24",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fded0d64_f270a928",
         "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Parser.java",
         "patchSetId": 10
@@ -220,6 +424,30 @@
     },
     {
       "key": {
+        "uuid": "ac39879a_5637c972",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Parser.java",
+        "patchSetId": 10
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2019-03-14T07:07:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fded0d64_f270a928",
+      "range": {
+        "startLine": 129,
+        "startChar": 22,
+        "endLine": 129,
+        "endChar": 60
+      },
+      "revId": "14a4ba39cf8a116a82d6c63477d8591d44270a24",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "efb0e819_6d0c530f",
         "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Parser.java",
         "patchSetId": 10
@@ -240,6 +468,30 @@
       "revId": "14a4ba39cf8a116a82d6c63477d8591d44270a24",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7ac745ce_f8c9b464",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Parser.java",
+        "patchSetId": 10
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2019-03-14T07:07:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "efb0e819_6d0c530f",
+      "range": {
+        "startLine": 143,
+        "startChar": 31,
+        "endLine": 143,
+        "endChar": 51
+      },
+      "revId": "14a4ba39cf8a116a82d6c63477d8591d44270a24",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
     }
   ]
 }
