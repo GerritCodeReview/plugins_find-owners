@@ -14,6 +14,7 @@
 
 package com.googlesource.gerrit.plugins.findowners;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.googlesource.gerrit.plugins.findowners.Config.OWNERS;
 import static com.googlesource.gerrit.plugins.findowners.Config.OWNERS_FILE_NAME;
 import static com.googlesource.gerrit.plugins.findowners.Config.REJECT_ERROR_IN_OWNERS;
@@ -31,6 +32,7 @@ import com.google.gerrit.server.config.PluginConfig;
 import com.google.gerrit.server.config.PluginConfigFactory;
 import com.google.gerrit.server.config.ProjectConfigEntry;
 import com.google.gerrit.server.events.CommitReceivedEvent;
+import com.google.gerrit.server.git.GitRepositoryManager;
 import com.google.gerrit.server.git.validators.CommitValidationException;
 import com.google.gerrit.server.git.validators.CommitValidationListener;
 import com.google.gerrit.server.git.validators.CommitValidationMessage;
@@ -38,6 +40,7 @@ import com.google.gerrit.server.project.NoSuchProjectException;
 import com.google.inject.AbstractModule;
 import com.google.inject.Inject;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -49,6 +52,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.eclipse.jgit.diff.RawText;
 import org.eclipse.jgit.lib.FileMode;
 import org.eclipse.jgit.lib.ObjectId;
@@ -85,14 +89,17 @@ public class OwnersValidator implements CommitValidationListener {
 
   private final String pluginName;
   private final PluginConfigFactory cfgFactory;
+  private final GitRepositoryManager repoManager;
   private final Emails emails;
 
   @Inject
   OwnersValidator(
       @PluginName String pluginName,
       PluginConfigFactory cfgFactory,
+      GitRepositoryManager repoManager,
       Emails emails) {
     this.pluginName = pluginName;
+    this.repoManager = repoManager;
     this.cfgFactory = cfgFactory;
     this.emails = emails;
   }
@@ -121,169 +128,269 @@ public class OwnersValidator implements CommitValidationListener {
   }
 
   @Override
-  public List<CommitValidationMessage> onCommitReceived(CommitReceivedEvent receiveEvent)
+  public List<CommitValidationMessage> onCommitReceived(CommitReceivedEvent event)
       throws CommitValidationException {
-    List<CommitValidationMessage> messages = new ArrayList<>();
+    Checker checker = new Checker(event, false);
     try {
-      Project.NameKey project = receiveEvent.project.getNameKey();
+      Project.NameKey project = event.project.getNameKey();
       PluginConfig cfg = cfgFactory.getFromProjectConfigWithInheritance(project, pluginName);
       if (isActive(cfg)) {
-        String name = getOwnersFileName(project);
-        messages = performValidation(receiveEvent.commit, receiveEvent.revWalk, name, false);
+        checker.check(getOwnersFileName(project));
       }
     } catch (NoSuchProjectException | IOException e) {
       throw new CommitValidationException("failed to check owners files", e);
     }
-    if (hasError(messages)) {
-      add(messages, "See OWNERS file syntax document at "
+    if (checker.hasError()) {
+      checker.addError("See OWNERS file syntax document at "
           + "https://gerrit.googlesource.com/plugins/find-owners/+/"
-          + "master/src/main/resources/Documentation/syntax.md", true);
-      throw new CommitValidationException("found invalid owners file", messages);
+          + "master/src/main/resources/Documentation/syntax.md");
+      throw new CommitValidationException("found invalid owners file", checker.messages);
     }
-    return messages;
+    return checker.messages;
   }
 
-  @VisibleForTesting
-  List<CommitValidationMessage> performValidation(
-      RevCommit c, RevWalk revWalk, String ownersFileName, boolean verbose) throws IOException {
-    // Collect all messages from all files.
-    List<CommitValidationMessage> messages = new ArrayList<>();
+  class Checker {
+    // An inner class to keep needed data specific to one commit event.
+    CommitReceivedEvent event;
+    boolean verbose;
+    List<CommitValidationMessage> messages;
+    Map<String, ObjectId> allFiles; // changedFilePath => ObjectId
+    Map<String, String> readFiles; // project:file => content
+    Set<String> checkedFiles; // project:file
     // Collect all email addresses from all files and check each address only once.
-    Map<String, Set<String>> email2lines = new HashMap<>();
-    Map<String, ObjectId> content = getChangedOwners(c, revWalk, ownersFileName);
-    for (String path : content.keySet()) {
-      ObjectLoader ol = revWalk.getObjectReader().open(content.get(path));
-      try (InputStream in = ol.openStream()) {
-        if (RawText.isBinary(in)) {
-          add(messages, path + " is a binary file", true); // OWNERS files cannot be binary
-          continue;
-        }
-      }
-      checkFile(messages, email2lines, path, ol, verbose);
-    }
-    checkEmails(messages, emails, email2lines, verbose);
-    return messages;
-  }
+    Map<String, Set<String>> email2lines;
 
-  private static void checkEmails(
-      List<CommitValidationMessage> messages,
-      Emails emails,
-      Map<String, Set<String>> email2lines,
-      boolean verbose) {
-    List<String> owners = new ArrayList<>(email2lines.keySet());
-    if (verbose) {
-      for (String owner : owners) {
-        add(messages, "owner: " + owner, false);
+    Checker(CommitReceivedEvent event, boolean verbose) {
+      this.event = event;
+      this.verbose = verbose;
+      messages = new ArrayList<>();
+      readFiles = new HashMap<>();
+      checkedFiles = new HashSet<>();
+      email2lines = new HashMap<>();
+      try {
+        allFiles = getChangedFiles(event.commit, event.revWalk);
+      } catch (Exception e) {
+        allFiles = new HashMap<>();
+        addError("getChangedFiles failed.");
       }
     }
-    if (emails == null || owners.isEmpty()) {
-      return;
-    }
-    String[] ownerEmailsAsArray = new String[owners.size()];
-    owners.toArray(ownerEmailsAsArray);
-    try {
-      Multimap<String, Account.Id> email2ids = emails.getAccountsFor(ownerEmailsAsArray);
-      for (String owner : ownerEmailsAsArray) {
-        boolean wrongEmail = (email2ids == null);
-        if (!wrongEmail) {
-          try {
-            Collection<Account.Id> ids = email2ids.get(owner);
-            wrongEmail = (ids == null || ids.isEmpty());
-          } catch (Exception e) {
-            wrongEmail = true;
+
+    @VisibleForTesting
+    void check(String ownersFileName) throws IOException {
+      Map<String, ObjectId> ownerFiles =
+          allFiles.entrySet().stream()
+          .filter(e -> ownersFileName.equals(new File(e.getKey()).getName()))
+          .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+      String projectName = event.project.getName();
+      for (String path : ownerFiles.keySet()) {
+        String key = projectName + ":" + path;
+        ObjectLoader ol = event.revWalk.getObjectReader().open(ownerFiles.get(path));
+        try (InputStream in = ol.openStream()) {
+          if (RawText.isBinary(in)) {
+            addError(path + " is a binary file"); // OWNERS files cannot be binary
+            continue;
           }
         }
-        if (wrongEmail) {
-          String locations = String.join(" ", email2lines.get(owner));
-          add(messages, "unknown: " + owner + " at " + locations, true);
+        checkedFiles.add(key);
+        checkFile(projectName, path, ol);
+      }
+      checkEmails(emails);
+    }
+
+    void checkEmails(Emails emails) {
+      List<String> owners = new ArrayList<>(email2lines.keySet());
+      if (owners.isEmpty()) {
+        return;
+      }
+      if (verbose) {
+        for (String owner : owners) {
+          addMsg("owner: " + owner);
         }
       }
-    } catch (Exception e) {
-      add(messages, "checkEmails failed.", true);
-    }
-  }
-
-  private static void checkFile(
-      List<CommitValidationMessage> messages,
-      Map<String, Set<String>> email2lines,
-      String path,
-      ObjectLoader ol,
-      boolean verbose)
-      throws IOException {
-    if (verbose) {
-      add(messages, "validate: " + path, false);
-    }
-    try (BufferedReader br =
-        new BufferedReader(new InputStreamReader(ol.openStream(), StandardCharsets.UTF_8))) {
-      int line = 0;
-      for (String l = br.readLine(); l != null; l = br.readLine()) {
-        line++;
-        checkLine(messages, email2lines, path, line, l);
+      if (emails == null) {
+        addError("cannot check owner emails with null Emails cache.");
+      }
+      String[] ownerEmailsAsArray = new String[owners.size()];
+      owners.toArray(ownerEmailsAsArray);
+      try {
+        Multimap<String, Account.Id> email2ids = emails.getAccountsFor(ownerEmailsAsArray);
+        for (String owner : ownerEmailsAsArray) {
+          boolean wrongEmail = (email2ids == null);
+          if (!wrongEmail) {
+            try {
+              Collection<Account.Id> ids = email2ids.get(owner);
+              wrongEmail = (ids == null || ids.isEmpty());
+            } catch (Exception e) {
+              wrongEmail = true;
+            }
+          }
+          if (wrongEmail) {
+            String locations = String.join(" ", email2lines.get(owner));
+            addError("unknown: " + owner + " at " + locations);
+          }
+        }
+      } catch (Exception e) {
+        addError("checkEmails failed.");
       }
     }
-  }
 
-  private static void collectEmail(
-      Map<String, Set<String>> map, String email, String file, int lineNumber) {
-    if (!email.equals("*")) {
-      map.computeIfAbsent(email, (String k) -> new HashSet<>());
-      map.get(email).add(file + ":" + lineNumber);
+    void checkFile(String project, String path, String[] lines) {
+      addVerboseMsg("checking " + path);
+      int num = 0;
+      for (String line : lines) {
+        checkLine(project, path, ++num, line);
+      };
     }
-  }
 
-  private static boolean hasError(List<CommitValidationMessage> messages) {
-    for (CommitValidationMessage m : messages) {
-      if (m.isError()) {
-        return true;
+    void checkFile(String project, String path, String content) {
+      checkFile(project, path, content.split("\\R"));
+    }
+
+    void checkFile(String project, String path, ObjectLoader ol) {
+      try {
+        BufferedReader reader = new BufferedReader(
+            new InputStreamReader(ol.openStream(), StandardCharsets.UTF_8));
+        checkFile(project, path, reader.lines().toArray(String[]::new));
+      } catch (Exception e) {
+        addError("cannot open file: " + path);
       }
     }
-    return false;
-  }
 
-  private static void add(List<CommitValidationMessage> messages, String msg, boolean error) {
-    messages.add(new CommitValidationMessage(msg, error));
-  }
+    private void collectEmail(String email, String project, String file, int lineNumber) {
+      if (!email.equals("*")) {
+        email2lines.computeIfAbsent(email, (String k) -> new HashSet<>());
+        email2lines.get(email).add(qualifiedPath(project, file) + ":" + lineNumber);
+      }
+    }
 
-  private static void checkIncludeOrFile(
-      List<CommitValidationMessage> messages, String path, int num, String line) {
-    // TODO: Check if an included file exists and that it has valid syntax.
-    // An included file could be a new file added by a CL and not in the repository yet
-    add(messages, "unchecked: " + path + ":" + num + ": " + Parser.getIncludeOrFile(line), false);
-  }
-
-  private static void checkLine(
-      List<CommitValidationMessage> messages,
-      Map<String, Set<String>> email2lines,
-      String path,
-      int lineNumber,
-      String line) {
-    String email;
-    String[] emails;
-    if (Parser.isComment(line) || Parser.isNoParent(line)) {
-      // no email address to check
-    } else if ((email = Parser.parseEmail(line)) != null) {
-      collectEmail(email2lines, email, path, lineNumber);
-    } else if ((emails = Parser.parsePerFileOwners(line)) != null) {
-      for (String e : emails) {
-        if (e.startsWith("file:")) {
-          checkIncludeOrFile(messages, path, lineNumber, line);
-        } else if (!e.equals(Parser.TOK_SET_NOPARENT)) {
-          collectEmail(email2lines, e, path, lineNumber);
+    private boolean hasError() {
+      for (CommitValidationMessage m : messages) {
+        if (m.isError()) {
+          return true;
         }
       }
-    } else if (Parser.isInclude(line)) {
-      checkIncludeOrFile(messages, path, lineNumber, line);
-    } else {
-      add(messages, "syntax: " + path + ":" + lineNumber + ": " + line, true);
+      return false;
     }
-  }
+
+    void addError(String msg) {
+      messages.add(new CommitValidationMessage(msg, true));
+    }
+
+    String qualifiedPath(String project, String path) {
+      return event.project.getName().equals(project) ? path : (project + ":" + path);
+    }
+
+    void addSyntaxError(String path, int lineNumber, String line) {
+      addError("syntax: " + path + ":" + lineNumber + ": " + line);
+    }
+
+    void addMsg(String msg) {
+      messages.add(new CommitValidationMessage(msg, false));
+    }
+
+    void addVerboseMsg(String msg) {
+      if (verbose) {
+        addMsg(msg);
+      }
+    }
+
+    String normalizeChangedFilePath(String dir, String file) {
+      try {
+        if (file.startsWith("/")) {
+          file = new File(file).getCanonicalPath();
+        } else {
+          file = new File("/" + dir + "/" + file).getCanonicalPath();
+        }
+      } catch (IOException e) {
+        addError("cannot build file path " + dir + ":" + file);
+      }
+      return file.startsWith("/") ? file.substring(1) : file;
+    }
+
+    /**
+     * Check if an included file exists and with valid syntax.
+     * An included file could be (1) in the current CL, (2) in the same repository,
+     * (3) in a different repository, (4) in another CL.
+     * Case (4) is not checked yet.
+     */
+    void checkIncludeOrFile(String project, String path, int num, String line) {
+      // project is the including file's project, not necessarily the same as CL event's.
+      String directive = Parser.getIncludeOrFile(line);
+      String[] KPF = Parser.parseInclude(project, directive);
+      if (KPF == null || KPF[1] == null || KPF[2] == null) {
+        addSyntaxError(qualifiedPath(project, path), num, line);
+      }
+      String file = KPF[2];
+      String curDir = Util.getParentDir(path);
+      String repoFile = normalizeChangedFilePath(curDir, file);
+      // Check each file only once.
+      String key = KPF[1] + ":" + repoFile;
+      if (checkedFiles.contains(key)) {
+        addVerboseMsg("skip repeated include of " + key);
+        return;
+      }
+      checkedFiles.add(key);
+      if (KPF[1].equals(event.project.getName())) {
+        if (allFiles.get(repoFile) != null) {
+          // Case (1): included file is in current CL.
+          addVerboseMsg("check changed file " + key);
+          try {
+            ObjectLoader ol = event.revWalk.getObjectReader().open(allFiles.get(repoFile));
+            try (InputStream in = ol.openStream()) {
+              if (RawText.isBinary(in)) {
+                addError(path + " is a binary file"); // OWNERS files cannot be binary
+                return;
+              }
+            }
+            checkFile(KPF[1], repoFile, ol);
+          } catch (Exception e) {
+            addError("cannot open changed file: " + path);
+          }
+          return;
+        }
+      }
+      // Included file is in repository or other CL.
+      addVerboseMsg("check repo file " + key);
+      String content = OwnersDb.getRepoFile(readFiles, repoManager, KPF[1],
+          event.refName, repoFile, new ArrayList<>());
+      if (isNullOrEmpty(content)) {
+        addVerboseMsg("cannot find file: " + key);
+        // unchecked: including-file-path : line number : source line
+        addMsg("unchecked: " + qualifiedPath(project, path) + ":" + num + ": " + directive);
+      } else {
+        checkFile(KPF[1], repoFile, content);
+      }
+    }
+
+    void checkLine(String project, String path, int lineNumber, String line) {
+      String email;
+      String[] owners;
+      if (Parser.isComment(line) || Parser.isNoParent(line)) {
+        // no email address to check
+      } else if ((email = Parser.parseEmail(line)) != null) {
+        collectEmail(email, project, path, lineNumber);
+      } else if ((owners = Parser.parsePerFileOwners(line)) != null) {
+        for (String owner: owners) {
+          if (owner.startsWith("file:")) {
+            // Pass the whole line, not just owner, to report any syntax error.,
+            checkIncludeOrFile(project, path, lineNumber, line);
+          } else if (!owner.equals(Parser.TOK_SET_NOPARENT)) {
+            collectEmail(owner, project, path, lineNumber);
+          }
+        }
+      } else if (Parser.isInclude(line)) {
+        checkIncludeOrFile(project, path, lineNumber, line);
+      } else {
+        addSyntaxError(qualifiedPath(project, path), lineNumber, line);
+      }
+    }
+  } // end of inner class Checker
 
   /**
-   * Find all changed OWNERS files which differ between the commit and its parents. Return a map
-   * from "Path to the changed file" to "ObjectId of the file".
+   * Return a map from "Path to changed file" to "ObjectId of the file".
    */
-  private static Map<String, ObjectId> getChangedOwners(
-      RevCommit c, RevWalk revWalk, String ownersFileName) throws IOException {
+  private static Map<String, ObjectId> getChangedFiles(
+      RevCommit c, RevWalk revWalk) throws IOException {
     final Map<String, ObjectId> content = new HashMap<>();
     visitChangedEntries(
         c,
@@ -291,7 +398,8 @@ public class OwnersValidator implements CommitValidationListener {
         new TreeWalkVisitor() {
           @Override
           public void onVisit(TreeWalk tw) {
-            if (isFile(tw) && ownersFileName.equals(tw.getNameString())) {
+            // getPathString() returns path names without leading "/"
+            if (isFile(tw)) {
               content.put(tw.getPathString(), tw.getObjectId(0));
             }
           }
