@@ -16,6 +16,24 @@
       "revId": "a6b4f51284136fbd94a705e883a770fc64686f85",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d6666884_bdb89136",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Parser.java",
+        "patchSetId": 11
+      },
+      "lineNbr": 411,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2019-03-14T20:30:05Z",
+      "side": 1,
+      "message": "Done, renamed to getFileKey.",
+      "parentUuid": "1c0c6f44_34969753",
+      "revId": "a6b4f51284136fbd94a705e883a770fc64686f85",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
     }
   ]
 }
