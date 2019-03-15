@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5e28a326_7e42efb6",
+        "filename": "src/test/java/com/googlesource/gerrit/plugins/findowners/OwnersFileSubmitRuleIT.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1071989
+      },
+      "writtenOn": "2019-03-15T00:19:55Z",
+      "side": 1,
+      "message": "I\u0027m working on setting up some integration tests before I add more configuration features but I\u0027m stuck on something that seems simple: This line errors with the commit status REJECTED_OTHER_REASON and the message \"no common ancestry\". Am I setting up my test repository contents wrong?",
+      "range": {
+        "startLine": 41,
+        "startChar": 29,
+        "endLine": 41,
+        "endChar": 124
+      },
+      "revId": "93507b7c198c49aa74ceaafa9bbd3ccc454bb1aa",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    }
+  ]
+}
