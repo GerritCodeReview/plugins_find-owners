@@ -25,10 +25,18 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.flogger.FluentLogger;
+import com.google.gerrit.acceptance.LightweightPluginDaemonTest;
+import com.google.gerrit.acceptance.PushOneCommit;
+import com.google.gerrit.acceptance.TestPlugin;
+import com.google.gerrit.acceptance.testsuite.project.ProjectOperations;
+import com.google.gerrit.extensions.api.changes.SubmitInput;
 import com.google.gerrit.reviewdb.client.Account;
+import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.account.Emails;
 import com.google.gerrit.server.config.PluginConfig;
+import com.google.gerrit.server.events.CommitReceivedEvent;
 import com.google.gerrit.server.git.validators.CommitValidationMessage;
+import com.google.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -52,13 +60,11 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestWatcher;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
 import org.junit.runner.Description;
 
 /** Test OwnersValidator, which checks syntax of changed OWNERS files. */
-@RunWith(JUnit4.class)
-public class OwnersValidatorTest {
+@TestPlugin(name = "find-owners", sysModule = "com.googlesource.gerrit.plugins.findowners.Module")
+public class OwnersValidatorTest extends LightweightPluginDaemonTest {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   @Rule
@@ -73,6 +79,35 @@ public class OwnersValidatorTest {
       logger.atInfo().log("Test finished: " + method.getMethodName());
     }
   };
+
+  @Inject private ProjectOperations projectOperations;
+
+  protected Project.NameKey newProject(String name) {
+    return projectOperations.newProject().parent(new Project.NameKey("All-Projects")).
+        name(name).create();
+  }
+
+  private void switchProject(Project.NameKey p) throws Exception {
+    project = p;
+    testRepo = cloneProject(project);
+  }
+
+  private void addProjectFile(
+      String project, String file, String content) throws Exception {
+    switchProject(newProject(project));
+    PushOneCommit.Result c = createChange("c", file, content);
+    approve(c.getChangeId());
+    gApi.changes().id(c.getChangeId()).current().submit(new SubmitInput());
+  }
+
+  private static class MockedCommitReceivedEvent extends CommitReceivedEvent {
+    MockedCommitReceivedEvent(String project, RevWalk revWalk, RevCommit commit) {
+      this.project = new Project(new Project.NameKey(project));
+      this.revWalk = revWalk;
+      this.commit = commit;
+      this.refName = "master";
+    }
+  }
 
   private static class MockedEmails extends Emails {
     Set<String> registered;
@@ -140,24 +175,25 @@ public class OwnersValidatorTest {
 
   @Test
   public void testNoOwners() throws Exception {
-    try (RevWalk rw = new RevWalk(repo)) {
-      RevCommit c = makeCommit(rw, "Commit no OWNERS.", FILES_WITHOUT_OWNERS);
-      assertThat(validate(rw, c, false, ENABLED_CONFIG)).isEmpty();
-      assertThat(validate(rw, c, true, ENABLED_CONFIG)).isEmpty();
-    }
+    CommitReceivedEvent event = makeCommitEvent("myTest", "no OWNERS.", FILES_WITHOUT_OWNERS);
+    assertThat(validate(event, false, ENABLED_CONFIG)).isEmpty();
+    assertThat(validate(event, true, ENABLED_CONFIG)).isEmpty();
   }
 
   private static final String[] INCLUDE_STMTS = new String[]{
       "  include  p1/p2 : /d1/owners",
-      "include  p1/p2://d1/owners #comment",
+      "include  p2/p1://d1/owners #comment",
       "include ../d2/owners",
       " per-file *.java = file:  //d2/OWNERS.java #",
       "per-file *.cpp,*cc=file:p1/p2:/c++owners",
-      "  file:   p1/p2 : /d1/owners ",
-      "file:  p1/p2://d1/owners #comment",
-      "file: ../d2/owners",
-      "file: //OWNERS",
+      "  file:   p1/p2 : /d1/owners ",  // repeated
+      "file:  p3/p2://d1/owners #comment",
+      "file: ../d2/owners",  // repeated
+      "file: //OWNERS",  // recursive inclusion
       "file:///OWNERS.android"};
+
+  private static final ImmutableSet<String> SKIP_INCLUDE_STMTS =
+      ImmutableSet.of("  file:   p1/p2 : /d1/owners ", "file: ../d2/owners", "file: //OWNERS");
 
   private static String allIncludeStatements() {
     String statement = "";
@@ -170,8 +206,10 @@ public class OwnersValidatorTest {
   private static Set<String> allIncludeMsgs() {
     Set<String> msgs = new HashSet<>();
     for (int i = 0; i < INCLUDE_STMTS.length; i++) {
-      msgs.add("MSG: unchecked: OWNERS:" + (i + 1)
-          + ": " + Parser.getIncludeOrFile(INCLUDE_STMTS[i]));
+      if (!SKIP_INCLUDE_STMTS.contains(INCLUDE_STMTS[i])) {
+        msgs.add("MSG: unchecked: OWNERS:" + (i + 1)
+            + ": " + Parser.getIncludeOrFile(INCLUDE_STMTS[i]));
+      }
     }
     return msgs;
   };
@@ -192,11 +230,32 @@ public class OwnersValidatorTest {
 
   private static Set<String> allVerboseMsgs() {
     Set<String> msgs = allIncludeMsgs();
-    msgs.add("MSG: validate: " + OWNERS);
+    msgs.add("MSG: checking " + OWNERS);
     msgs.add("MSG: owner: u1+review@g.com");
     msgs.add("MSG: owner: u1@g.com");
     msgs.add("MSG: owner: u2.m@g.com");
     msgs.add("MSG: owner: user1@google.com");
+    String[] missing = new String[]{
+        "p1/p2:OWNERS.android",
+        "p1/p2:c++owners",
+        "p1/p2:d1/owners",
+        "p1/p2:d2/OWNERS.java",
+        "p1/p2:d2/owners",
+        "p2/p1:d1/owners",
+        "p3/p2:d1/owners",
+    };
+    for (String s : missing) {
+      msgs.add("MSG: cannot find file: " + s);
+      msgs.add("MSG: check repo file " + s);
+    }
+    String[] skips = new String[]{
+        "p1/p2:OWNERS",
+        "p1/p2:d1/owners",
+        "p1/p2:d2/owners",
+    };
+    for (String s : skips) {
+      msgs.add("MSG: skip repeated include of " + s);
+    }
     return msgs;
   };
 
@@ -207,13 +266,11 @@ public class OwnersValidatorTest {
 
   @Test
   public void testGoodInput() throws Exception {
-    try (RevWalk rw = new RevWalk(repo)) {
-      RevCommit c = makeCommit(rw, "Commit good files", FILES_WITH_NO_ERROR);
-      assertThat(validate(rw, c, false, ENABLED_CONFIG))
-          .containsExactlyElementsIn(EXPECTED_NON_VERBOSE_OUTPUT);
-      assertThat(validate(rw, c, true, ENABLED_CONFIG))
-          .containsExactlyElementsIn(EXPECTED_VERBOSE_OUTPUT);
-    }
+    CommitReceivedEvent event = makeCommitEvent("p1/p2", "good files", FILES_WITH_NO_ERROR);
+    assertThat(validate(event, false, ENABLED_CONFIG))
+        .containsExactlyElementsIn(EXPECTED_NON_VERBOSE_OUTPUT);
+    assertThat(validate(event, true, ENABLED_CONFIG))
+        .containsExactlyElementsIn(EXPECTED_VERBOSE_OUTPUT);
   }
 
   private static final ImmutableMap<String, String> FILES_WITH_WRONG_SYNTAX =
@@ -225,7 +282,6 @@ public class OwnersValidatorTest {
           "d2/" + OWNERS,
           "u1@g.com\n\nu3@g.com\n*\n");
 
-
   private static final ImmutableSet<String> EXPECTED_WRONG_SYNTAX =
       ImmutableSet.of(
           "ERROR: syntax: " + OWNERS + ":4: wrong syntax",
@@ -233,8 +289,8 @@ public class OwnersValidatorTest {
 
   private static final ImmutableSet<String> EXPECTED_VERBOSE_WRONG_SYNTAX =
       ImmutableSet.of(
-          "MSG: validate: d2/" + OWNERS,
-          "MSG: validate: " + OWNERS,
+          "MSG: checking d2/" + OWNERS,
+          "MSG: checking " + OWNERS,
           "MSG: owner: user1@google.com",
           "MSG: owner: u1@g.com",
           "MSG: owner: u3@g.com",
@@ -243,40 +299,51 @@ public class OwnersValidatorTest {
 
   @Test
   public void testWrongSyntax() throws Exception {
-    try (RevWalk rw = new RevWalk(repo)) {
-      RevCommit c = makeCommit(rw, "Commit wrong syntax", FILES_WITH_WRONG_SYNTAX);
-      assertThat(validate(rw, c, false, ENABLED_CONFIG))
-          .containsExactlyElementsIn(EXPECTED_WRONG_SYNTAX);
-      assertThat(validate(rw, c, true, ENABLED_CONFIG))
-          .containsExactlyElementsIn(EXPECTED_VERBOSE_WRONG_SYNTAX);
-    }
+    CommitReceivedEvent event = makeCommitEvent("p1/p2", "wrong syntax", FILES_WITH_WRONG_SYNTAX);
+    assertThat(validate(event, false, ENABLED_CONFIG))
+        .containsExactlyElementsIn(EXPECTED_WRONG_SYNTAX);
+    assertThat(validate(event, true, ENABLED_CONFIG))
+        .containsExactlyElementsIn(EXPECTED_VERBOSE_WRONG_SYNTAX);
   }
 
   private static final ImmutableMap<String, String> FILES_WITH_WRONG_EMAILS =
       ImmutableMap.of("d1/" + OWNERS, "u1@g.com\n", "d2/" + OWNERS_ANDROID, "u2@g.com\n");
 
   private static final ImmutableSet<String> EXPECTED_VERBOSE_DEFAULT =
-      ImmutableSet.of("MSG: validate: d1/" + OWNERS, "MSG: owner: u1@g.com");
+      ImmutableSet.of("MSG: checking d1/" + OWNERS, "MSG: owner: u1@g.com");
 
   private static final ImmutableSet<String> EXPECTED_VERBOSE_ANDROID =
-      ImmutableSet.of("MSG: validate: d2/" + OWNERS_ANDROID, "MSG: owner: u2@g.com");
+      ImmutableSet.of("MSG: checking d2/" + OWNERS_ANDROID, "MSG: owner: u2@g.com");
 
   @Test
   public void checkWrongEmails() throws Exception {
-    try (RevWalk rw = new RevWalk(repo)) {
-      RevCommit c = makeCommit(rw, "Commit Default", FILES_WITH_WRONG_EMAILS);
-      assertThat(validate(rw, c, true, ENABLED_CONFIG))
-          .containsExactlyElementsIn(EXPECTED_VERBOSE_DEFAULT);
-    }
+    CommitReceivedEvent event = makeCommitEvent("test", "default", FILES_WITH_WRONG_EMAILS);
+    assertThat(validate(event, true, ENABLED_CONFIG))
+        .containsExactlyElementsIn(EXPECTED_VERBOSE_DEFAULT);
   }
 
   @Test
   public void checkAndroidOwners() throws Exception {
-    try (RevWalk rw = new RevWalk(repo)) {
-      RevCommit c = makeCommit(rw, "Commit Android", FILES_WITH_WRONG_EMAILS);
-      assertThat(validate(rw, c, true, ANDROID_CONFIG))
-          .containsExactlyElementsIn(EXPECTED_VERBOSE_ANDROID);
-    }
+    CommitReceivedEvent event = makeCommitEvent("test", "Android", FILES_WITH_WRONG_EMAILS);
+    assertThat(validate(event, true, ANDROID_CONFIG))
+        .containsExactlyElementsIn(EXPECTED_VERBOSE_ANDROID);
+  }
+
+  @Test
+  public void simpleIncludeTest() throws Exception {
+    addProjectFile("p1", "d2/owners", "wrong\nxyz\n");
+    addProjectFile("p2", "d2/owners", "x@g.com\nerr\ninclude ../d2/owners\n");
+    ImmutableMap<String, String> files =
+        ImmutableMap.of(
+            "d1/" + OWNERS, "include ../d2/owners\ninclude /d2/owners\n"
+            + "include p1:/d2/owners\ninclude p2:/d2/owners\n");
+    ImmutableSet<String> expected = ImmutableSet.of(
+       "ERROR: unknown: x@g.com at p2:d2/owners:1",
+       "ERROR: syntax: p2:d2/owners:2: err",
+       "ERROR: syntax: d2/owners:1: wrong",
+       "ERROR: syntax: d2/owners:2: xyz");
+    CommitReceivedEvent event = makeCommitEvent("p1", "T", files);
+    assertThat(validate(event, false, ENABLED_CONFIG)).containsExactlyElementsIn(expected);
   }
 
   private static PluginConfig createEnabledConfig() {
@@ -319,13 +386,19 @@ public class OwnersValidatorTest {
     }
   }
 
-  private List<String> validate(RevWalk rw, RevCommit c, boolean verbose, PluginConfig cfg)
+  private CommitReceivedEvent makeCommitEvent(
+      String project, String message, Map<String, String> fileStrings) throws Exception {
+    RevWalk rw = new RevWalk(repo);
+    return new MockedCommitReceivedEvent(project, rw, makeCommit(rw, message, fileStrings));
+  }
+
+  private List<String> validate(CommitReceivedEvent event, boolean verbose, PluginConfig cfg)
       throws Exception {
-    MockedEmails myEmails = new MockedEmails();
-    OwnersValidator validator = new OwnersValidator(null, null, myEmails);
-    String ownersFileName = OwnersValidator.getOwnersFileName(cfg);
-    List<CommitValidationMessage> m = validator.performValidation(c, rw, ownersFileName, verbose);
-    return transformMessages(m);
+    OwnersValidator validator =
+        new OwnersValidator("find-owners", pluginConfig, repoManager, new MockedEmails());
+    OwnersValidator.Checker checker = validator.new Checker(event, verbose);
+    checker.check(OwnersValidator.getOwnersFileName(cfg));
+    return transformMessages(checker.messages);
   }
 
   private static String generateFilePattern(File f, Git git) {
