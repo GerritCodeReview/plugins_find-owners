@@ -22,6 +22,30 @@
       "revId": "93507b7c198c49aa74ceaafa9bbd3ccc454bb1aa",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9e3db656_ab0f3a55",
+        "filename": "src/test/java/com/googlesource/gerrit/plugins/findowners/OwnersFileSubmitRuleIT.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1071989
+      },
+      "writtenOn": "2019-03-15T22:41:18Z",
+      "side": 1,
+      "message": "I was definitely doing _something_ wrong but it\u0027s sorted out on the latest patch set.",
+      "parentUuid": "5e28a326_7e42efb6",
+      "range": {
+        "startLine": 41,
+        "startChar": 29,
+        "endLine": 41,
+        "endChar": 124
+      },
+      "revId": "93507b7c198c49aa74ceaafa9bbd3ccc454bb1aa",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
     }
   ]
 }
