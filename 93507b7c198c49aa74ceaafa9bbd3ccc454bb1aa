@@ -46,6 +46,46 @@
       "revId": "93507b7c198c49aa74ceaafa9bbd3ccc454bb1aa",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "87c38771_f0275a9c",
+        "filename": "src/test/java/com/googlesource/gerrit/plugins/findowners/OwnersFileSubmitRuleIT.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1026112
+      },
+      "writtenOn": "2019-03-18T09:58:07Z",
+      "side": 1,
+      "message": "You need to push this to the server after calling cb.create():\n\nGitUtil.pushHead(testRepo, \"refs/heads/master\", false);\n\ntestRepo is just a local clone of the repo on the server.\n\nIt would be easier to just open the server repo and do a commit there:\n\n    try (Repository repo \u003d repoManager.openRepository(project)) {\n      // Setup the repo the way you want\n    }\n    // Update your clone\n    testRepo.git().fetch().setRemote(\"origin\").call();",
+      "range": {
+        "startLine": 67,
+        "startChar": 3,
+        "endLine": 67,
+        "endChar": 16
+      },
+      "revId": "93507b7c198c49aa74ceaafa9bbd3ccc454bb1aa",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "abeb97ce_f02b2f1e",
+        "filename": "src/test/java/com/googlesource/gerrit/plugins/findowners/OwnersFileSubmitRuleIT.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1026112
+      },
+      "writtenOn": "2019-03-18T09:58:07Z",
+      "side": 1,
+      "message": "I see that you used the correct method on the newer PS.",
+      "revId": "93507b7c198c49aa74ceaafa9bbd3ccc454bb1aa",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
     }
   ]
 }
