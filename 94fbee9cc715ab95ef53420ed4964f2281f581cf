@@ -168,6 +168,30 @@
     },
     {
       "key": {
+        "uuid": "1d4a8d3d_ad321a66",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Config.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 1026112
+      },
+      "writtenOn": "2019-03-18T09:58:07Z",
+      "side": 1,
+      "message": "\u003e Java files are not as easy to update as rules.pl. Multiple project.config files are difficult to manage than one gerrit.config.\n\nI don\u0027t understand this argument. Right now, you have to manage rules.pl files. They inherit. Wherever the rules.pl sits right now, you then put configs into project.config. They also inherit. So it is really just about the translation of rules.pl into project.config.",
+      "parentUuid": "e3a252db_62819a60",
+      "range": {
+        "startLine": 134,
+        "startChar": 37,
+        "endLine": 134,
+        "endChar": 50
+      },
+      "revId": "94fbee9cc715ab95ef53420ed4964f2281f581cf",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "781ad35e_aad35177",
         "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/OwnersFileRule.java",
         "patchSetId": 4
