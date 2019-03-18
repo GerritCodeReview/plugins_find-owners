@@ -152,6 +152,30 @@
       "revId": "f1be6fe3b16dfaa7b45696ce9c47113401b3a5dd",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d60344af_121aca01",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/submit_rules/OwnersFileRule.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2019-03-18T23:21:08Z",
+      "side": 1,
+      "message": "I don\u0027t think existing practices in rules.pl can be easily changed to be parallel and independent submit rules. Can you provide an example to convert some of AOSP\u0027s rules.pl?\n\nEven for just Chromium\u0027s application, this SubmitRule needs to be enabled for some project, not all, but disabled for CLs of some specific user and master branch and \"pure-revert\".\nSee https://chromium.googlesource.com/chromium/src/+/refs/meta/config/rules.pl\nHow do we specify those complicated and site specific conditions for this and any child class of SubmitRule?",
+      "parentUuid": "baf7c749_92deffc3",
+      "range": {
+        "startLine": 72,
+        "startChar": 6,
+        "endLine": 72,
+        "endChar": 17
+      },
+      "revId": "f1be6fe3b16dfaa7b45696ce9c47113401b3a5dd",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
     }
   ]
 }
