@@ -142,7 +142,7 @@ public abstract class FindOwners extends LightweightPluginDaemonTest {
     PushOneCommit.Result commit =
         pushFactory
             .create(
-                admin.getIdent(), // normal user cannot change refs/meta/config
+                admin.newIdent(), // normal user cannot change refs/meta/config
                 testRepo,
                 "Update project config",
                 "project.config",
@@ -204,7 +204,7 @@ public abstract class FindOwners extends LightweightPluginDaemonTest {
 
   protected PushOneCommit.Result createChangeInBranch(
       String branch, String subject, String fileName, String content) throws Exception {
-    PushOneCommit push = pushFactory.create(admin.getIdent(), testRepo, subject, fileName, content);
+    PushOneCommit push = pushFactory.create(admin.newIdent(), testRepo, subject, fileName, content);
     return push.to("refs/for/" + branch);
   }
 

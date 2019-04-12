@@ -87,8 +87,8 @@ public class ApiIT extends FindOwners {
   @Test
   public void authorDefaultVoteTest() throws Exception {
     // CL author has default +1 owner vote.
-    addFile("1", "d1/OWNERS", user.email + "\n"); // d1 owned by user
-    addFile("2", "d2/OWNERS", admin.email + "\n"); // d2 owned by admin
+    addFile("1", "d1/OWNERS", user.email() + "\n"); // d1 owned by user
+    addFile("2", "d2/OWNERS", admin.email() + "\n"); // d2 owned by admin
     // admin is the author of CLs created by createChange.
     PushOneCommit.Result r1 = createChange("r1", "d1/t.c", "Hello1");
     PushOneCommit.Result r2 = createChange("r2", "d2/t.c", "Hello2");
@@ -143,7 +143,7 @@ public class ApiIT extends FindOwners {
     String[] emails2 = {"abc@goog.com", "abc+xyz2@g.com", "xyz-team@goog.com"};
     // Create accounts with given user name, first and second email addresses.
     for (int i = 0; i < users.length; i++) {
-      accountCreator.create(users[i], emails1[i], "FullName " + users[i]).getId();
+      accountCreator.create(users[i], emails1[i], "FullName " + users[i]).id();
       EmailInput input = new EmailInput();
       input.email = emails2[i];
       input.noConfirmation = true;
