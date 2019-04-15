@@ -241,7 +241,6 @@ public class OwnersValidator implements CommitValidationListener {
       for (String line : lines) {
         checkLine(project, path, ++num, line);
       }
-      ;
     }
 
     void checkFile(String project, String path, String content) {

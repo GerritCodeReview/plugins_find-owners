@@ -191,7 +191,7 @@ public class OwnersValidatorIT extends LightweightPluginDaemonTest {
       statement += s + "\n";
     }
     return statement;
-  };
+  }
 
   private static Set<String> allIncludeMsgs() {
     Set<String> msgs = new HashSet<>();
@@ -202,7 +202,7 @@ public class OwnersValidatorIT extends LightweightPluginDaemonTest {
       }
     }
     return msgs;
-  };
+  }
 
   private static final ImmutableMap<String, String> FILES_WITH_NO_ERROR =
       ImmutableMap.of(
@@ -247,7 +247,7 @@ public class OwnersValidatorIT extends LightweightPluginDaemonTest {
       msgs.add("MSG: skip repeated include of " + s);
     }
     return msgs;
-  };
+  }
 
   private static final ImmutableSet<String> EXPECTED_VERBOSE_OUTPUT =
       ImmutableSet.copyOf(allVerboseMsgs());
