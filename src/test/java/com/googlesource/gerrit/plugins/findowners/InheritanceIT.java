@@ -31,14 +31,15 @@ public class InheritanceIT extends FindOwners {
   @Test
   public void includePerFileNoParentTest() throws Exception {
     // Test included file with per-file and set noparent, which affects the including file.
-    PushOneCommit.Result c1 = addFile("1", "d1/d1/OWNERS",
-        "d1d1@g\nper-file OW* = set noparent\nper-file OWNERS=d1d1o@g\n");
-    PushOneCommit.Result c2 = addFile("2", "d1/OWNERS",
-        "d1@g\nper-file OWNERS=d1o@g\nper-file * = set noparent\n");
-    PushOneCommit.Result c3 = addFile( "3", "d2/d1/OWNERS",
-        "per-file O*S=d2d1o@g\nd2d1@g\ninclude ../../d1/d1/OWNERS\n");
-    PushOneCommit.Result c4 = addFile("4",
-        "d2/OWNERS", "d2@g\nper-file OWNERS=d2o@g\nper-file *S=set  noparent \n");
+    PushOneCommit.Result c1 =
+        addFile(
+            "1", "d1/d1/OWNERS", "d1d1@g\nper-file OW* = set noparent\nper-file OWNERS=d1d1o@g\n");
+    PushOneCommit.Result c2 =
+        addFile("2", "d1/OWNERS", "d1@g\nper-file OWNERS=d1o@g\nper-file * = set noparent\n");
+    PushOneCommit.Result c3 =
+        addFile("3", "d2/d1/OWNERS", "per-file O*S=d2d1o@g\nd2d1@g\ninclude ../../d1/d1/OWNERS\n");
+    PushOneCommit.Result c4 =
+        addFile("4", "d2/OWNERS", "d2@g\nper-file OWNERS=d2o@g\nper-file *S=set  noparent \n");
     // Files that match per-file globs with set noparent do not inherit global default owners.
     // But include directive can include more per-file owners as in c3.
     assertThat(getOwnersResponse(c1)).contains("{ ./d1/d1/OWNERS:[ d1d1o@g ] }");
@@ -93,20 +94,19 @@ public class InheritanceIT extends FindOwners {
         .contains("owners:[ " + ownerY + ", " + ownerX010 + " ], files:[ d2/t.c ]");
     // Add "d2/d1/t.c" file, which is owned by ./d2 and root owners.
     PushOneCommit.Result c5 = createChange("c5", "d2/d1/t.c", "Hello!");
-    assertThat(getOwnersResponse(c5)).contains(
-        "owners:[ " + ownerY + ", " + ownerX010 + " ], files:[ d2/d1/t.c ]");
+    assertThat(getOwnersResponse(c5))
+        .contains("owners:[ " + ownerY + ", " + ownerX010 + " ], files:[ d2/d1/t.c ]");
     // Add "d3/t.c" file, which is owned only by ./d3 owners due to "set noparent".
     PushOneCommit.Result c6 = createChange("c6", "d3/t.c", "Hello!");
     String ownerB = ownerJson("b@b");
     assertThat(getOwnersResponse(c6)).contains("owners:[ " + ownerB + " ], files:[ d3/t.c ]");
     // Add "d3/d1/t.c" file, which is owned only by ./d3 owners due to "set noparent".
     PushOneCommit.Result c7 = createChange("c7", "d3/d1/t.c", "Hello!");
-    assertThat(getOwnersResponse(c7)).contains(
-        "owners:[ " + ownerB + " ], files:[ d3/d1/t.c ]");
+    assertThat(getOwnersResponse(c7)).contains("owners:[ " + ownerB + " ], files:[ d3/d1/t.c ]");
     // Add "d4/t.c" file, which is owned by ./d4 and ./d2 owners, but not root owners.
     PushOneCommit.Result c8 = createChange("c8", "d4/t.c", "Hello!");
     String ownerZ = ownerJson("z@z");
-    assertThat(getOwnersResponse(c8)).contains(
-        "owners:[ " + ownerY + ", " + ownerZ + ", " + ownerX010 + " ], files:[ d4/t.c ]");
+    assertThat(getOwnersResponse(c8))
+        .contains("owners:[ " + ownerY + ", " + ownerZ + ", " + ownerX010 + " ], files:[ d4/t.c ]");
   }
 }

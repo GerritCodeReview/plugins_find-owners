@@ -107,7 +107,8 @@ class Config {
     }
     String name = getPluginConfig(projectState).getString(OWNERS_FILE_NAME, defaultName);
     if (name.trim().isEmpty()) {
-      logger.atSevere().log("Project %s has wrong %s: \"%s\" for %s",
+      logger.atSevere().log(
+          "Project %s has wrong %s: \"%s\" for %s",
           projectState.getProject(), OWNERS_FILE_NAME, name, getChangeId(c));
       return defaultName;
     }

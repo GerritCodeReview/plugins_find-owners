@@ -155,12 +155,14 @@ public class UtilTest {
 
   @Test
   public void normalizedDirFilePathTest() throws IOException {
-    String[] dirs = {"", "", ".", "./d1/..", "/d1/d2/../..",
-      "d1", "d2/../d1", "/d1", "/d1", "/d1"};
-    String[] files = {"f0.c", "./f1.c", "./f2", "/f3", "f4",
-      "f5", "f6", "f7", "f8", "../d5/../d1/f9"};
-    String[] paths = {"./f0.c", "./f1.c", "./f2", "./f3", "./f4",
-      "./d1/f5", "./d1/f6", "./d1/f7", "./d1/f8", "./d1/f9"};
+    String[] dirs = {"", "", ".", "./d1/..", "/d1/d2/../..", "d1", "d2/../d1", "/d1", "/d1", "/d1"};
+    String[] files = {
+      "f0.c", "./f1.c", "./f2", "/f3", "f4", "f5", "f6", "f7", "f8", "../d5/../d1/f9"
+    };
+    String[] paths = {
+      "./f0.c", "./f1.c", "./f2", "./f3", "./f4", "./d1/f5", "./d1/f6", "./d1/f7", "./d1/f8",
+      "./d1/f9"
+    };
     for (int i = 0; i < files.length; i++) {
       assertThat(Util.normalizedDirFilePath(dirs[i], files[i])).isEqualTo(paths[i]);
     }
@@ -180,54 +182,54 @@ public class UtilTest {
 
   @Test
   public void addKeyToMapTest() {
-     Map<String, Set<String>> m = new HashMap<>();
-     String key1 = "key1";
-     String key2 = "key2";
-     assertThat(m).isEmpty();
-     Util.addKeyToMap(m, key1);
-     assertThat(m).hasSize(1);
-     assertThat(m.get(key1)).isEmpty();
-     Util.addKeyToMap(m, key1);
-     assertThat(m).hasSize(1);
-     assertThat(m.get(key1)).isEmpty();
-     Util.addKeyToMap(m, key2);
-     assertThat(m).hasSize(2);
-     assertThat(m.get(key1)).isEmpty();
-     assertThat(m.get(key2)).isEmpty();
+    Map<String, Set<String>> m = new HashMap<>();
+    String key1 = "key1";
+    String key2 = "key2";
+    assertThat(m).isEmpty();
+    Util.addKeyToMap(m, key1);
+    assertThat(m).hasSize(1);
+    assertThat(m.get(key1)).isEmpty();
+    Util.addKeyToMap(m, key1);
+    assertThat(m).hasSize(1);
+    assertThat(m.get(key1)).isEmpty();
+    Util.addKeyToMap(m, key2);
+    assertThat(m).hasSize(2);
+    assertThat(m.get(key1)).isEmpty();
+    assertThat(m.get(key2)).isEmpty();
   }
 
   @Test
   public void addToMapTest() {
-     Map<String, Set<String>> m = new HashMap<>();
-     String key1 = "key1";
-     String key2 = "key2";
-     Util.addToMap(m, key1, "v1");
-     Util.addToMap(m, key2, "v2");
-     Util.addToMap(m, key2, "v3");
-     assertThat(m.get(key1)).containsExactly("v1");
-     assertThat(m.get(key2)).containsExactly("v2", "v3");
+    Map<String, Set<String>> m = new HashMap<>();
+    String key1 = "key1";
+    String key2 = "key2";
+    Util.addToMap(m, key1, "v1");
+    Util.addToMap(m, key2, "v2");
+    Util.addToMap(m, key2, "v3");
+    assertThat(m.get(key1)).containsExactly("v1");
+    assertThat(m.get(key2)).containsExactly("v2", "v3");
   }
 
   @Test
   public void addAllToMapTest() {
-     Map<String, Set<String>> m = new HashMap<>();
-     Set<String> s = new HashSet<>();
-     String key = "key";
-     Util.addAllToMap(m, key, s);
-     assertThat(m.get(key)).isEmpty();
-     s.add("v1");
-     Util.addAllToMap(m, key, s);
-     assertThat(m.get(key)).containsExactly("v1");
-     Util.addAllToMap(m, key, s);
-     assertThat(m.get(key)).containsExactly("v1");
-     s.add("v2");
-     Util.addAllToMap(m, key, s);
-     assertThat(m.get(key)).containsExactly("v2", "v1");
-     Util.addAllToMap(m, key, s);
-     assertThat(m.get(key)).containsExactly("v2", "v1");
-     s.add("v3");
-     Util.addAllToMap(m, key, s);
-     assertThat(m.get(key)).containsExactly("v2", "v1", "v3");
+    Map<String, Set<String>> m = new HashMap<>();
+    Set<String> s = new HashSet<>();
+    String key = "key";
+    Util.addAllToMap(m, key, s);
+    assertThat(m.get(key)).isEmpty();
+    s.add("v1");
+    Util.addAllToMap(m, key, s);
+    assertThat(m.get(key)).containsExactly("v1");
+    Util.addAllToMap(m, key, s);
+    assertThat(m.get(key)).containsExactly("v1");
+    s.add("v2");
+    Util.addAllToMap(m, key, s);
+    assertThat(m.get(key)).containsExactly("v2", "v1");
+    Util.addAllToMap(m, key, s);
+    assertThat(m.get(key)).containsExactly("v2", "v1");
+    s.add("v3");
+    Util.addAllToMap(m, key, s);
+    assertThat(m.get(key)).containsExactly("v2", "v1", "v3");
   }
 
   @Test

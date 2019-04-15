@@ -174,10 +174,16 @@ public class ParserTest {
   @Test
   public void perFileGoodDirectiveTest() {
     String[] directives = {
-      "abc@google.com#comment", "  *# comment", "  xyz@gmail.com # comment",
-      "a@g.com  ,  xyz@gmail.com , *  # comment", "*,*#comment", "  a@b,c@d  ",
-      "  set   noparent  ", "\tset\t\tnoparent\t",
-      "file://java.owners", "  file:  p1/p2  :  /OWNERS  "
+      "abc@google.com#comment",
+      "  *# comment",
+      "  xyz@gmail.com # comment",
+      "a@g.com  ,  xyz@gmail.com , *  # comment",
+      "*,*#comment",
+      "  a@b,c@d  ",
+      "  set   noparent  ",
+      "\tset\t\tnoparent\t",
+      "file://java.owners",
+      "  file:  p1/p2  :  /OWNERS  "
     };
     String[] globsList = {"*", "*,*.c", "  *test*.java , *.cc, *.cpp  ", "*.bp,*.mk ,A*  "};
     for (String directive : directives) {
@@ -204,7 +210,7 @@ public class ParserTest {
             assertThat(owners).hasLength(1);
           } else {
             String[] paths = result.owner2paths.get(e).toArray(new String[1]);
-            assertThat(paths).hasLength(globList.length);  // should not work for "set noparent"
+            assertThat(paths).hasLength(globList.length); // should not work for "set noparent"
             Arrays.sort(paths);
             for (int g = 0; g < globList.length; g++) {
               assertThat(paths[g]).isEqualTo(mockedTestDir() + globList[g]);
@@ -218,9 +224,15 @@ public class ParserTest {
   @Test
   public void perFileBadDirectiveTest() {
     String[] directives = {
-      " ** ", "a b@c .co", "a@b@c  #com", "a.<b>@zc#",
-      " , a@b  ", "a@b, , c@d  #", "a@b, set noparent",
-      "a@b, file://java.owners", "*,file:OWNERS"
+      " ** ",
+      "a b@c .co",
+      "a@b@c  #com",
+      "a.<b>@zc#",
+      " , a@b  ",
+      "a@b, , c@d  #",
+      "a@b, set noparent",
+      "a@b, file://java.owners",
+      "*,file:OWNERS"
     };
     for (String directive : directives) {
       String line = "per-file *test*.c=" + directive;
@@ -244,7 +256,8 @@ public class ParserTest {
     testOneIncludeOrFileLine(project, line, "file", projectName, filePath);
   }
 
-  private void testOneIncludeLine(String project, String line, String projectName, String filePath) {
+  private void testOneIncludeLine(
+      String project, String line, String projectName, String filePath) {
     testOneIncludeOrFileLine(project, line, "include", projectName, filePath);
   }
 
@@ -260,24 +273,30 @@ public class ParserTest {
 
   @Test
   public void getIncludeOrFileTest() {
-    String[] line = new String[] {
-      "", "wrong input", "INCLUDE X",
-      "include //f2.txt # ",
-      "  include  P1/P2:  ../f1 # ",
-      "  file://f3 # ",
-      "file:  P1:f3",
-      "  per-file *.c,file.c = file:  /OWNERS  # ",
-      "per-file  *=file:P1/P2:  /O# ",
-    };
-    String[] expected = new String[] {
-      "", "", "",
-      "include //f2.txt",
-      "include P1/P2:../f1",
-      "file://f3",
-      "file:P1:f3",
-      "file:/OWNERS",
-      "file:P1/P2:/O",
-    };
+    String[] line =
+        new String[] {
+          "",
+          "wrong input",
+          "INCLUDE X",
+          "include //f2.txt # ",
+          "  include  P1/P2:  ../f1 # ",
+          "  file://f3 # ",
+          "file:  P1:f3",
+          "  per-file *.c,file.c = file:  /OWNERS  # ",
+          "per-file  *=file:P1/P2:  /O# ",
+        };
+    String[] expected =
+        new String[] {
+          "",
+          "",
+          "",
+          "include //f2.txt",
+          "include P1/P2:../f1",
+          "file://f3",
+          "file:P1:f3",
+          "file:/OWNERS",
+          "file:P1/P2:/O",
+        };
     for (int i = 0; i < line.length; i++) {
       assertThat(Parser.getIncludeOrFile(line[i])).isEqualTo(expected[i]);
     }
