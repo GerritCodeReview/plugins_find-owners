@@ -35,14 +35,17 @@ public class IncludeIT extends FindOwners {
     PushOneCommit.Result c2 = addFile("1", "t.c", "##");
     // Submitted c2 still finds no owners before c1 is submitted.
     assertThat(getOwnersResponse(c2)).contains("owners:[], files:[ t.c ]");
-    PushOneCommit.Result c1 = addFile("2", "OWNERS",
-        "x@x\na@a\ninclude  P1/P2 : f1\ninclude ./d1/d2/../../f2\n");
+    PushOneCommit.Result c1 =
+        addFile("2", "OWNERS", "x@x\na@a\ninclude  P1/P2 : f1\ninclude ./d1/d2/../../f2\n");
     // Now c2 should find owners, but include directives find no repository or file.
     String ownersAX = "owners:[ " + ownerJson("a@a") + ", " + ownerJson("x@x") + " ]";
     String path2owners = "path2owners:{ ./:[ a@a, x@x ] }";
     String owner2paths = "owner2paths:{ a@a:[ ./ ], x@x:[ ./ ] }";
     String projectName = project.get();
-    String expectedInLog = "project:" + projectName + ", "
+    String expectedInLog =
+        "project:"
+            + projectName
+            + ", "
             + "ownersFileName:OWNERS, "
             + "getBranchId:refs/heads/master(FOUND), "
             + "findOwnersFileFor:./t.c, "
@@ -52,8 +55,12 @@ public class IncludeIT extends FindOwners {
             + "getRepoFile:P1/P2:refs/heads/master:f1, "
             + "getRepoFileException:repositorynotfound:P1/P2, " // repository not found
             + "parseLine:include:(), " // missing file is treated as empty
-            + "parseLine:include:" + projectName + ":./d1/d2/../../f2, "
-            + "getRepoFile:" + projectName + ":refs/heads/master:f2, "
+            + "parseLine:include:"
+            + projectName
+            + ":./d1/d2/../../f2, "
+            + "getRepoFile:"
+            + projectName
+            + ":refs/heads/master:f2, "
             + "getFile:f2(NOTFOUND), " // same repository but f2 is missing
             + "parseLine:include:(), " // missing file is treated as empty
             + "countNumOwners, "
@@ -82,8 +89,8 @@ public class IncludeIT extends FindOwners {
     addFile("c0", "f2", "g1@g\ng2@g\n");
     // c2 and c1 are both submitted before existence of OWNERS.
     PushOneCommit.Result c2 = addFile("c2", "t.c", "##");
-    PushOneCommit.Result c1 = addFile("c1", "OWNERS",
-        "x@x\na@a\ninclude  P1/P2 : f1\ninclude ./d1/d2/../../f2\n");
+    PushOneCommit.Result c1 =
+        addFile("c1", "OWNERS", "x@x\na@a\ninclude  P1/P2 : f1\ninclude ./d1/d2/../../f2\n");
     String ownerA = ownerJson("a@a");
     String ownerX = ownerJson("x@x");
     String ownerG1 = ownerJson("g1@g");
@@ -93,7 +100,10 @@ public class IncludeIT extends FindOwners {
     String path2owners = "path2owners:{ ./:[ a@a, g1@g, g2@g, x@x ] }";
     String owner2paths = "owner2paths:{ a@a:[ ./ ], g1@g:[ ./ ], g2@g:[ ./ ], x@x:[ ./ ] }";
     String projectName = project.get();
-    String expectedInLog = "project:" + projectName + ", "
+    String expectedInLog =
+        "project:"
+            + projectName
+            + ", "
             + "ownersFileName:OWNERS, "
             + "getBranchId:refs/heads/master(FOUND), "
             + "findOwnersFileFor:./t.c, "
@@ -103,8 +113,12 @@ public class IncludeIT extends FindOwners {
             + "getRepoFile:P1/P2:refs/heads/master:f1, "
             + "getRepoFileException:repositorynotfound:P1/P2, "
             + "parseLine:include:(), " // P1/P2 is still not found
-            + "parseLine:include:" + projectName + ":./d1/d2/../../f2, "
-            + "getRepoFile:" + projectName + ":refs/heads/master:f2, "
+            + "parseLine:include:"
+            + projectName
+            + ":./d1/d2/../../f2, "
+            + "getRepoFile:"
+            + projectName
+            + ":refs/heads/master:f2, "
             + "getFile:f2:(...), " // f2 is included
             + "countNumOwners, "
             + "findOwners, "
@@ -145,8 +159,17 @@ public class IncludeIT extends FindOwners {
     String ownerD2 = ownerJson("d2d2@g");
     String ownerF2 = ownerJson("d2f2@g");
     String ownerX = ownerJson("x@g", 0, 1, 0);
-    assertThat(getOwnersResponse(c1)).contains("owners:[ " + ownerD2 + ", "
-        + ownerF2 + ", " + ownerD3 + ", " + ownerX + " ], files:[ d3/t.c ]");
+    assertThat(getOwnersResponse(c1))
+        .contains(
+            "owners:[ "
+                + ownerD2
+                + ", "
+                + ownerF2
+                + ", "
+                + ownerD3
+                + ", "
+                + ownerX
+                + " ], files:[ d3/t.c ]");
   }
 
   @Test
@@ -154,24 +177,16 @@ public class IncludeIT extends FindOwners {
     // Test difference between include and file statements.
     // The file statement skips "set noparent" and "per-file" statements.
     addFile("d1", "d1/OWNERS", "d1@g\n");
-    addFile("d1/d1", "d1/d1/OWNERS",
-        "per-file *.c=d1d1p@g\nd1d1@g\nfile: d1/OWNERS\n");
-    addFile("d1/d1/d1", "d1/d1/d1/OWNERS",
-        "set noparent\nper-file *.c=d1d1d1p@g\nd1d1d1@g\n");
-    addFile("d1/d2", "d1/d2/OWNERS",
-        "per-file *.c=d1d2p@g\nd1d2@g\ninclude d1/OWNERS\n");
-    addFile("d1/d2/d1", "d1/d2/d1/OWNERS",
-        "set noparent\nper-file *.c=d1d2d1p@g\nd1d2d1@g\n");
+    addFile("d1/d1", "d1/d1/OWNERS", "per-file *.c=d1d1p@g\nd1d1@g\nfile: d1/OWNERS\n");
+    addFile("d1/d1/d1", "d1/d1/d1/OWNERS", "set noparent\nper-file *.c=d1d1d1p@g\nd1d1d1@g\n");
+    addFile("d1/d2", "d1/d2/OWNERS", "per-file *.c=d1d2p@g\nd1d2@g\ninclude d1/OWNERS\n");
+    addFile("d1/d2/d1", "d1/d2/d1/OWNERS", "set noparent\nper-file *.c=d1d2d1p@g\nd1d2d1@g\n");
 
     addFile("d2", "d2/OWNERS", "d2@g\n");
-    addFile("d2/d1", "d2/d1/OWNERS",
-        "per-file *.c=d2d1p@g\nd2d1@g\nfile: ./d1/OWNERS\n");
-    addFile("d2/d1/d1", "d2/d1/d1/OWNERS",
-        "set noparent\nper-file *.c=d2d1d1p@g\nd2d1d1@g\n");
-    addFile("d2/d2", "d2/d2/OWNERS",
-        "per-file *.c=d2d2p@g\nd2d2@g\ninclude ./d1/OWNERS\n");
-    addFile("d2/d2/d1", "d2/d2/d1/OWNERS",
-        "set noparent\nper-file *.c=d2d2d1p@g\nd2d2d1@g\n");
+    addFile("d2/d1", "d2/d1/OWNERS", "per-file *.c=d2d1p@g\nd2d1@g\nfile: ./d1/OWNERS\n");
+    addFile("d2/d1/d1", "d2/d1/d1/OWNERS", "set noparent\nper-file *.c=d2d1d1p@g\nd2d1d1@g\n");
+    addFile("d2/d2", "d2/d2/OWNERS", "per-file *.c=d2d2p@g\nd2d2@g\ninclude ./d1/OWNERS\n");
+    addFile("d2/d2/d1", "d2/d2/d1/OWNERS", "set noparent\nper-file *.c=d2d2d1p@g\nd2d2d1@g\n");
 
     addFile("d3", "d3/OWNERS", "d3@g\n");
     addFile("d3/d1/d1", "d3/d1/d1/OWNERS", "d3d1d1@g\nfile: ../../../d1/d1/OWNERS\n");
@@ -184,17 +199,15 @@ public class IncludeIT extends FindOwners {
     PushOneCommit.Result c22 = createChange("c22", "d3/d2/d2/t.c", "test");
 
     // file and file
-    String owners11 = "file2owners:{ ./d3/d1/d1/t.c:"
-        + "[ d1d1@g, d1d1d1@g, d3@g, d3d1d1@g ] }";
+    String owners11 = "file2owners:{ ./d3/d1/d1/t.c:" + "[ d1d1@g, d1d1d1@g, d3@g, d3d1d1@g ] }";
     // file and include
-    String owners12 = "file2owners:{ ./d3/d1/d2/t.c:"
-        + "[ d1d2@g, d1d2d1@g, d3@g, d3d1d2@g ] }";
+    String owners12 = "file2owners:{ ./d3/d1/d2/t.c:" + "[ d1d2@g, d1d2d1@g, d3@g, d3d1d2@g ] }";
     // include and file
-    String owners21 = "file2owners:{ ./d3/d2/d1/t.c:"
-        + "[ d2d1@g, d2d1d1@g, d2d1p@g, d3@g, d3d2d1@g ] }";
+    String owners21 =
+        "file2owners:{ ./d3/d2/d1/t.c:" + "[ d2d1@g, d2d1d1@g, d2d1p@g, d3@g, d3d2d1@g ] }";
     // include and include
-    String owners22 = "file2owners:{ ./d3/d2/d2/t.c:"
-        + "[ d2d2@g, d2d2d1@g, d2d2d1p@g, d2d2p@g, d3d2d2@g ] }";
+    String owners22 =
+        "file2owners:{ ./d3/d2/d2/t.c:" + "[ d2d2@g, d2d2d1@g, d2d2d1p@g, d2d2p@g, d3d2d2@g ] }";
 
     assertThat(getOwnersDebugResponse(c11)).contains(owners11);
     assertThat(getOwnersDebugResponse(c12)).contains(owners12);
@@ -233,25 +246,46 @@ public class IncludeIT extends FindOwners {
     PushOneCommit.Result c = createChange("6", "t.c", "#\n");
     String response = getOwnersDebugResponse(c);
     String projectName = project.get();
-    String expectedInLog = "project:" + projectName + ", "
+    String expectedInLog =
+        "project:"
+            + projectName
+            + ", "
             + "ownersFileName:OWNERS, "
             + "getBranchId:refs/heads/master(FOUND), "
             + "findOwnersFileFor:./t.c, "
             + "findOwnersFileIn:., "
             + "getFile:OWNERS:(...), "
-            + "parseLine:include:" + projectName + ":./d1/../f1, "
-            + "getRepoFile:" + projectName + ":refs/heads/master:f1, "
+            + "parseLine:include:"
+            + projectName
+            + ":./d1/../f1, "
+            + "getRepoFile:"
+            + projectName
+            + ":refs/heads/master:f1, "
             + "getFile:f1:(...), "
-            + "parseLine:include:" + projectName + ":./f2, "
-            + "getRepoFile:" + projectName + ":refs/heads/master:f2, "
+            + "parseLine:include:"
+            + projectName
+            + ":./f2, "
+            + "getRepoFile:"
+            + projectName
+            + ":refs/heads/master:f2, "
             + "getFile:f2:(...), "
-            + "parseLine:include:" + projectName + ":d1/../f3, "
-            + "getRepoFile:" + projectName + ":refs/heads/master:f3, "
+            + "parseLine:include:"
+            + projectName
+            + ":d1/../f3, "
+            + "getRepoFile:"
+            + projectName
+            + ":refs/heads/master:f3, "
             + "getFile:f3:(...), "
-            + "parseLine:include:" + projectName + ":/f4, "
-            + "getRepoFile:" + projectName + ":refs/heads/master:f4, "
+            + "parseLine:include:"
+            + projectName
+            + ":/f4, "
+            + "getRepoFile:"
+            + projectName
+            + ":refs/heads/master:f4, "
             + "getFile:f4:(...), "
-            + "parseLine:errorRecursion:include:" + projectName + ":d2/../f2, "
+            + "parseLine:errorRecursion:include:"
+            + projectName
+            + ":d2/../f2, "
             + "countNumOwners, "
             + "findOwners, "
             + "checkFile:./t.c, "
@@ -259,8 +293,8 @@ public class IncludeIT extends FindOwners {
             + "addOwnerWeightsIn:./ "
             + "] ";
     assertThat(response).contains("path2owners:{ ./:[ f1@g, f2@g, f3@g, f4@g, x@g ] }");
-    assertThat(response).contains(
-        "owner2paths:{ f1@g:[ ./ ], f2@g:[ ./ ], f3@g:[ ./ ], f4@g:[ ./ ], x@g:[ ./ ] }");
+    assertThat(response)
+        .contains("owner2paths:{ f1@g:[ ./ ], f2@g:[ ./ ], f3@g:[ ./ ], f4@g:[ ./ ], x@g:[ ./ ] }");
     assertThat(response).contains(expectedInLog);
   }
 
@@ -275,55 +309,97 @@ public class IncludeIT extends FindOwners {
     addFile("3", "d2/d3/f3", "f3@g\ninclude /d0/f0\n");
     addFile("4", "d4/f4", "f4@g\ninclude ../d2/f2\n");
     addFile("5", "d4/d5/f5", "f5@g\ninclude /d2/f2\ninclude ../f4\n");
-    PushOneCommit.Result c = addFile("6", "d6/OWNERS",
-        "f6@g\ninclude /d0/f0\ninclude ../d1/d2/f1\n"
-        + "include ../d2/f2\ninclude /d2/d3/f3\ninclude /d2/../d4/d5/f5\ninclude /d4/f4\n");
+    PushOneCommit.Result c =
+        addFile(
+            "6",
+            "d6/OWNERS",
+            "f6@g\ninclude /d0/f0\ninclude ../d1/d2/f1\n"
+                + "include ../d2/f2\ninclude /d2/d3/f3\ninclude /d2/../d4/d5/f5\ninclude /d4/f4\n");
     String result = getOwnersDebugResponse(c);
     assertThat(result).contains("{ ./d6/OWNERS:[ f0@g, f1@g, f2@g, f3@g, f4@g, f5@g, f6@g ] }");
     String projectName = project.get();
     String skipLog = "parseLine:useSaved:include:" + projectName + ":";
-    for (String path : new String[]{"../../d0/f0", "../d0/f0", "../d2/f2", "/d2/f2", "/d4/f4"}) {
+    for (String path : new String[] {"../../d0/f0", "../d0/f0", "../d2/f2", "/d2/f2", "/d4/f4"}) {
       assertThat(result).contains(skipLog + path);
     }
-    String expectedInLog = "project:" + projectName + ", "
-           + "ownersFileName:OWNERS, "
-           + "getBranchId:refs/heads/master(FOUND), "
-           + "findOwnersFileFor:./d6/OWNERS, "
-           + "findOwnersFileIn:./d6, "
-           + "getFile:d6/OWNERS:(...), "
-           + "parseLine:include:" + projectName + ":/d0/f0, "
-           + "getRepoFile:" + projectName + ":refs/heads/master:d0/f0, "
-           + "getFile:d0/f0:(...), "
-           + "parseLine:include:" + projectName + ":../d1/d2/f1, "
-           + "getRepoFile:" + projectName + ":refs/heads/master:d1/d2/f1, "
-           + "getFile:d1/d2/f1:(...), "
-           + "parseLine:useSaved:include:" + projectName + ":../../d0/f0, "
-           + "parseLine:include:" + projectName + ":../d2/f2, "
-           + "getRepoFile:" + projectName + ":refs/heads/master:d2/f2, "
-           + "getFile:d2/f2:(...), "
-           + "parseLine:useSaved:include:" + projectName + ":../d0/f0, "
-           + "parseLine:include:" + projectName + ":/d2/d3/f3, "
-           + "getRepoFile:" + projectName + ":refs/heads/master:d2/d3/f3, "
-           + "getFile:d2/d3/f3:(...), "
-           + "parseLine:useSaved:include:" + projectName + ":/d0/f0, "
-           + "parseLine:include:" + projectName + ":/d2/../d4/d5/f5, "
-           + "getRepoFile:" + projectName + ":refs/heads/master:d4/d5/f5, "
-           + "getFile:d4/d5/f5:(...), "
-           + "parseLine:useSaved:include:" + projectName + ":/d2/f2, "
-           + "parseLine:include:" + projectName + ":../f4, "
-           + "getRepoFile:" + projectName + ":refs/heads/master:d4/f4, "
-           + "getFile:d4/f4:(...), "
-           + "parseLine:useSaved:include:" + projectName + ":../d2/f2, "
-           + "parseLine:useSaved:include:" + projectName + ":/d4/f4, "
-           + "findOwnersFileIn:., "
-           + "getFile:OWNERS(NOTFOUND), "
-           + "countNumOwners, "
-           + "findOwners, "
-           + "checkFile:./d6/OWNERS, "
-           + "checkDir:./d6, "
-           + "checkDir:., "
-           + "addOwnerWeightsIn:./d6/ "
-           + "] ";
+    String expectedInLog =
+        "project:"
+            + projectName
+            + ", "
+            + "ownersFileName:OWNERS, "
+            + "getBranchId:refs/heads/master(FOUND), "
+            + "findOwnersFileFor:./d6/OWNERS, "
+            + "findOwnersFileIn:./d6, "
+            + "getFile:d6/OWNERS:(...), "
+            + "parseLine:include:"
+            + projectName
+            + ":/d0/f0, "
+            + "getRepoFile:"
+            + projectName
+            + ":refs/heads/master:d0/f0, "
+            + "getFile:d0/f0:(...), "
+            + "parseLine:include:"
+            + projectName
+            + ":../d1/d2/f1, "
+            + "getRepoFile:"
+            + projectName
+            + ":refs/heads/master:d1/d2/f1, "
+            + "getFile:d1/d2/f1:(...), "
+            + "parseLine:useSaved:include:"
+            + projectName
+            + ":../../d0/f0, "
+            + "parseLine:include:"
+            + projectName
+            + ":../d2/f2, "
+            + "getRepoFile:"
+            + projectName
+            + ":refs/heads/master:d2/f2, "
+            + "getFile:d2/f2:(...), "
+            + "parseLine:useSaved:include:"
+            + projectName
+            + ":../d0/f0, "
+            + "parseLine:include:"
+            + projectName
+            + ":/d2/d3/f3, "
+            + "getRepoFile:"
+            + projectName
+            + ":refs/heads/master:d2/d3/f3, "
+            + "getFile:d2/d3/f3:(...), "
+            + "parseLine:useSaved:include:"
+            + projectName
+            + ":/d0/f0, "
+            + "parseLine:include:"
+            + projectName
+            + ":/d2/../d4/d5/f5, "
+            + "getRepoFile:"
+            + projectName
+            + ":refs/heads/master:d4/d5/f5, "
+            + "getFile:d4/d5/f5:(...), "
+            + "parseLine:useSaved:include:"
+            + projectName
+            + ":/d2/f2, "
+            + "parseLine:include:"
+            + projectName
+            + ":../f4, "
+            + "getRepoFile:"
+            + projectName
+            + ":refs/heads/master:d4/f4, "
+            + "getFile:d4/f4:(...), "
+            + "parseLine:useSaved:include:"
+            + projectName
+            + ":../d2/f2, "
+            + "parseLine:useSaved:include:"
+            + projectName
+            + ":/d4/f4, "
+            + "findOwnersFileIn:., "
+            + "getFile:OWNERS(NOTFOUND), "
+            + "countNumOwners, "
+            + "findOwners, "
+            + "checkFile:./d6/OWNERS, "
+            + "checkDir:./d6, "
+            + "checkDir:., "
+            + "addOwnerWeightsIn:./d6/ "
+            + "] ";
     assertThat(result).contains(expectedInLog);
   }
 
@@ -348,9 +424,22 @@ public class IncludeIT extends FindOwners {
     PushOneCommit.Result c1 = createChange("c1", "d2/t.c", "Hello!");
     // included: pA:d2/OWNERS, pA:d2/../f1, pA:d1/f1, pB:d2/f2, pB:d2/../f1, pB:./d1/f1
     // inherited: pA:OWNERS
-    String owners = "owners:[ " + ownerJson("pAd1f1@g") + ", " + ownerJson("pAd2@g") + ", "
-        + ownerJson("pAf1@g") + ", " + ownerJson("pBd1f1@g") + ", " + ownerJson("pBd2f2@g")
-        + ", " + ownerJson("pBf1@g") + ", " + ownerJson("pA@g", 0, 1, 0) + " ]";
+    String owners =
+        "owners:[ "
+            + ownerJson("pAd1f1@g")
+            + ", "
+            + ownerJson("pAd2@g")
+            + ", "
+            + ownerJson("pAf1@g")
+            + ", "
+            + ownerJson("pBd1f1@g")
+            + ", "
+            + ownerJson("pBd2f2@g")
+            + ", "
+            + ownerJson("pBf1@g")
+            + ", "
+            + ownerJson("pA@g", 0, 1, 0)
+            + " ]";
     assertThat(getOwnersResponse(c1)).contains(owners);
   }
 }

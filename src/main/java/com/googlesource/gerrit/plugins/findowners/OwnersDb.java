@@ -16,8 +16,8 @@ package com.googlesource.gerrit.plugins.findowners;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-import com.google.common.collect.Ordering;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Ordering;
 import com.google.common.flogger.FluentLogger;
 import com.google.gerrit.reviewdb.client.Account;
 import com.google.gerrit.reviewdb.client.Project;
@@ -115,8 +115,8 @@ class OwnersDb {
           String found = "Found";
           if (content.isEmpty()) {
             String changeId = Config.getChangeId(changeData);
-            logger.atSevere().log("Missing root %s for %s of %s",
-                ownersFileName, changeId, projectName);
+            logger.atSevere().log(
+                "Missing root %s for %s of %s", ownersFileName, changeId, projectName);
             found = "Missing";
           }
           logs.add(found + " root " + ownersFileName);
@@ -140,8 +140,13 @@ class OwnersDb {
             String filePath = dir + "/" + ownersFileName;
             String content = getFile(readFiles, repo, projectName, id, filePath, logs);
             if (content != null && !content.isEmpty()) {
-              addFile(readFiles, projectName, branch, dir + "/", dir + "/" + ownersFileName,
-                      content.split("\\R"));
+              addFile(
+                  readFiles,
+                  projectName,
+                  branch,
+                  dir + "/",
+                  dir + "/" + ownersFileName,
+                  content.split("\\R"));
             }
             if (stopLooking.contains(dir + "/") || !dir.contains("/")) {
               break; // stop looking through parent directory
@@ -232,8 +237,13 @@ class OwnersDb {
     }
   }
 
-  void addFile(Map<String, String> readFiles, String project, String branch,
-      String dirPath, String filePath, String[] lines) {
+  void addFile(
+      Map<String, String> readFiles,
+      String project,
+      String branch,
+      String dirPath,
+      String filePath,
+      String[] lines) {
     Parser parser = new Parser(readFiles, repoManager, project, branch, filePath, logs);
     Parser.Result result = parser.parseFile(dirPath, lines);
     if (result.stopLooking) {
@@ -338,7 +348,7 @@ class OwnersDb {
           foundStar |= findStarOwner(dirPath + "/", distance, paths, distances);
         }
         if (stopLooking.contains(dirPath + "/") // stop looking parent
-            || foundNoParentGlob                // per-file "set noparent"
+            || foundNoParentGlob // per-file "set noparent"
             || !dirPath.contains("/") /* root */) {
           break;
         }
@@ -407,8 +417,13 @@ class OwnersDb {
   }
 
   /** Returns file content or empty string; uses project+branch+file names. */
-  public static String getRepoFile(Map<String, String> readFiles, GitRepositoryManager repoManager,
-      String project, String branch, String file, List<String> logs) {
+  public static String getRepoFile(
+      Map<String, String> readFiles,
+      GitRepositoryManager repoManager,
+      String project,
+      String branch,
+      String file,
+      List<String> logs) {
     // 'file' must be an absolute path from the root of 'project'.
     logs.add("getRepoFile:" + Parser.getFileKey(project, branch, file));
     file = Util.gitRepoFilePath(file);
@@ -432,8 +447,13 @@ class OwnersDb {
   }
 
   /** Returns file content or empty string; uses Repository. */
-  private static String getFile(Map<String, String> readFiles,
-      Repository repo, String project, ObjectId id, String file, List<String> logs) {
+  private static String getFile(
+      Map<String, String> readFiles,
+      Repository repo,
+      String project,
+      ObjectId id,
+      String file,
+      List<String> logs) {
     file = Util.gitRepoFilePath(file);
     String content = findReadFile(readFiles, project, file);
     if (content == null) {

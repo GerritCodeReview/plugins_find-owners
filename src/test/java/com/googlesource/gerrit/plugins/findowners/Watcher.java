@@ -22,7 +22,9 @@ import org.junit.runner.Description;
 class Watcher extends TestWatcher {
   private final FluentLogger logger;
 
-  Watcher(FluentLogger logger) { this.logger = logger; }
+  Watcher(FluentLogger logger) {
+    this.logger = logger;
+  }
 
   @Override
   public void starting(final Description method) {

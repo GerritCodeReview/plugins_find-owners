@@ -141,9 +141,10 @@ public class OwnersValidator implements CommitValidationListener {
       throw new CommitValidationException("failed to check owners files", e);
     }
     if (checker.hasError()) {
-      checker.addError("See OWNERS file syntax document at "
-          + "https://gerrit.googlesource.com/plugins/find-owners/+/"
-          + "master/src/main/resources/Documentation/syntax.md");
+      checker.addError(
+          "See OWNERS file syntax document at "
+              + "https://gerrit.googlesource.com/plugins/find-owners/+/"
+              + "master/src/main/resources/Documentation/syntax.md");
       throw new CommitValidationException("found invalid owners file", checker.messages);
     }
     return checker.messages;
@@ -179,8 +180,8 @@ public class OwnersValidator implements CommitValidationListener {
     void check(String ownersFileName) throws IOException {
       Map<String, ObjectId> ownerFiles =
           allFiles.entrySet().stream()
-          .filter(e -> ownersFileName.equals(new File(e.getKey()).getName()))
-          .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+              .filter(e -> ownersFileName.equals(new File(e.getKey()).getName()))
+              .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
       String projectName = event.project.getName();
       for (String path : ownerFiles.keySet()) {
         String key = projectName + ":" + path;
@@ -239,7 +240,8 @@ public class OwnersValidator implements CommitValidationListener {
       int num = 0;
       for (String line : lines) {
         checkLine(project, path, ++num, line);
-      };
+      }
+      ;
     }
 
     void checkFile(String project, String path, String content) {
@@ -248,8 +250,8 @@ public class OwnersValidator implements CommitValidationListener {
 
     void checkFile(String project, String path, ObjectLoader ol) {
       try {
-        BufferedReader reader = new BufferedReader(
-            new InputStreamReader(ol.openStream(), StandardCharsets.UTF_8));
+        BufferedReader reader =
+            new BufferedReader(new InputStreamReader(ol.openStream(), StandardCharsets.UTF_8));
         checkFile(project, path, reader.lines().toArray(String[]::new));
       } catch (Exception e) {
         addError("cannot open file: " + path);
@@ -308,9 +310,8 @@ public class OwnersValidator implements CommitValidationListener {
     }
 
     /**
-     * Check if an included file exists and with valid syntax.
-     * An included file could be (1) in the current CL, (2) in the same repository,
-     * (3) in a different repository, (4) in another CL.
+     * Check if an included file exists and with valid syntax. An included file could be (1) in the
+     * current CL, (2) in the same repository, (3) in a different repository, (4) in another CL.
      * Case (4) is not checked yet.
      */
     void checkIncludeOrFile(String project, String path, int num, String line) {
@@ -351,8 +352,9 @@ public class OwnersValidator implements CommitValidationListener {
       }
       // Included file is in repository or other CL.
       addVerboseMsg("check repo file " + key);
-      String content = OwnersDb.getRepoFile(readFiles, repoManager, KPF[1],
-          event.refName, repoFile, new ArrayList<>());
+      String content =
+          OwnersDb.getRepoFile(
+              readFiles, repoManager, KPF[1], event.refName, repoFile, new ArrayList<>());
       if (isNullOrEmpty(content)) {
         addVerboseMsg("cannot find file: " + key);
         // unchecked: including-file-path : line number : source line
@@ -370,7 +372,7 @@ public class OwnersValidator implements CommitValidationListener {
       } else if ((email = Parser.parseEmail(line)) != null) {
         collectEmail(email, project, path, lineNumber);
       } else if ((owners = Parser.parsePerFileOwners(line)) != null) {
-        for (String owner: owners) {
+        for (String owner : owners) {
           if (owner.startsWith("file:")) {
             // Pass the whole line, not just owner, to report any syntax error.,
             checkIncludeOrFile(project, path, lineNumber, line);
@@ -386,11 +388,9 @@ public class OwnersValidator implements CommitValidationListener {
     }
   } // end of inner class Checker
 
-  /**
-   * Return a map from "Path to changed file" to "ObjectId of the file".
-   */
-  private static Map<String, ObjectId> getChangedFiles(
-      RevCommit c, RevWalk revWalk) throws IOException {
+  /** Return a map from "Path to changed file" to "ObjectId of the file". */
+  private static Map<String, ObjectId> getChangedFiles(RevCommit c, RevWalk revWalk)
+      throws IOException {
     final Map<String, ObjectId> content = new HashMap<>();
     visitChangedEntries(
         c,

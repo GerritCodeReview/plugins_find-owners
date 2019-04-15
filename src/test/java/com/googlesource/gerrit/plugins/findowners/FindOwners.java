@@ -100,8 +100,8 @@ public abstract class FindOwners extends LightweightPluginDaemonTest {
     gApi.changes().id(change.getChangeId()).current().submit(new SubmitInput());
   }
 
-  protected PushOneCommit.Result addFile(
-      String subject, String file, String content) throws Exception {
+  protected PushOneCommit.Result addFile(String subject, String file, String content)
+      throws Exception {
     PushOneCommit.Result c = createChange(subject, file, content);
     approveSubmit(c);
     return c;
@@ -155,15 +155,25 @@ public abstract class FindOwners extends LightweightPluginDaemonTest {
   protected int checkApproval(PushOneCommit.Result r) throws Exception {
     Project.NameKey project = r.getChange().project();
     Cache cache = getCache().init(0, 0);
-    OwnersDb db = cache.get(true, projectCache.get(project), accountCache, emails,
-                            repoManager, pluginConfig, r.getChange(), 1);
+    OwnersDb db =
+        cache.get(
+            true,
+            projectCache.get(project),
+            accountCache,
+            emails,
+            repoManager,
+            pluginConfig,
+            r.getChange(),
+            1);
     Checker c = new Checker(repoManager, pluginConfig, null, r.getChange(), 1);
     return c.findApproval(accountCache, db);
   }
 
   // Remove '"' and space; replace '\n' with ' '; ignore "owner_revision" and "HostName:*".
   protected static String filteredJson(String json) {
-    return json.replaceAll("[\" ]*", "").replace('\n', ' ').replaceAll("owner_revision:[^ ]* ", "")
+    return json.replaceAll("[\" ]*", "")
+        .replace('\n', ' ')
+        .replaceAll("owner_revision:[^ ]* ", "")
         .replaceAll("HostName:[^ ]*, ", "");
   }
 

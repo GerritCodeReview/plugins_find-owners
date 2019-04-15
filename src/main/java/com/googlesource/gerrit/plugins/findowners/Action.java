@@ -124,10 +124,7 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
   static List<String> getReviewers(ChangeData changeData, AccountCache accountCache) {
     try {
       // Reviewers may have no preferred email, skip them if the preferred email is not set.
-      return changeData
-          .reviewers()
-          .all()
-          .stream()
+      return changeData.reviewers().all().stream()
           .map(accountCache::get)
           .flatMap(Streams::stream)
           .map(a -> a.getAccount().getPreferredEmail())
@@ -162,8 +159,17 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
     int patchset = getValidPatchsetNum(changeData, params.patchset);
     ProjectState projectState = projectCache.get(changeData.project());
     Boolean useCache = params.nocache == null || !params.nocache;
-    OwnersDb db = Cache.getInstance(configFactory, repoManager).get(
-        useCache, projectState, accountCache, emails, repoManager, configFactory, changeData, patchset);
+    OwnersDb db =
+        Cache.getInstance(configFactory, repoManager)
+            .get(
+                useCache,
+                projectState,
+                accountCache,
+                emails,
+                repoManager,
+                configFactory,
+                changeData,
+                patchset);
     Collection<String> changedFiles = changeData.currentFilePaths();
     Map<String, Set<String>> file2Owners = db.findOwners(changedFiles);
 

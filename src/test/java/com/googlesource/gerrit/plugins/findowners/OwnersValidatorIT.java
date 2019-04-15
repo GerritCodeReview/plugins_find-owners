@@ -59,8 +59,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TestWatcher;
-import org.junit.runner.Description;
 
 /** Test OwnersValidator, which checks syntax of changed OWNERS files. */
 @TestPlugin(name = "find-owners", sysModule = "com.googlesource.gerrit.plugins.findowners.Module")
@@ -71,8 +69,11 @@ public class OwnersValidatorIT extends LightweightPluginDaemonTest {
   @Inject private ProjectOperations projectOperations;
 
   protected Project.NameKey newProject(String name) {
-    return projectOperations.newProject().parent(new Project.NameKey("All-Projects")).
-        name(name).create();
+    return projectOperations
+        .newProject()
+        .parent(new Project.NameKey("All-Projects"))
+        .name(name)
+        .create();
   }
 
   private void switchProject(Project.NameKey p) throws Exception {
@@ -80,8 +81,7 @@ public class OwnersValidatorIT extends LightweightPluginDaemonTest {
     testRepo = cloneProject(project);
   }
 
-  private void addProjectFile(
-      String project, String file, String content) throws Exception {
+  private void addProjectFile(String project, String file, String content) throws Exception {
     switchProject(newProject(project));
     PushOneCommit.Result c = createChange("c", file, content);
     approve(c.getChangeId());
@@ -168,24 +168,26 @@ public class OwnersValidatorIT extends LightweightPluginDaemonTest {
     assertThat(validate(event, true, ENABLED_CONFIG)).isEmpty();
   }
 
-  private static final String[] INCLUDE_STMTS = new String[]{
-      "  include  p1/p2 : /d1/owners",
-      "include  p2/p1://d1/owners #comment",
-      "include ../d2/owners",
-      " per-file *.java = file:  //d2/OWNERS.java #",
-      "per-file *.cpp,*cc=file:p1/p2:/c++owners",
-      "  file:   p1/p2 : /d1/owners ",  // repeated
-      "file:  p3/p2://d1/owners #comment",
-      "file: ../d2/owners",  // repeated
-      "file: //OWNERS",  // recursive inclusion
-      "file:///OWNERS.android"};
+  private static final String[] INCLUDE_STMTS =
+      new String[] {
+        "  include  p1/p2 : /d1/owners",
+        "include  p2/p1://d1/owners #comment",
+        "include ../d2/owners",
+        " per-file *.java = file:  //d2/OWNERS.java #",
+        "per-file *.cpp,*cc=file:p1/p2:/c++owners",
+        "  file:   p1/p2 : /d1/owners ", // repeated
+        "file:  p3/p2://d1/owners #comment",
+        "file: ../d2/owners", // repeated
+        "file: //OWNERS", // recursive inclusion
+        "file:///OWNERS.android"
+      };
 
   private static final ImmutableSet<String> SKIP_INCLUDE_STMTS =
       ImmutableSet.of("  file:   p1/p2 : /d1/owners ", "file: ../d2/owners", "file: //OWNERS");
 
   private static String allIncludeStatements() {
     String statement = "";
-    for (String s: INCLUDE_STMTS) {
+    for (String s : INCLUDE_STMTS) {
       statement += s + "\n";
     }
     return statement;
@@ -195,8 +197,8 @@ public class OwnersValidatorIT extends LightweightPluginDaemonTest {
     Set<String> msgs = new HashSet<>();
     for (int i = 0; i < INCLUDE_STMTS.length; i++) {
       if (!SKIP_INCLUDE_STMTS.contains(INCLUDE_STMTS[i])) {
-        msgs.add("MSG: unchecked: OWNERS:" + (i + 1)
-            + ": " + Parser.getIncludeOrFile(INCLUDE_STMTS[i]));
+        msgs.add(
+            "MSG: unchecked: OWNERS:" + (i + 1) + ": " + Parser.getIncludeOrFile(INCLUDE_STMTS[i]));
       }
     }
     return msgs;
@@ -223,24 +225,24 @@ public class OwnersValidatorIT extends LightweightPluginDaemonTest {
     msgs.add("MSG: owner: u1@g.com");
     msgs.add("MSG: owner: u2.m@g.com");
     msgs.add("MSG: owner: user1@google.com");
-    String[] missing = new String[]{
-        "p1/p2:OWNERS.android",
-        "p1/p2:c++owners",
-        "p1/p2:d1/owners",
-        "p1/p2:d2/OWNERS.java",
-        "p1/p2:d2/owners",
-        "p2/p1:d1/owners",
-        "p3/p2:d1/owners",
-    };
+    String[] missing =
+        new String[] {
+          "p1/p2:OWNERS.android",
+          "p1/p2:c++owners",
+          "p1/p2:d1/owners",
+          "p1/p2:d2/OWNERS.java",
+          "p1/p2:d2/owners",
+          "p2/p1:d1/owners",
+          "p3/p2:d1/owners",
+        };
     for (String s : missing) {
       msgs.add("MSG: cannot find file: " + s);
       msgs.add("MSG: check repo file " + s);
     }
-    String[] skips = new String[]{
-        "p1/p2:OWNERS",
-        "p1/p2:d1/owners",
-        "p1/p2:d2/owners",
-    };
+    String[] skips =
+        new String[] {
+          "p1/p2:OWNERS", "p1/p2:d1/owners", "p1/p2:d2/owners",
+        };
     for (String s : skips) {
       msgs.add("MSG: skip repeated include of " + s);
     }
@@ -323,13 +325,15 @@ public class OwnersValidatorIT extends LightweightPluginDaemonTest {
     addProjectFile("p2", "d2/owners", "x@g.com\nerr\ninclude ../d2/owners\n");
     ImmutableMap<String, String> files =
         ImmutableMap.of(
-            "d1/" + OWNERS, "include ../d2/owners\ninclude /d2/owners\n"
-            + "include p1:/d2/owners\ninclude p2:/d2/owners\n");
-    ImmutableSet<String> expected = ImmutableSet.of(
-       "ERROR: unknown: x@g.com at p2:d2/owners:1",
-       "ERROR: syntax: p2:d2/owners:2: err",
-       "ERROR: syntax: d2/owners:1: wrong",
-       "ERROR: syntax: d2/owners:2: xyz");
+            "d1/" + OWNERS,
+            "include ../d2/owners\ninclude /d2/owners\n"
+                + "include p1:/d2/owners\ninclude p2:/d2/owners\n");
+    ImmutableSet<String> expected =
+        ImmutableSet.of(
+            "ERROR: unknown: x@g.com at p2:d2/owners:1",
+            "ERROR: syntax: p2:d2/owners:2: err",
+            "ERROR: syntax: d2/owners:1: wrong",
+            "ERROR: syntax: d2/owners:2: xyz");
     CommitReceivedEvent event = makeCommitEvent("p1", "T", files);
     assertThat(validate(event, false, ENABLED_CONFIG)).containsExactlyElementsIn(expected);
   }
