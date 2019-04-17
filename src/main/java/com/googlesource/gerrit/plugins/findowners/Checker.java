@@ -103,7 +103,7 @@ public class Checker {
   }
 
   /** Returns 1 if owner approval is found, -1 if missing, 0 if unneeded. */
-  int findApproval(AccountCache accountCache, OwnersDb db) throws StorageException, IOException {
+  int findApproval(AccountCache accountCache, OwnersDb db) throws StorageException {
     Map<String, Set<String>> file2Owners = db.findOwners(changeData.currentFilePaths());
     if (file2Owners.isEmpty()) { // do not need owner approval
       return 0;
@@ -164,7 +164,7 @@ public class Checker {
       if (message.contains(EXEMPT_MESSAGE1) || message.contains(EXEMPT_MESSAGE2)) {
         return true;
       }
-    } catch (IOException | StorageException e) {
+    } catch (StorageException e) {
       logger.atSevere().withCause(e).log(
           "Cannot get commit message for %s", Config.getChangeId(changeData));
       return true; // exempt from owner approval due to lack of data
