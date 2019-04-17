@@ -182,7 +182,7 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
     if (addDebugMsg) {
       obj.dbgmsgs.user = getUserName();
       obj.dbgmsgs.project = changeData.change().getProject().get();
-      obj.dbgmsgs.branch = changeData.change().getDest().get();
+      obj.dbgmsgs.branch = changeData.change().getDest().branch();
       obj.dbgmsgs.errors = db.errors;
       obj.dbgmsgs.path2owners = Util.makeSortedMap(db.path2Owners);
       obj.dbgmsgs.owner2paths = Util.makeSortedMap(db.owner2Paths);
@@ -202,7 +202,7 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
     ChangeData changeData = null;
     try {
       changeData = changeDataFactory.create(change);
-      if (changeData.change().getDest().get() == null) {
+      if (changeData.change().getDest().branch() == null) {
         if (!Checker.isExemptFromOwnerApproval(changeData)) {
           logger.atSevere().log("Cannot get branch of change: %d", changeData.getId().get());
         }
