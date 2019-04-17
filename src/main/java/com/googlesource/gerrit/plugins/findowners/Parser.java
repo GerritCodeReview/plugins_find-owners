@@ -30,18 +30,15 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Parse lines in an OWNERS file and put them into an OwnersDb.
- * One Parser object should be created to parse only one OWNERS file.
- * It keeps repoManager, project, branch, and filePath of the OWNERS
+ * Parse lines in an OWNERS file and put them into an OwnersDb. One Parser object should be created
+ * to parse only one OWNERS file. It keeps repoManager, project, branch, and filePath of the OWNERS
  * file so it can find files that are included by OWNERS.
  *
- * The usage pattern is:
- *   Parser parser = new Parser(repoManager, project, branch, repoFilePath);
- *   String content = OwnersDb.getRepoFile(readFiles, repoManager, project,
- *                                         branch, repoFilePath, logs);
- *   Parser.Result result = parser.parseFile(dirPath, content);
+ * <p>The usage pattern is: Parser parser = new Parser(repoManager, project, branch, repoFilePath);
+ * String content = OwnersDb.getRepoFile(readFiles, repoManager, project, branch, repoFilePath,
+ * logs); Parser.Result result = parser.parseFile(dirPath, content);
  *
- * OWNERS file syntax, semantics, and examples are included in syntax.md.
+ * <p>OWNERS file syntax, semantics, and examples are included in syntax.md.
  */
 class Parser {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
@@ -53,29 +50,29 @@ class Parser {
   protected static final String COMMA = "[\\s]*,[\\s]*"; // used in unit tests
 
   // Separator for project and file paths in an include line.
-  private static final String  COLUMN = "[\\s]*:[\\s]*"; // project:file
+  private static final String COLUMN = "[\\s]*:[\\s]*"; // project:file
 
-  private static final String  BOL = "^[\\s]*";          // begin-of-line
-  private static final String  EOL = "[\\s]*(#.*)?$";    // end-of-line
-  private static final String  GLOB = "[^\\s,=]+";       // a file glob
+  private static final String BOL = "^[\\s]*"; // begin-of-line
+  private static final String EOL = "[\\s]*(#.*)?$"; // end-of-line
+  private static final String GLOB = "[^\\s,=]+"; // a file glob
 
   // TODO: have a more precise email address pattern.
-  private static final String  EMAIL_OR_STAR = "([^\\s<>@,]+@[^\\s<>@#,]+|\\*)";
-  private static final String  EMAIL_LIST =
+  private static final String EMAIL_OR_STAR = "([^\\s<>@,]+@[^\\s<>@#,]+|\\*)";
+  private static final String EMAIL_LIST =
       "(" + EMAIL_OR_STAR + "(" + COMMA + EMAIL_OR_STAR + ")*)";
 
   // A Gerrit project name followed by a column and optional spaces.
-  private static final String  PROJECT_NAME = "([^\\s:]+" + COLUMN + ")?";
+  private static final String PROJECT_NAME = "([^\\s:]+" + COLUMN + ")?";
 
   // A relative or absolute file path name without any column or space character.
-  private static final String  FILE_PATH = "([^\\s:#]+)";
+  private static final String FILE_PATH = "([^\\s:#]+)";
 
-  private static final String  PROJECT_AND_FILE = PROJECT_NAME + FILE_PATH;
+  private static final String PROJECT_AND_FILE = PROJECT_NAME + FILE_PATH;
 
-  private static final String  SET_NOPARENT = "set[\\s]+noparent";
+  private static final String SET_NOPARENT = "set[\\s]+noparent";
 
-  private static final String  FILE_DIRECTIVE = "file:[\\s]*" + PROJECT_AND_FILE;
-  private static final String  INCLUDE_OR_FILE = "(file:[\\s]*|include[\\s]+)";
+  private static final String FILE_DIRECTIVE = "file:[\\s]*" + PROJECT_AND_FILE;
+  private static final String INCLUDE_OR_FILE = "(file:[\\s]*|include[\\s]+)";
 
   // Simple input lines with 0 or 1 sub-pattern.
   private static final Pattern PAT_COMMENT = Pattern.compile(BOL + EOL);
@@ -144,18 +141,32 @@ class Parser {
     }
   }
 
-  Parser(Map<String, String> readFiles, GitRepositoryManager repoManager,
-      String project, String branch, String file) {
+  Parser(
+      Map<String, String> readFiles,
+      GitRepositoryManager repoManager,
+      String project,
+      String branch,
+      String file) {
     init(readFiles, repoManager, project, branch, file, new ArrayList<>());
   }
 
-  Parser(Map<String, String> readFiles, GitRepositoryManager repoManager,
-      String project, String branch, String file, List<String> logs) {
+  Parser(
+      Map<String, String> readFiles,
+      GitRepositoryManager repoManager,
+      String project,
+      String branch,
+      String file,
+      List<String> logs) {
     init(readFiles, repoManager, project, branch, file, logs);
   }
 
-  private void init(Map<String, String> readFiles, GitRepositoryManager repoManager,
-      String project, String branch, String file, List<String> logs) {
+  private void init(
+      Map<String, String> readFiles,
+      GitRepositoryManager repoManager,
+      String project,
+      String branch,
+      String file,
+      List<String> logs) {
     this.readFiles = readFiles;
     this.repoManager = repoManager;
     this.branch = branch;
@@ -201,7 +212,7 @@ class Parser {
     } else {
       projectName = project; // default project name
     }
-    return new String[]{keyword, projectName, m.group(3).trim()};
+    return new String[] {keyword, projectName, m.group(3).trim()};
   }
 
   static String removeExtraSpaces(String s) {
@@ -210,11 +221,12 @@ class Parser {
 
   static String[] parsePerFile(String line) {
     Matcher m = PAT_PER_FILE.matcher(line);
-    if (!m.matches() || !isGlobs(m.group(1).trim())
+    if (!m.matches()
+        || !isGlobs(m.group(1).trim())
         || !PAT_PER_FILE_OWNERS.matcher(m.group(2).trim()).matches()) {
       return null;
     }
-    return new String[]{removeExtraSpaces(m.group(1)), removeExtraSpaces(m.group(2))};
+    return new String[] {removeExtraSpaces(m.group(1)), removeExtraSpaces(m.group(2))};
   }
 
   static String[] parsePerFileOwners(String line) {
@@ -266,14 +278,13 @@ class Parser {
   }
 
   /**
-   * Parse given lines of an OWNERS files; return parsed Result.
-   * It can recursively call itself to parse included files.
+   * Parse given lines of an OWNERS files; return parsed Result. It can recursively call itself to
+   * parse included files.
    *
-   * @param dir is the directory that contains "changed files" of a CL,
-   *        not necessarily the OWNERS or included file directory.
-   *        "owners" found in lines control changed files in 'dir'.
-   *        'dir' ends with '/' or is empty when parsing an included file.
-   * @param  lines are the source lines of the file to be parsed.
+   * @param dir is the directory that contains "changed files" of a CL, not necessarily the OWNERS
+   *     or included file directory. "owners" found in lines control changed files in 'dir'. 'dir'
+   *     ends with '/' or is empty when parsing an included file.
+   * @param lines are the source lines of the file to be parsed.
    * @return the parsed data
    */
   Result parseFile(String dir, String[] lines) {
@@ -301,8 +312,8 @@ class Parser {
   }
 
   /**
-   * Parse a line in OWNERS file and add parsed info into result.
-   * This function should be called only by parseFile and Parser unit tests.
+   * Parse a line in OWNERS file and add parsed info into result. This function should be called
+   * only by parseFile and Parser unit tests.
    *
    * @param result a Result object to keep parsed info.
    * @param dir the path to OWNERS file directory.
@@ -347,7 +358,7 @@ class Parser {
           }
         }
         for (String glob : dirGlobs) {
-          for (String owner: ownerEmails) {
+          for (String owner : ownerEmails) {
             Util.addToMap(result.owner2paths, owner, dir + glob);
           }
         }
@@ -360,11 +371,11 @@ class Parser {
   }
 
   /**
-   * Find and parse an included file and append data to the 'result'.
-   * For an 'include' statement, parsed data is all appended to the given result parameter.
-   * For a 'file:' statement or directive, only owner emails are appended.
-   * If the project+file name is found in the stored result set, the stored result is reused.
-   * The inclusion is skipped if the to be included file is already on the including file stack.
+   * Find and parse an included file and append data to the 'result'. For an 'include' statement,
+   * parsed data is all appended to the given result parameter. For a 'file:' statement or
+   * directive, only owner emails are appended. If the project+file name is found in the stored
+   * result set, the stored result is reused. The inclusion is skipped if the to be included file is
+   * already on the including file stack.
    *
    * @param result to where the included file data should be added.
    * @param dir the including file's directory or glob.

@@ -47,8 +47,12 @@ public class Checker {
   private final ChangeData changeData;
   private int minVoteLevel;
 
-  Checker(GitRepositoryManager repoManager, PluginConfigFactory configFactory,
-          ProjectState projectState, ChangeData changeData, int v) {
+  Checker(
+      GitRepositoryManager repoManager,
+      PluginConfigFactory configFactory,
+      ProjectState projectState,
+      ChangeData changeData,
+      int v) {
     this.repoManager = repoManager;
     this.configFactory = configFactory;
     this.projectState = projectState;
@@ -122,14 +126,15 @@ public class Checker {
     ChangeData changeData = null;
     try {
       changeData = StoredValues.CHANGE_DATA.get(engine);
-      Checker checker = new Checker(
-          StoredValues.REPO_MANAGER.get(engine),
-          StoredValues.PLUGIN_CONFIG_FACTORY.get(engine),
-          StoredValues.PROJECT_STATE.get(engine),
-          changeData, minVoteLevel);
+      Checker checker =
+          new Checker(
+              StoredValues.REPO_MANAGER.get(engine),
+              StoredValues.PLUGIN_CONFIG_FACTORY.get(engine),
+              StoredValues.PROJECT_STATE.get(engine),
+              changeData,
+              minVoteLevel);
       return checker.findApproval(
-          StoredValues.ACCOUNT_CACHE.get(engine),
-          StoredValues.EMAILS.get(engine));
+          StoredValues.ACCOUNT_CACHE.get(engine), StoredValues.EMAILS.get(engine));
     } catch (StorageException | IOException e) {
       logger.atSevere().withCause(e).log("Exception for %s ", Config.getChangeId(changeData));
       return 0; // owner approval may or may not be required.
@@ -137,8 +142,7 @@ public class Checker {
   }
 
   /** Returns 1 if owner approval is found, -1 if missing, 0 if unneeded. */
-  int findApproval(AccountCache accountCache, Emails emails)
-      throws StorageException, IOException {
+  int findApproval(AccountCache accountCache, Emails emails) throws StorageException, IOException {
     if (isExemptFromOwnerApproval(changeData)) {
       return 0;
     }
