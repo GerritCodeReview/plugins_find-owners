@@ -120,7 +120,7 @@ class Cache {
       ChangeData changeData,
       int patchset)
       throws StorageException {
-    String branch = changeData.change().getDest().get();
+    String branch = changeData.change().getDest().branch();
     String dbKey = Cache.makeKey(changeData.getId().get(), patchset, repoManager);
     // TODO: get changed files of the given patchset?
     return get(

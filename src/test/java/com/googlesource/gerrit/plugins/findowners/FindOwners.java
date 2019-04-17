@@ -209,7 +209,7 @@ public abstract class FindOwners extends LightweightPluginDaemonTest {
   }
 
   protected BranchApi createBranch(String branch) throws Exception {
-    return createBranch(new Branch.NameKey(project, branch));
+    return createBranch(Branch.nameKey(project, branch));
   }
 
   protected PushOneCommit.Result createChangeInBranch(
