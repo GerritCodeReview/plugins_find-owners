@@ -15,6 +15,7 @@
 package com.googlesource.gerrit.plugins.findowners;
 
 import com.google.common.flogger.FluentLogger;
+import com.google.gerrit.exceptions.StorageException;
 import com.google.gerrit.reviewdb.client.Change.Status;
 import com.google.gerrit.reviewdb.client.PatchSetApproval;
 import com.google.gerrit.server.account.AccountCache;
@@ -24,7 +25,6 @@ import com.google.gerrit.server.git.GitRepositoryManager;
 import com.google.gerrit.server.project.ProjectState;
 import com.google.gerrit.server.query.change.ChangeData;
 import com.google.gerrit.server.rules.StoredValues;
-import com.google.gwtorm.server.OrmException;
 import com.googlecode.prolog_cafe.lang.Prolog;
 import java.io.IOException;
 import java.util.HashMap;
@@ -63,7 +63,7 @@ public class Checker {
 
   /** Returns a map from reviewer email to vote value. */
   Map<String, Integer> getVotes(AccountCache accountCache, ChangeData changeData)
-      throws OrmException {
+      throws StorageException {
     Map<String, Integer> map = new HashMap<>();
     for (PatchSetApproval p : changeData.currentApprovals()) {
       // Only collect non-zero Code-Review votes.
@@ -107,7 +107,7 @@ public class Checker {
   }
 
   /** Returns 1 if owner approval is found, -1 if missing, 0 if unneeded. */
-  int findApproval(AccountCache accountCache, OwnersDb db) throws OrmException, IOException {
+  int findApproval(AccountCache accountCache, OwnersDb db) throws StorageException, IOException {
     Map<String, Set<String>> file2Owners = db.findOwners(changeData.currentFilePaths());
     if (file2Owners.isEmpty()) { // do not need owner approval
       return 0;
@@ -135,14 +135,14 @@ public class Checker {
               minVoteLevel);
       return checker.findApproval(
           StoredValues.ACCOUNT_CACHE.get(engine), StoredValues.EMAILS.get(engine));
-    } catch (OrmException | IOException e) {
+    } catch (StorageException | IOException e) {
       logger.atSevere().withCause(e).log("Exception for %s ", Config.getChangeId(changeData));
       return 0; // owner approval may or may not be required.
     }
   }
 
   /** Returns 1 if owner approval is found, -1 if missing, 0 if unneeded. */
-  int findApproval(AccountCache accountCache, Emails emails) throws OrmException, IOException {
+  int findApproval(AccountCache accountCache, Emails emails) throws StorageException, IOException {
     if (isExemptFromOwnerApproval(changeData)) {
       return 0;
     }
@@ -162,13 +162,13 @@ public class Checker {
   }
 
   /** Returns true if exempt from owner approval. */
-  static boolean isExemptFromOwnerApproval(ChangeData changeData) throws OrmException {
+  static boolean isExemptFromOwnerApproval(ChangeData changeData) throws StorageException {
     try {
       String message = changeData.commitMessage();
       if (message.contains(EXEMPT_MESSAGE1) || message.contains(EXEMPT_MESSAGE2)) {
         return true;
       }
-    } catch (IOException | OrmException e) {
+    } catch (IOException | StorageException e) {
       logger.atSevere().withCause(e).log(
           "Cannot get commit message for %s", Config.getChangeId(changeData));
       return true; // exempt from owner approval due to lack of data

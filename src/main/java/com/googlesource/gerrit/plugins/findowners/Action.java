@@ -18,6 +18,7 @@ import static java.util.stream.Collectors.toList;
 
 import com.google.common.collect.Streams;
 import com.google.common.flogger.FluentLogger;
+import com.google.gerrit.exceptions.StorageException;
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.Response;
 import com.google.gerrit.extensions.restapi.RestReadView;
@@ -35,7 +36,6 @@ import com.google.gerrit.server.git.GitRepositoryManager;
 import com.google.gerrit.server.project.ProjectCache;
 import com.google.gerrit.server.project.ProjectState;
 import com.google.gerrit.server.query.change.ChangeData;
-import com.google.gwtorm.server.OrmException;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import java.io.IOException;
@@ -109,13 +109,13 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
 
   @Override
   public Response<RestResult> apply(RevisionResource rev)
-      throws IOException, OrmException, BadRequestException {
+      throws IOException, StorageException, BadRequestException {
     return apply(rev.getChangeResource(), new Parameters());
   }
 
   // Used by integration tests, because they do not have ReviewDb Provider.
   public Response<RestResult> apply(ChangeResource rsrc, Parameters params)
-      throws IOException, OrmException, BadRequestException {
+      throws IOException, StorageException, BadRequestException {
     ChangeData changeData = changeDataFactory.create(rsrc.getChange());
     return getChangeData(params, changeData);
   }
@@ -130,7 +130,7 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
           .map(a -> a.getAccount().getPreferredEmail())
           .filter(Objects::nonNull)
           .collect(toList());
-    } catch (OrmException e) {
+    } catch (StorageException e) {
       logger.atSevere().withCause(e).log("Exception for %s", Config.getChangeId(changeData));
       return new ArrayList<>();
     }
@@ -138,7 +138,7 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
 
   /** Returns the current patchset number or the given patchsetNum if it is valid. */
   static int getValidPatchsetNum(ChangeData changeData, Integer patchsetNum)
-      throws OrmException, BadRequestException {
+      throws StorageException, BadRequestException {
     int patchset = changeData.currentPatchSet().getId().get();
     if (patchsetNum != null) {
       if (patchsetNum < 1 || patchsetNum > patchset) {
@@ -155,7 +155,7 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
 
   /** REST API to return owners info of a change. */
   public Response<RestResult> getChangeData(Parameters params, ChangeData changeData)
-      throws OrmException, BadRequestException, IOException {
+      throws StorageException, BadRequestException, IOException {
     int patchset = getValidPatchsetNum(changeData, params.patchset);
     ProjectState projectState = projectCache.get(changeData.project());
     Boolean useCache = params.nocache == null || !params.nocache;
@@ -235,7 +235,7 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
           .setLabel("Find Owners")
           .setTitle("Find owners to add to Reviewers list")
           .setVisible(needFindOwners);
-    } catch (IOException | OrmException e) {
+    } catch (IOException | StorageException e) {
       logger.atSevere().withCause(e).log("Exception for %s", Config.getChangeId(changeData));
       throw new IllegalStateException(e);
     }

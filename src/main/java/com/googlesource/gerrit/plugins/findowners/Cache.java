@@ -18,13 +18,13 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.flogger.FluentLogger;
+import com.google.gerrit.exceptions.StorageException;
 import com.google.gerrit.server.account.AccountCache;
 import com.google.gerrit.server.account.Emails;
 import com.google.gerrit.server.config.PluginConfigFactory;
 import com.google.gerrit.server.git.GitRepositoryManager;
 import com.google.gerrit.server.project.ProjectState;
 import com.google.gerrit.server.query.change.ChangeData;
-import com.google.gwtorm.server.OrmException;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
@@ -98,7 +98,7 @@ class Cache {
       GitRepositoryManager repoManager,
       PluginConfigFactory configFactory,
       ChangeData changeData)
-      throws OrmException, IOException {
+      throws StorageException, IOException {
     return get(
         useCache,
         projectState,
@@ -120,7 +120,7 @@ class Cache {
       PluginConfigFactory configFactory,
       ChangeData changeData,
       int patchset)
-      throws OrmException, IOException {
+      throws StorageException, IOException {
     String branch = changeData.change().getDest().get();
     String dbKey = Cache.makeKey(changeData.getId().get(), patchset, repoManager);
     // TODO: get changed files of the given patchset?
