@@ -113,7 +113,7 @@ public class OwnersValidatorIT extends LightweightPluginDaemonTest {
       ImmutableSetMultimap.Builder<String, Account.Id> builder = ImmutableSetMultimap.builder();
       int id = 1000000;
       for (String s : registered) {
-        builder.put(s, new Account.Id(++id));
+        builder.put(s, Account.id(++id));
       }
       return builder.build();
     }
