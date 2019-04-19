@@ -219,7 +219,7 @@ public abstract class FindOwners extends LightweightPluginDaemonTest {
   }
 
   protected Project.NameKey newProject(String name) {
-    return newProject(name, new Project.NameKey("All-Projects"));
+    return newProject(name, Project.nameKey("All-Projects"));
   }
 
   protected Project.NameKey newProject(String name, Project.NameKey parent) {
