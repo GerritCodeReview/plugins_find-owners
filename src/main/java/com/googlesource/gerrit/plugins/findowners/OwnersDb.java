@@ -431,7 +431,7 @@ class OwnersDb {
     if (content == null) {
       content = "";
       if (repoManager != null) { // ParserTest can call with null repoManager
-        try (Repository repo = repoManager.openRepository(new Project.NameKey(project))) {
+        try (Repository repo = repoManager.openRepository(Project.nameKey(project))) {
           ObjectId id = repo.resolve(branch);
           if (id != null) {
             return getFile(readFiles, repo, project, id, file, logs);

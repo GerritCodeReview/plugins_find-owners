@@ -71,7 +71,7 @@ public class OwnersValidatorIT extends LightweightPluginDaemonTest {
   protected Project.NameKey newProject(String name) {
     return projectOperations
         .newProject()
-        .parent(new Project.NameKey("All-Projects"))
+        .parent(Project.nameKey("All-Projects"))
         .name(name)
         .create();
   }
@@ -90,7 +90,7 @@ public class OwnersValidatorIT extends LightweightPluginDaemonTest {
 
   private static class MockedCommitReceivedEvent extends CommitReceivedEvent {
     MockedCommitReceivedEvent(String project, RevWalk revWalk, RevCommit commit) {
-      this.project = new Project(new Project.NameKey(project));
+      this.project = new Project(Project.nameKey(project));
       this.revWalk = revWalk;
       this.commit = commit;
       this.refName = "master";
