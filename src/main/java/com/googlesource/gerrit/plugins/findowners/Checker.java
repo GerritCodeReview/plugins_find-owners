@@ -26,7 +26,6 @@ import com.google.gerrit.server.project.ProjectState;
 import com.google.gerrit.server.query.change.ChangeData;
 import com.google.gerrit.server.rules.StoredValues;
 import com.googlecode.prolog_cafe.lang.Prolog;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -135,14 +134,14 @@ public class Checker {
               minVoteLevel);
       return checker.findApproval(
           StoredValues.ACCOUNT_CACHE.get(engine), StoredValues.EMAILS.get(engine));
-    } catch (StorageException | IOException e) {
+    } catch (StorageException e) {
       logger.atSevere().withCause(e).log("Exception for %s ", Config.getChangeId(changeData));
       return 0; // owner approval may or may not be required.
     }
   }
 
   /** Returns 1 if owner approval is found, -1 if missing, 0 if unneeded. */
-  int findApproval(AccountCache accountCache, Emails emails) throws StorageException, IOException {
+  int findApproval(AccountCache accountCache, Emails emails) throws StorageException {
     if (isExemptFromOwnerApproval(changeData)) {
       return 0;
     }

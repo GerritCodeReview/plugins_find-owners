@@ -25,7 +25,6 @@ import com.google.gerrit.server.config.PluginConfigFactory;
 import com.google.gerrit.server.git.GitRepositoryManager;
 import com.google.gerrit.server.project.ProjectState;
 import com.google.gerrit.server.query.change.ChangeData;
-import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
@@ -98,7 +97,7 @@ class Cache {
       GitRepositoryManager repoManager,
       PluginConfigFactory configFactory,
       ChangeData changeData)
-      throws StorageException, IOException {
+      throws StorageException {
     return get(
         useCache,
         projectState,
@@ -120,7 +119,7 @@ class Cache {
       PluginConfigFactory configFactory,
       ChangeData changeData,
       int patchset)
-      throws StorageException, IOException {
+      throws StorageException {
     String branch = changeData.change().getDest().get();
     String dbKey = Cache.makeKey(changeData.getId().get(), patchset, repoManager);
     // TODO: get changed files of the given patchset?

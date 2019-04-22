@@ -115,7 +115,7 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
 
   // Used by integration tests, because they do not have ReviewDb Provider.
   public Response<RestResult> apply(ChangeResource rsrc, Parameters params)
-      throws IOException, StorageException, BadRequestException {
+      throws StorageException, BadRequestException {
     ChangeData changeData = changeDataFactory.create(rsrc.getChange());
     return getChangeData(params, changeData);
   }
@@ -155,7 +155,7 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
 
   /** REST API to return owners info of a change. */
   public Response<RestResult> getChangeData(Parameters params, ChangeData changeData)
-      throws StorageException, BadRequestException, IOException {
+      throws StorageException, BadRequestException {
     int patchset = getValidPatchsetNum(changeData, params.patchset);
     ProjectState projectState = projectCache.get(changeData.project());
     Boolean useCache = params.nocache == null || !params.nocache;
@@ -235,7 +235,7 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
           .setLabel("Find Owners")
           .setTitle("Find owners to add to Reviewers list")
           .setVisible(needFindOwners);
-    } catch (IOException | StorageException e) {
+    } catch (StorageException e) {
       logger.atSevere().withCause(e).log("Exception for %s", Config.getChangeId(changeData));
       throw new IllegalStateException(e);
     }
