@@ -27,7 +27,7 @@ import com.google.gerrit.extensions.api.projects.BranchApi;
 import com.google.gerrit.extensions.client.ChangeStatus;
 import com.google.gerrit.extensions.common.ChangeInfo;
 import com.google.gerrit.extensions.common.ChangeInput;
-import com.google.gerrit.reviewdb.client.Branch;
+import com.google.gerrit.reviewdb.client.BranchNameKey;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.reviewdb.client.RefNames;
 import com.google.gerrit.server.account.Emails;
@@ -209,7 +209,7 @@ public abstract class FindOwners extends LightweightPluginDaemonTest {
   }
 
   protected BranchApi createBranch(String branch) throws Exception {
-    return createBranch(Branch.nameKey(project, branch));
+    return createBranch(BranchNameKey.create(project, branch));
   }
 
   protected PushOneCommit.Result createChangeInBranch(
