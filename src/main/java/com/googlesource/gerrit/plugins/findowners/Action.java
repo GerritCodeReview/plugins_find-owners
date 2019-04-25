@@ -139,7 +139,7 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
   /** Returns the current patchset number or the given patchsetNum if it is valid. */
   static int getValidPatchsetNum(ChangeData changeData, Integer patchsetNum)
       throws StorageException, BadRequestException {
-    int patchset = changeData.currentPatchSet().getId().get();
+    int patchset = changeData.currentPatchSet().id().get();
     if (patchsetNum != null) {
       if (patchsetNum < 1 || patchsetNum > patchset) {
         throw new BadRequestException(
