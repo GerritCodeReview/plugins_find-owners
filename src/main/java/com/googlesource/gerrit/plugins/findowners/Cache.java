@@ -106,7 +106,7 @@ class Cache {
         repoManager,
         configFactory,
         changeData,
-        changeData.currentPatchSet().getId().get());
+        changeData.currentPatchSet().id().get());
   }
 
   /** Returns a cached or new OwnersDb, for the specified patchset. */
