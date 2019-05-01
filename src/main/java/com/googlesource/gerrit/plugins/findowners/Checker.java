@@ -66,12 +66,12 @@ public class Checker {
     Map<String, Integer> map = new HashMap<>();
     for (PatchSetApproval p : changeData.currentApprovals()) {
       // Only collect non-zero Code-Review votes.
-      if (p.getValue() != 0 && p.getLabel().equals("Code-Review")) {
+      if (p.value() != 0 && p.label().equals("Code-Review")) {
         // Reviewers may have no preferred email, skip them if the preferred email is not set.
         Optional<String> preferredEmail =
-            accountCache.get(p.getAccountId()).map(a -> a.getAccount().getPreferredEmail());
+            accountCache.get(p.accountId()).map(a -> a.getAccount().getPreferredEmail());
         if (preferredEmail.isPresent()) {
-          map.put(preferredEmail.get(), Integer.valueOf(p.getValue()));
+          map.put(preferredEmail.get(), Integer.valueOf(p.value()));
         }
       }
     }
