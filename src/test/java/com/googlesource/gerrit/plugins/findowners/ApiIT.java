@@ -14,7 +14,9 @@
 
 package com.googlesource.gerrit.plugins.findowners;
 
+import static com.google.common.truth.OptionalSubject.optionals;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth.assertWithMessage;
 import static com.google.common.truth.Truth8.assertThat;
 
 import com.google.common.collect.Multimap;
@@ -165,7 +167,7 @@ public class ApiIT extends FindOwners {
       assertThat(id1).isEqualTo(id4);
       // Action.getReviewers and Checker.getVotes use accountCache to get email address.
       Optional<Account> account = accountCache.get(id1).map(AccountState::getAccount);
-      assertThat(account).named("account %s", id1).isPresent();
+      assertWithMessage("account %s", id1).about(optionals()).that(account).isPresent();
       assertThat(account.get().getPreferredEmail()).isEqualTo(emails1[i]);
     }
     // Wrong or non-existing email address.
