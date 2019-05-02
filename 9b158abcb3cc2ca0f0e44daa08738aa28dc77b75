@@ -22,6 +22,30 @@
       "revId": "9b158abcb3cc2ca0f0e44daa08738aa28dc77b75",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0ff76fd8_8eb6d109",
+        "filename": "src/test/java/com/googlesource/gerrit/plugins/findowners/ApiIT.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 1024147
+      },
+      "writtenOn": "2019-05-02T17:39:30Z",
+      "side": 1,
+      "message": "please talk to cpovirk@google.com about this.",
+      "parentUuid": "1bf899b3_c74ba0ef",
+      "range": {
+        "startLine": 170,
+        "startChar": 0,
+        "endLine": 170,
+        "endChar": 88
+      },
+      "revId": "9b158abcb3cc2ca0f0e44daa08738aa28dc77b75",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
     }
   ]
 }
