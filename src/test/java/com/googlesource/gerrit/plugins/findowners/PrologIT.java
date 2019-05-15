@@ -68,7 +68,7 @@ public class PrologIT extends LightweightPluginDaemonTest {
   @Sandboxed
   @Test
   public void submitRuleTest() throws Exception {
-    RevCommit oldHead = getRemoteHead();
+    RevCommit oldHead = projectOperations.project(project).getHead("master");
     GitUtil.fetch(testRepo, RefNames.REFS_CONFIG + ":config");
     testRepo.reset("config");
     PushOneCommit push =
@@ -89,7 +89,7 @@ public class PrologIT extends LightweightPluginDaemonTest {
                 + "R = label('Code-Review', ok(A)).\n");
     push.to(RefNames.REFS_CONFIG);
     testRepo.reset(oldHead);
-    oldHead = getRemoteHead();
+    oldHead = projectOperations.project(project).getHead("master");
     PushOneCommit.Result result =
         pushFactory.create(user.newIdent(), testRepo).to("refs/for/master");
     testRepo.reset(oldHead);
