@@ -22,7 +22,9 @@ import com.google.gerrit.acceptance.LightweightPluginDaemonTest;
 import com.google.gerrit.acceptance.PushOneCommit;
 import com.google.gerrit.acceptance.Sandboxed;
 import com.google.gerrit.acceptance.TestPlugin;
+import com.google.gerrit.acceptance.testsuite.project.ProjectOperations;
 import com.google.gerrit.reviewdb.client.RefNames;
+import com.google.inject.Inject;
 import find_owners.PRED_add_may_label_2;
 import find_owners.PRED_check_owner_approval_2;
 import find_owners.PRED_remove_may_label_2;
@@ -40,6 +42,8 @@ import org.junit.Test;
 public class PrologIT extends LightweightPluginDaemonTest {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
   @Rule public Watcher watcher = new Watcher(logger);
+
+  @Inject private ProjectOperations projectOperations;
 
   @Test
   public void predefinedPredicateTest() throws Exception {
