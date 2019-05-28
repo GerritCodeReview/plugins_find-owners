@@ -23,6 +23,7 @@ import com.google.gerrit.server.account.AccountCache;
 import com.google.gerrit.server.account.Emails;
 import com.google.gerrit.server.config.PluginConfigFactory;
 import com.google.gerrit.server.git.GitRepositoryManager;
+import com.google.gerrit.server.permissions.PermissionBackend;
 import com.google.gerrit.server.project.ProjectState;
 import com.google.gerrit.server.query.change.ChangeData;
 import java.util.Collection;
@@ -91,6 +92,7 @@ class Cache {
   /** Returns a cached or new OwnersDb, for the current patchset. */
   OwnersDb get(
       Boolean useCache,
+      PermissionBackend permissionBackend,
       ProjectState projectState,
       AccountCache accountCache,
       Emails emails,
@@ -100,6 +102,7 @@ class Cache {
       throws StorageException {
     return get(
         useCache,
+        permissionBackend,
         projectState,
         accountCache,
         emails,
@@ -112,6 +115,7 @@ class Cache {
   /** Returns a cached or new OwnersDb, for the specified patchset. */
   OwnersDb get(
       Boolean useCache,
+      PermissionBackend permissionBackend,
       ProjectState projectState,
       AccountCache accountCache,
       Emails emails,
@@ -125,6 +129,7 @@ class Cache {
     // TODO: get changed files of the given patchset?
     return get(
         useCache,
+        permissionBackend,
         projectState,
         accountCache,
         emails,
@@ -139,6 +144,7 @@ class Cache {
   /** Returns a cached or new OwnersDb, for the specified branch and changed files. */
   OwnersDb get(
       Boolean useCache,
+      PermissionBackend permissionBackend,
       ProjectState projectState,
       AccountCache accountCache,
       Emails emails,
@@ -151,6 +157,7 @@ class Cache {
     if (dbCache == null || !useCache) { // Do not cache OwnersDb
       logger.atFiner().log("Create new OwnersDb, key=%s", key);
       return new OwnersDb(
+          permissionBackend,
           projectState,
           accountCache,
           emails,
@@ -171,6 +178,7 @@ class Cache {
             public OwnersDb call() {
               logger.atFiner().log("Create new OwnersDb, key=%s", key);
               return new OwnersDb(
+                  permissionBackend,
                   projectState,
                   accountCache,
                   emails,
@@ -186,6 +194,7 @@ class Cache {
       logger.atSevere().withCause(e).log(
           "Cache.get has exception for %s", Config.getChangeId(changeData));
       return new OwnersDb(
+          permissionBackend,
           projectState,
           accountCache,
           emails,

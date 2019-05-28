@@ -33,6 +33,7 @@ import com.google.gerrit.server.change.ChangeResource;
 import com.google.gerrit.server.change.RevisionResource;
 import com.google.gerrit.server.config.PluginConfigFactory;
 import com.google.gerrit.server.git.GitRepositoryManager;
+import com.google.gerrit.server.permissions.PermissionBackend;
 import com.google.gerrit.server.project.ProjectCache;
 import com.google.gerrit.server.project.ProjectState;
 import com.google.gerrit.server.query.change.ChangeData;
@@ -56,6 +57,7 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
   private final Emails emails;
   private final ChangeData.Factory changeDataFactory;
   private final GitRepositoryManager repoManager;
+  private final PermissionBackend permissionBackend;
   private final PluginConfigFactory configFactory;
   private final Provider<CurrentUser> userProvider;
   private final ProjectCache projectCache;
@@ -69,6 +71,7 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
 
   @Inject
   Action(
+      PermissionBackend permissionBackend,
       PluginConfigFactory configFactory,
       Provider<CurrentUser> userProvider,
       ChangeData.Factory changeDataFactory,
@@ -76,6 +79,7 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
       Emails emails,
       GitRepositoryManager repoManager,
       ProjectCache projectCache) {
+    this.permissionBackend = permissionBackend;
     this.userProvider = userProvider;
     this.changeDataFactory = changeDataFactory;
     this.accountCache = accountCache;
@@ -163,6 +167,7 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
         Cache.getInstance(configFactory, repoManager)
             .get(
                 useCache,
+                permissionBackend,
                 projectState,
                 accountCache,
                 emails,
@@ -222,6 +227,7 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
             Cache.getInstance(configFactory, repoManager)
                 .get(
                     true, // use cached OwnersDb
+                    permissionBackend,
                     projectCache.get(resource.getProject()),
                     accountCache,
                     emails,

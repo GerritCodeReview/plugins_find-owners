@@ -25,10 +25,8 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.flogger.FluentLogger;
-import com.google.gerrit.acceptance.LightweightPluginDaemonTest;
 import com.google.gerrit.acceptance.PushOneCommit;
 import com.google.gerrit.acceptance.TestPlugin;
-import com.google.gerrit.acceptance.testsuite.project.ProjectOperations;
 import com.google.gerrit.extensions.api.changes.SubmitInput;
 import com.google.gerrit.reviewdb.client.Account;
 import com.google.gerrit.reviewdb.client.Project;
@@ -36,7 +34,6 @@ import com.google.gerrit.server.account.Emails;
 import com.google.gerrit.server.config.PluginConfig;
 import com.google.gerrit.server.events.CommitReceivedEvent;
 import com.google.gerrit.server.git.validators.CommitValidationMessage;
-import com.google.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -62,24 +59,9 @@ import org.junit.Test;
 
 /** Test OwnersValidator, which checks syntax of changed OWNERS files. */
 @TestPlugin(name = "find-owners", sysModule = "com.googlesource.gerrit.plugins.findowners.Module")
-public class OwnersValidatorIT extends LightweightPluginDaemonTest {
+public class OwnersValidatorIT extends FindOwners {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
   @Rule public Watcher watcher = new Watcher(logger);
-
-  @Inject private ProjectOperations projectOperations;
-
-  protected Project.NameKey newProject(String name) {
-    return projectOperations
-        .newProject()
-        .parent(Project.nameKey("All-Projects"))
-        .name(name)
-        .create();
-  }
-
-  private void switchProject(Project.NameKey p) throws Exception {
-    project = p;
-    testRepo = cloneProject(project);
-  }
 
   private void addProjectFile(String project, String file, String content) throws Exception {
     switchProject(newProject(project));
@@ -338,6 +320,28 @@ public class OwnersValidatorIT extends LightweightPluginDaemonTest {
     assertThat(validate(event, false, ENABLED_CONFIG)).containsExactlyElementsIn(expected);
   }
 
+  @Test
+  public void simpleIncludeACLTest() throws Exception {
+    // If the user cannot read an included file,
+    // the file is not seen and errors won't be detected.
+    // Use pA/pB, because addProjectFile cannot create the same project again.
+    addProjectFile("pA", "d2/owners", "wrong\nxyz\n");
+    addProjectFile("pB", "d2/owners", "x@g.com\nerr\ninclude ../d2/owners\n");
+    blockRead(project); // current project is pB; set it to not readable
+    ImmutableMap<String, String> files =
+        ImmutableMap.of(
+            "d1/" + OWNERS,
+            "include ../d2/owners\ninclude /d2/owners\n"
+                + "include pA:/d2/owners\ninclude pB:/d2/owners\n");
+    ImmutableSet<String> expected =
+        ImmutableSet.of(
+            "MSG: unchecked: d1/OWNERS:4: include pB:/d2/owners", // cannot read pB
+            "ERROR: syntax: d2/owners:1: wrong",
+            "ERROR: syntax: d2/owners:2: xyz");
+    CommitReceivedEvent event = makeCommitEvent("pA", "T", files);
+    assertThat(validate(event, false, ENABLED_CONFIG)).containsExactlyElementsIn(expected);
+  }
+
   private static PluginConfig createEnabledConfig() {
     PluginConfig c = new PluginConfig("", new Config());
     c.setBoolean(REJECT_ERROR_IN_OWNERS, true);
@@ -387,8 +391,9 @@ public class OwnersValidatorIT extends LightweightPluginDaemonTest {
   private List<String> validate(CommitReceivedEvent event, boolean verbose, PluginConfig cfg)
       throws Exception {
     OwnersValidator validator =
-        new OwnersValidator("find-owners", pluginConfig, repoManager, new MockedEmails());
-    OwnersValidator.Checker checker = validator.new Checker(event, verbose);
+        new OwnersValidator(
+            "find-owners", permissionBackend, pluginConfig, repoManager, new MockedEmails());
+    OwnersValidator.Checker checker = validator.new Checker(event, verbose, permissionBackend);
     checker.check(OwnersValidator.getOwnersFileName(cfg));
     return transformMessages(checker.messages);
   }

@@ -15,13 +15,16 @@
 package com.googlesource.gerrit.plugins.findowners;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.gerrit.acceptance.testsuite.project.TestProjectUpdate.block;
 import static com.google.gerrit.reviewdb.client.RefNames.REFS_CONFIG;
+import static com.google.gerrit.server.group.SystemGroupBackend.REGISTERED_USERS;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.gerrit.acceptance.LightweightPluginDaemonTest;
 import com.google.gerrit.acceptance.PushOneCommit;
 import com.google.gerrit.acceptance.RestResponse;
 import com.google.gerrit.acceptance.testsuite.project.ProjectOperations;
+import com.google.gerrit.common.data.Permission;
 import com.google.gerrit.extensions.api.changes.SubmitInput;
 import com.google.gerrit.extensions.api.projects.BranchApi;
 import com.google.gerrit.extensions.client.ChangeStatus;
@@ -31,6 +34,7 @@ import com.google.gerrit.reviewdb.client.BranchNameKey;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.reviewdb.client.RefNames;
 import com.google.gerrit.server.account.Emails;
+import com.google.gerrit.server.permissions.PermissionBackend;
 import com.google.inject.Inject;
 import org.eclipse.jgit.lib.ObjectLoader;
 import org.eclipse.jgit.revwalk.RevObject;
@@ -45,6 +49,7 @@ import org.junit.Before;
 public abstract class FindOwners extends LightweightPluginDaemonTest {
 
   @Inject protected Emails emails;
+  @Inject protected PermissionBackend permissionBackend;
   @Inject protected ProjectOperations projectOperations;
 
   protected static final String PLUGIN_NAME = "find-owners";
@@ -112,6 +117,14 @@ public abstract class FindOwners extends LightweightPluginDaemonTest {
     testRepo = cloneProject(project);
   }
 
+  protected void blockRead(Project.NameKey p) throws Exception {
+    projectOperations
+        .project(p)
+        .forUpdate()
+        .add(block(Permission.READ).ref("refs/heads/master").group(REGISTERED_USERS))
+        .update();
+  }
+
   protected org.eclipse.jgit.lib.Config readProjectConfig() throws Exception {
     git().fetch().setRefSpecs(new RefSpec(REFS_CONFIG + ":" + REFS_CONFIG)).call();
     testRepo.reset(RefNames.REFS_CONFIG);
@@ -158,6 +171,7 @@ public abstract class FindOwners extends LightweightPluginDaemonTest {
     OwnersDb db =
         cache.get(
             true,
+            permissionBackend,
             projectCache.get(project),
             accountCache,
             emails,
@@ -165,7 +179,7 @@ public abstract class FindOwners extends LightweightPluginDaemonTest {
             pluginConfig,
             r.getChange(),
             1);
-    Checker c = new Checker(repoManager, pluginConfig, null, r.getChange(), 1);
+    Checker c = new Checker(repoManager, permissionBackend, pluginConfig, null, r.getChange(), 1);
     return c.findApproval(accountCache, db);
   }
 
