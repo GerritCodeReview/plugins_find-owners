@@ -19,12 +19,16 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Ordering;
 import com.google.common.flogger.FluentLogger;
+import com.google.gerrit.extensions.restapi.AuthException;
 import com.google.gerrit.reviewdb.client.Account;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.account.AccountCache;
 import com.google.gerrit.server.account.Emails;
 import com.google.gerrit.server.config.PluginConfigFactory;
 import com.google.gerrit.server.git.GitRepositoryManager;
+import com.google.gerrit.server.permissions.PermissionBackend;
+import com.google.gerrit.server.permissions.PermissionBackendException;
+import com.google.gerrit.server.permissions.RefPermission;
 import com.google.gerrit.server.project.ProjectState;
 import com.google.gerrit.server.query.change.ChangeData;
 import java.net.InetAddress;
@@ -52,6 +56,7 @@ import org.eclipse.jgit.treewalk.TreeWalk;
 class OwnersDb {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
+  private final PermissionBackend permissionBackend;
   private final AccountCache accountCache;
   private final GitRepositoryManager repoManager;
   private final Emails emails;
@@ -71,6 +76,7 @@ class OwnersDb {
   List<String> logs = new ArrayList<>(); // trace/debug messages
 
   OwnersDb(
+      PermissionBackend permissionBackend,
       ProjectState projectState,
       AccountCache accountCache,
       Emails emails,
@@ -80,6 +86,7 @@ class OwnersDb {
       ChangeData changeData,
       String branch,
       Collection<String> files) {
+    this.permissionBackend = permissionBackend;
     this.accountCache = accountCache;
     this.repoManager = repoManager;
     this.emails = emails;
@@ -111,7 +118,17 @@ class OwnersDb {
           // this project should have a non-empty root file of that name.
           // We added this requirement to detect errors in project config files
           // and Gerrit server bugs that return wrong value of "ownersFileName".
-          String content = getFile(readFiles, repo, projectName, id, "/" + ownersFileName, logs);
+          String content =
+              getRepoFile(
+                  permissionBackend,
+                  readFiles,
+                  null,
+                  repo,
+                  id,
+                  projectName,
+                  branch,
+                  "/" + ownersFileName,
+                  logs);
           String found = "Found";
           if (content.isEmpty()) {
             String changeId = Config.getChangeId(changeData);
@@ -138,7 +155,17 @@ class OwnersDb {
             readDirs.add(dir);
             logs.add("findOwnersFileIn:" + dir);
             String filePath = dir + "/" + ownersFileName;
-            String content = getFile(readFiles, repo, projectName, id, filePath, logs);
+            String content =
+                getRepoFile(
+                    permissionBackend,
+                    readFiles,
+                    null,
+                    repo,
+                    id,
+                    projectName,
+                    branch,
+                    filePath,
+                    logs);
             if (content != null && !content.isEmpty()) {
               addFile(
                   readFiles,
@@ -244,7 +271,8 @@ class OwnersDb {
       String dirPath,
       String filePath,
       String[] lines) {
-    Parser parser = new Parser(readFiles, repoManager, project, branch, filePath, logs);
+    Parser parser =
+        new Parser(permissionBackend, readFiles, repoManager, project, branch, filePath, logs);
     Parser.Result result = parser.parseFile(dirPath, lines);
     if (result.stopLooking) {
       stopLooking.add(dirPath);
@@ -416,10 +444,36 @@ class OwnersDb {
     }
   }
 
+  private static boolean hasReadAccess(
+      PermissionBackend permissionBackend, String project, String branch, List<String> logs) {
+    if (permissionBackend == null || branch == null || project == null) {
+      return true; // cannot check, so assume okay
+    }
+    if (!branch.startsWith("refs/")) {
+      branch = "refs/heads/" + branch;
+    }
+    try {
+      permissionBackend
+          .currentUser()
+          .project(Project.nameKey(project))
+          .ref(branch)
+          .check(RefPermission.READ);
+    } catch (AuthException | PermissionBackendException e) {
+      logger.atSevere().withCause(e).log(
+          "getFile cannot read file in project %s branch %s", project, branch);
+      logException(logs, "hasReadAccess", e);
+      return false;
+    }
+    return true;
+  }
+
   /** Returns file content or empty string; uses project+branch+file names. */
   public static String getRepoFile(
+      PermissionBackend permissionBackend,
       Map<String, String> readFiles,
       GitRepositoryManager repoManager,
+      Repository repository,
+      ObjectId id,
       String project,
       String branch,
       String file,
@@ -429,51 +483,48 @@ class OwnersDb {
     file = Util.gitRepoFilePath(file);
     String content = findReadFile(readFiles, project, file);
     if (content == null) {
+      if (!hasReadAccess(permissionBackend, project, branch, logs)) {
+        return ""; // treat as read error
+      }
       content = "";
-      if (repoManager != null) { // ParserTest can call with null repoManager
+      if ((id == null || repository == null) && repoManager != null) {
+        // create ObjectId from repoManager
         try (Repository repo = repoManager.openRepository(Project.nameKey(project))) {
-          ObjectId id = repo.resolve(branch);
+          id = repo.resolve(branch);
           if (id != null) {
-            return getFile(readFiles, repo, project, id, file, logs);
+            content = getFile(repo, id, file, logs);
+          } else {
+            logs.add("getRepoFile not found branch " + branch);
           }
-          logs.add("getRepoFile not found branch " + branch);
         } catch (Exception e) {
           logger.atSevere().log("getRepoFile failed to find repository of project %s", project);
           logException(logs, "getRepoFile", e);
         }
+      } else if (id != null && repository != null) {
+        content = getFile(repository, id, file, logs);
       }
+      saveReadFile(readFiles, project, file, content);
     }
     return content;
   }
 
   /** Returns file content or empty string; uses Repository. */
-  private static String getFile(
-      Map<String, String> readFiles,
-      Repository repo,
-      String project,
-      ObjectId id,
-      String file,
-      List<String> logs) {
-    file = Util.gitRepoFilePath(file);
-    String content = findReadFile(readFiles, project, file);
-    if (content == null) {
-      content = "";
-      try (RevWalk revWalk = new RevWalk(repo)) {
-        String header = "getFile:" + file;
-        RevTree tree = revWalk.parseCommit(id).getTree();
-        ObjectReader reader = revWalk.getObjectReader();
-        TreeWalk treeWalk = TreeWalk.forPath(reader, file, tree);
-        if (treeWalk != null) {
-          content = new String(reader.open(treeWalk.getObjectId(0)).getBytes(), UTF_8);
-          logs.add(header + ":(...)");
-        } else {
-          logs.add(header + " (NOT FOUND)");
-        }
-      } catch (Exception e) {
-        logger.atSevere().withCause(e).log("get file %s", file);
-        logException(logs, "getFile", e);
+  private static String getFile(Repository repo, ObjectId id, String file, List<String> logs) {
+    String content = "";
+    try (RevWalk revWalk = new RevWalk(repo)) {
+      String header = "getFile:" + file;
+      RevTree tree = revWalk.parseCommit(id).getTree();
+      ObjectReader reader = revWalk.getObjectReader();
+      TreeWalk treeWalk = TreeWalk.forPath(reader, file, tree);
+      if (treeWalk != null) {
+        content = new String(reader.open(treeWalk.getObjectId(0)).getBytes(), UTF_8);
+        logs.add(header + ":(...)");
+      } else {
+        logs.add(header + " (NOT FOUND)");
       }
-      saveReadFile(readFiles, project, file, content);
+    } catch (Exception e) {
+      logger.atSevere().withCause(e).log("get file %s", file);
+      logException(logs, "getFile", e);
     }
     return content;
   }

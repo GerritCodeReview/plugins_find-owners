@@ -25,6 +25,7 @@ import com.google.gerrit.server.account.Emails;
 import com.google.gerrit.server.change.ChangeResource;
 import com.google.gerrit.server.config.PluginConfigFactory;
 import com.google.gerrit.server.git.GitRepositoryManager;
+import com.google.gerrit.server.permissions.PermissionBackend;
 import com.google.gerrit.server.project.ProjectCache;
 import com.google.gerrit.server.query.change.ChangeData;
 import com.google.inject.Inject;
@@ -52,6 +53,7 @@ public class GetOwners implements RestReadView<ChangeResource> {
 
   @Inject
   GetOwners(
+      PermissionBackend permissionBackend,
       PluginConfigFactory configFactory,
       Provider<CurrentUser> userProvider,
       ChangeData.Factory dataFactory,
@@ -61,6 +63,7 @@ public class GetOwners implements RestReadView<ChangeResource> {
       ProjectCache projectCache) {
     this.action =
         new Action(
+            permissionBackend,
             configFactory,
             userProvider,
             dataFactory,
