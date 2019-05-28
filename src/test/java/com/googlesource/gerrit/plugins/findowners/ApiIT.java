@@ -17,7 +17,6 @@ package com.googlesource.gerrit.plugins.findowners;
 import static com.google.common.truth.OptionalSubject.optionals;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
-import static com.google.common.truth.Truth8.assertThat;
 
 import com.google.common.collect.Multimap;
 import com.google.common.flogger.FluentLogger;
@@ -110,7 +109,14 @@ public class ApiIT extends FindOwners {
     Action.Parameters param = new Action.Parameters();
     Action action =
         new Action(
-            pluginConfig, null, changeDataFactory, accountCache, emails, repoManager, projectCache);
+            permissionBackend,
+            pluginConfig,
+            null,
+            changeDataFactory,
+            accountCache,
+            emails,
+            repoManager,
+            projectCache);
     Response<RestResult> response = action.apply(cr, param);
     RestResult result = response.value();
     verifyRestResult(result, 1, 1, changeInfo._number, false);

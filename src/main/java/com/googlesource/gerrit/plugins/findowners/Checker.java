@@ -22,6 +22,7 @@ import com.google.gerrit.server.account.AccountCache;
 import com.google.gerrit.server.account.Emails;
 import com.google.gerrit.server.config.PluginConfigFactory;
 import com.google.gerrit.server.git.GitRepositoryManager;
+import com.google.gerrit.server.permissions.PermissionBackend;
 import com.google.gerrit.server.project.ProjectState;
 import com.google.gerrit.server.query.change.ChangeData;
 import com.google.gerrit.server.rules.StoredValues;
@@ -40,6 +41,7 @@ public class Checker {
   private static final String EXEMPT_MESSAGE2 = "Exempted-From-Owner-Approval:";
 
   private final GitRepositoryManager repoManager;
+  private final PermissionBackend permissionBackend;
   private final PluginConfigFactory configFactory;
   private final Config config;
   private final ProjectState projectState; // could be null when used by FindOwnersIT
@@ -48,11 +50,13 @@ public class Checker {
 
   Checker(
       GitRepositoryManager repoManager,
+      PermissionBackend permissionBackend,
       PluginConfigFactory configFactory,
       ProjectState projectState,
       ChangeData changeData,
       int v) {
     this.repoManager = repoManager;
+    this.permissionBackend = permissionBackend;
     this.configFactory = configFactory;
     this.projectState = projectState;
     this.changeData = changeData;
@@ -128,6 +132,7 @@ public class Checker {
       Checker checker =
           new Checker(
               StoredValues.REPO_MANAGER.get(engine),
+              StoredValues.PERMISSION_BACKEND.get(engine),
               StoredValues.PLUGIN_CONFIG_FACTORY.get(engine),
               StoredValues.PROJECT_STATE.get(engine),
               changeData,
@@ -149,7 +154,15 @@ public class Checker {
     // many times. So this function should use cached values.
     OwnersDb db =
         Cache.getInstance(configFactory, repoManager)
-            .get(true, projectState, accountCache, emails, repoManager, configFactory, changeData);
+            .get(
+                true,
+                permissionBackend,
+                projectState,
+                accountCache,
+                emails,
+                repoManager,
+                configFactory,
+                changeData);
     if (db.getNumOwners() <= 0) {
       return 0;
     }

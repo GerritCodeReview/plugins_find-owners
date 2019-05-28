@@ -16,6 +16,7 @@ package com.googlesource.gerrit.plugins.findowners;
 
 import com.google.common.flogger.FluentLogger;
 import com.google.gerrit.server.git.GitRepositoryManager;
+import com.google.gerrit.server.permissions.PermissionBackend;
 import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -31,12 +32,17 @@ import java.util.regex.Pattern;
 
 /**
  * Parse lines in an OWNERS file and put them into an OwnersDb. One Parser object should be created
- * to parse only one OWNERS file. It keeps repoManager, project, branch, and filePath of the OWNERS
- * file so it can find files that are included by OWNERS.
+ * to parse only one OWNERS file. It keeps permissionBackend, readFiles, repoManager, project,
+ * branch, and filePath of the OWNERS file so it can find files that are included by OWNERS.
  *
- * <p>The usage pattern is: Parser parser = new Parser(repoManager, project, branch, repoFilePath);
- * String content = OwnersDb.getRepoFile(readFiles, repoManager, project, branch, repoFilePath,
- * logs); Parser.Result result = parser.parseFile(dirPath, content);
+ * <p>The usage pattern is:
+ *
+ * <pre>
+ *   Parser parser = new Parser(permissionBackend, readFiles, repoManager, project, branch, repoFilePath);
+ *   String content = OwnersDb.getRepoFile(permissionBackend, readFiles, repoManager, null, null,
+ *                                         project, branch, repoFilePath, logs);
+ *   Parser.Result result = parser.parseFile(dirPath, content);
+ * </pre>
  *
  * <p>OWNERS file syntax, semantics, and examples are included in syntax.md.
  */
@@ -95,8 +101,9 @@ class Parser {
   private static final Pattern PAT_INCLUDE_OR_FILE =
       Pattern.compile("^.*(" + INCLUDE_OR_FILE + PROJECT_AND_FILE + ")" + EOL);
 
-  // A parser keeps current readFiles, repoManager, project, branch,
+  // A parser keeps current permissionBackend, readFiles, repoManager, project, branch,
   // included file path, and debug/trace logs.
+  private PermissionBackend permissionBackend;
   private Map<String, String> readFiles;
   private GitRepositoryManager repoManager;
   private String branch; // All owners files are read from the same branch.
@@ -141,32 +148,30 @@ class Parser {
     }
   }
 
+  // For simple unit tests without a repository.
+  Parser(String project, String branch, String file) {
+    this(null, null, null, project, branch, file, new ArrayList<>());
+  }
+
   Parser(
+      PermissionBackend permissionBackend,
       Map<String, String> readFiles,
       GitRepositoryManager repoManager,
       String project,
       String branch,
       String file) {
-    init(readFiles, repoManager, project, branch, file, new ArrayList<>());
+    this(permissionBackend, readFiles, repoManager, project, branch, file, new ArrayList<>());
   }
 
   Parser(
+      PermissionBackend permissionBackend,
       Map<String, String> readFiles,
       GitRepositoryManager repoManager,
       String project,
       String branch,
       String file,
       List<String> logs) {
-    init(readFiles, repoManager, project, branch, file, logs);
-  }
-
-  private void init(
-      Map<String, String> readFiles,
-      GitRepositoryManager repoManager,
-      String project,
-      String branch,
-      String file,
-      List<String> logs) {
+    this.permissionBackend = permissionBackend;
     this.readFiles = readFiles;
     this.repoManager = repoManager;
     this.branch = branch;
@@ -405,7 +410,16 @@ class Parser {
       stack.push(project, repoFile);
       logs.add("parseLine:" + includeKPF);
       String content =
-          OwnersDb.getRepoFile(readFiles, repoManager, project, branch, repoFile, logs);
+          OwnersDb.getRepoFile(
+              permissionBackend,
+              readFiles,
+              repoManager,
+              null,
+              null,
+              project,
+              branch,
+              repoFile,
+              logs);
       if (content != null && !content.isEmpty()) {
         includedFileResult = parseFile("", content);
       } else {

@@ -18,6 +18,8 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.google.common.flogger.FluentLogger;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,8 +41,8 @@ public class ParserTest {
 
   private static Parser.Result testLine(String line) {
     Parser.Result result = new Parser.Result();
-    // Single line parser tests do not need repoManager.
-    Parser parser = new Parser(null, null, mockedProject(), "master", "OWNERS");
+    // Single line parser tests do not need a repository.
+    Parser parser = new Parser(mockedProject(), "master", "OWNERS");
     parser.parseLine(result, mockedTestDir(), line, 3);
     return result;
   }
@@ -273,32 +275,18 @@ public class ParserTest {
 
   @Test
   public void getIncludeOrFileTest() {
-    String[] line =
-        new String[] {
-          "",
-          "wrong input",
-          "INCLUDE X",
-          "include //f2.txt # ",
-          "  include  P1/P2:  ../f1 # ",
-          "  file://f3 # ",
-          "file:  P1:f3",
-          "  per-file *.c,file.c = file:  /OWNERS  # ",
-          "per-file  *=file:P1/P2:  /O# ",
-        };
-    String[] expected =
-        new String[] {
-          "",
-          "",
-          "",
-          "include //f2.txt",
-          "include P1/P2:../f1",
-          "file://f3",
-          "file:P1:f3",
-          "file:/OWNERS",
-          "file:P1/P2:/O",
-        };
-    for (int i = 0; i < line.length; i++) {
-      assertThat(Parser.getIncludeOrFile(line[i])).isEqualTo(expected[i]);
+    Map<String, String> tests = new HashMap<>(); // map from input to expected result
+    tests.put("", "");
+    tests.put("wrong input", "");
+    tests.put("INCLUDE X", "");
+    tests.put("include //f2.txt # ", "include //f2.txt");
+    tests.put("  include  P1/P2:  ../f1 # ", "include P1/P2:../f1");
+    tests.put("  file://f3 # ", "file://f3");
+    tests.put("file:  P1:f3", "file:P1:f3");
+    tests.put("  per-file *.c,file.c = file:  /OWNERS  # ", "file:/OWNERS");
+    tests.put("per-file  *=file:P1/P2:  /O# ", "file:P1/P2:/O");
+    for (String line : tests.keySet()) {
+      assertThat(Parser.getIncludeOrFile(line)).isEqualTo(tests.get(line));
     }
   }
 
