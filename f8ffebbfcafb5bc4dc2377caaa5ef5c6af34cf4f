@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4915427c_bb94f3b1",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Action.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1011123
+      },
+      "writtenOn": "2019-05-29T23:56:11Z",
+      "side": 1,
+      "message": "Import only Change and refer to Change.Status in the code?",
+      "range": {
+        "startLine": 21,
+        "startChar": 0,
+        "endLine": 22,
+        "endChar": 48
+      },
+      "revId": "f8ffebbfcafb5bc4dc2377caaa5ef5c6af34cf4f",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "76413ef7_5e96a282",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Checker.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1011123
+      },
+      "writtenOn": "2019-05-29T23:56:11Z",
+      "side": 1,
+      "message": "Import only Change?",
+      "revId": "f8ffebbfcafb5bc4dc2377caaa5ef5c6af34cf4f",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    }
+  ]
+}
