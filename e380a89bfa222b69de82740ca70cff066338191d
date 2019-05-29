@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f787ff6e_73ad1a58",
+        "filename": "src/test/java/com/googlesource/gerrit/plugins/findowners/IncludeIT.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 393,
+      "author": {
+        "id": 1034308
+      },
+      "writtenOn": "2019-05-29T21:44:54Z",
+      "side": 1,
+      "message": "Can you please add a comment here (assuming I understand this test case correctly) that says that the only OWNERS listed will be from the readable OWNERS files/includes.",
+      "revId": "e380a89bfa222b69de82740ca70cff066338191d",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    }
+  ]
+}
