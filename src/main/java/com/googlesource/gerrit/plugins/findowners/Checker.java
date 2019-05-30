@@ -15,9 +15,9 @@
 package com.googlesource.gerrit.plugins.findowners;
 
 import com.google.common.flogger.FluentLogger;
+import com.google.gerrit.entities.Change.Status;
+import com.google.gerrit.entities.PatchSetApproval;
 import com.google.gerrit.exceptions.StorageException;
-import com.google.gerrit.reviewdb.client.Change.Status;
-import com.google.gerrit.reviewdb.client.PatchSetApproval;
 import com.google.gerrit.server.account.AccountCache;
 import com.google.gerrit.server.account.Emails;
 import com.google.gerrit.server.config.PluginConfigFactory;
