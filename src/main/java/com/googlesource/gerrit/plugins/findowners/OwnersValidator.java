@@ -21,12 +21,12 @@ import static com.googlesource.gerrit.plugins.findowners.Config.REJECT_ERROR_IN_
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Multimap;
+import com.google.gerrit.entities.Account;
+import com.google.gerrit.entities.Project;
 import com.google.gerrit.extensions.annotations.Exports;
 import com.google.gerrit.extensions.annotations.PluginName;
 import com.google.gerrit.extensions.api.projects.ProjectConfigEntryType;
 import com.google.gerrit.extensions.registration.DynamicSet;
-import com.google.gerrit.reviewdb.client.Account;
-import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.account.Emails;
 import com.google.gerrit.server.config.PluginConfig;
 import com.google.gerrit.server.config.PluginConfigFactory;

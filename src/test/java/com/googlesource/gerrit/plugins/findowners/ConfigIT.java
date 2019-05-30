@@ -20,7 +20,7 @@ import com.google.common.flogger.FluentLogger;
 import com.google.gerrit.acceptance.PushOneCommit;
 import com.google.gerrit.acceptance.RestResponse;
 import com.google.gerrit.acceptance.TestPlugin;
-import com.google.gerrit.reviewdb.client.Project;
+import com.google.gerrit.entities.Project;
 import org.junit.Rule;
 import org.junit.Test;
 
