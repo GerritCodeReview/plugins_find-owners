@@ -322,8 +322,8 @@ public class OwnersValidatorIT extends FindOwners {
 
   @Test
   public void simpleIncludeACLTest() throws Exception {
-    // If the user cannot read an included file,
-    // the file is not seen and errors won't be detected.
+    // Even if the user cannot read an included file,
+    // the upload validator should still check the included file.
     // Use pA/pB, because addProjectFile cannot create the same project again.
     addProjectFile("pA", "d2/owners", "wrong\nxyz\n");
     addProjectFile("pB", "d2/owners", "x@g.com\nerr\ninclude ../d2/owners\n");
@@ -335,7 +335,9 @@ public class OwnersValidatorIT extends FindOwners {
                 + "include pA:/d2/owners\ninclude pB:/d2/owners\n");
     ImmutableSet<String> expected =
         ImmutableSet.of(
-            "MSG: unchecked: d1/OWNERS:4: include pB:/d2/owners", // cannot read pB
+            // "MSG: unchecked: d1/OWNERS:4: include pB:/d2/owners", // cannot read pB
+            "ERROR: unknown: x@g.com at pB:d2/owners:1",
+            "ERROR: syntax: pB:d2/owners:2: err",
             "ERROR: syntax: d2/owners:1: wrong",
             "ERROR: syntax: d2/owners:2: xyz");
     CommitReceivedEvent event = makeCommitEvent("pA", "T", files);
@@ -391,9 +393,8 @@ public class OwnersValidatorIT extends FindOwners {
   private List<String> validate(CommitReceivedEvent event, boolean verbose, PluginConfig cfg)
       throws Exception {
     OwnersValidator validator =
-        new OwnersValidator(
-            "find-owners", permissionBackend, pluginConfig, repoManager, new MockedEmails());
-    OwnersValidator.Checker checker = validator.new Checker(event, verbose, permissionBackend);
+        new OwnersValidator("find-owners", pluginConfig, repoManager, new MockedEmails());
+    OwnersValidator.Checker checker = validator.new Checker(event, verbose);
     checker.check(OwnersValidator.getOwnersFileName(cfg));
     return transformMessages(checker.messages);
   }

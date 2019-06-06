@@ -171,7 +171,7 @@ public abstract class FindOwners extends LightweightPluginDaemonTest {
     OwnersDb db =
         cache.get(
             true,
-            permissionBackend,
+            null,
             projectCache.get(project),
             accountCache,
             emails,
@@ -179,7 +179,7 @@ public abstract class FindOwners extends LightweightPluginDaemonTest {
             pluginConfig,
             r.getChange(),
             1);
-    Checker c = new Checker(repoManager, permissionBackend, pluginConfig, null, r.getChange(), 1);
+    Checker c = new Checker(repoManager, pluginConfig, null, r.getChange(), 1);
     return c.findApproval(accountCache, db);
   }
 

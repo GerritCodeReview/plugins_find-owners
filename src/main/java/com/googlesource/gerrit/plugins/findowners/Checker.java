@@ -22,7 +22,6 @@ import com.google.gerrit.server.account.AccountCache;
 import com.google.gerrit.server.account.Emails;
 import com.google.gerrit.server.config.PluginConfigFactory;
 import com.google.gerrit.server.git.GitRepositoryManager;
-import com.google.gerrit.server.permissions.PermissionBackend;
 import com.google.gerrit.server.project.ProjectState;
 import com.google.gerrit.server.query.change.ChangeData;
 import com.google.gerrit.server.rules.StoredValues;
@@ -41,7 +40,6 @@ public class Checker {
   private static final String EXEMPT_MESSAGE2 = "Exempted-From-Owner-Approval:";
 
   private final GitRepositoryManager repoManager;
-  private final PermissionBackend permissionBackend;
   private final PluginConfigFactory configFactory;
   private final Config config;
   private final ProjectState projectState; // could be null when used by FindOwnersIT
@@ -50,13 +48,11 @@ public class Checker {
 
   Checker(
       GitRepositoryManager repoManager,
-      PermissionBackend permissionBackend,
       PluginConfigFactory configFactory,
       ProjectState projectState,
       ChangeData changeData,
       int v) {
     this.repoManager = repoManager;
-    this.permissionBackend = permissionBackend;
     this.configFactory = configFactory;
     this.projectState = projectState;
     this.changeData = changeData;
@@ -97,14 +93,20 @@ public class Checker {
   boolean findOwnersInVotes(Set<String> owners, Map<String, Integer> votes) {
     boolean foundVeto = false;
     boolean foundApproval = false;
+    boolean foundNull = false;
     for (String owner : owners) {
-      if (votes.containsKey(owner)) {
+      if (owner == null) {
+        foundNull = true; // Something is wrong in OwnersDb!
+      } else if (votes.containsKey(owner)) {
         int v = votes.get(owner);
         foundApproval |= (v >= minVoteLevel);
         foundVeto |= (v < 0); // an owner's -1 vote is a veto
       } else if (owner.equals("*")) {
         foundApproval = true; // no specific owner
       }
+    }
+    if (foundNull) {
+      logger.atSevere().log("Unexpected null owner email for %s", Config.getChangeId(changeData));
     }
     return foundApproval && !foundVeto;
   }
@@ -132,7 +134,6 @@ public class Checker {
       Checker checker =
           new Checker(
               StoredValues.REPO_MANAGER.get(engine),
-              StoredValues.PERMISSION_BACKEND.get(engine),
               StoredValues.PLUGIN_CONFIG_FACTORY.get(engine),
               StoredValues.PROJECT_STATE.get(engine),
               changeData,
@@ -156,7 +157,7 @@ public class Checker {
         Cache.getInstance(configFactory, repoManager)
             .get(
                 true,
-                permissionBackend,
+                null, /* allow submit checker to read all OWNERS files */
                 projectState,
                 accountCache,
                 emails,

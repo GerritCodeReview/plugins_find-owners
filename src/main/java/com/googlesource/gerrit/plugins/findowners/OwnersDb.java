@@ -190,7 +190,9 @@ class OwnersDb {
         }
       }
     } catch (Exception e) {
-      logger.atSevere().log("OwnersDb failed to find repository of project %s", projectName);
+      logger.atSevere().log(
+          "OwnersDb failed to find repository of project %s for %s",
+          projectName, Config.getChangeId(changeData));
       logException(logs, "OwnersDb get repository", e);
     }
     countNumOwners(files);
@@ -259,6 +261,11 @@ class OwnersDb {
           logger.atSevere().withCause(e).log("Fail to find preferred email of %s", owner);
           errors.add(owner);
         }
+        if (email == null) {
+          logger.atSevere().log("accountCache failed to find preferred email of %s", owner);
+          errors.add(owner);
+          email = owner;
+        }
         preferredEmails.put(owner, email);
       }
     }
@@ -281,6 +288,10 @@ class OwnersDb {
     addPreferredEmails(result.owner2paths.keySet());
     for (String owner : result.owner2paths.keySet()) {
       String email = preferredEmails.get(owner);
+      if (email == null) {
+        logger.atSevere().log("found null preferredEmail of %s", owner);
+        email = owner;
+      }
       for (String path : result.owner2paths.get(owner)) {
         addOwnerPathPair(email, path);
       }
@@ -484,6 +495,7 @@ class OwnersDb {
     String content = findReadFile(readFiles, project, file);
     if (content == null) {
       if (!hasReadAccess(permissionBackend, project, branch, logs)) {
+        logger.atSevere().log("getRepoFile cannot read %s:%s", project, file);
         return ""; // treat as read error
       }
       content = "";

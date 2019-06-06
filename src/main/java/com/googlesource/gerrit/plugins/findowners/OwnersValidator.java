@@ -36,7 +36,6 @@ import com.google.gerrit.server.git.GitRepositoryManager;
 import com.google.gerrit.server.git.validators.CommitValidationException;
 import com.google.gerrit.server.git.validators.CommitValidationListener;
 import com.google.gerrit.server.git.validators.CommitValidationMessage;
-import com.google.gerrit.server.permissions.PermissionBackend;
 import com.google.gerrit.server.project.NoSuchProjectException;
 import com.google.inject.AbstractModule;
 import com.google.inject.Inject;
@@ -89,7 +88,6 @@ public class OwnersValidator implements CommitValidationListener {
   }
 
   private final String pluginName;
-  private final PermissionBackend permissionBackend;
   private final PluginConfigFactory cfgFactory;
   private final GitRepositoryManager repoManager;
   private final Emails emails;
@@ -97,12 +95,10 @@ public class OwnersValidator implements CommitValidationListener {
   @Inject
   OwnersValidator(
       @PluginName String pluginName,
-      PermissionBackend permissionBackend,
       PluginConfigFactory cfgFactory,
       GitRepositoryManager repoManager,
       Emails emails) {
     this.pluginName = pluginName;
-    this.permissionBackend = permissionBackend;
     this.cfgFactory = cfgFactory;
     this.repoManager = repoManager;
     this.emails = emails;
@@ -134,7 +130,7 @@ public class OwnersValidator implements CommitValidationListener {
   @Override
   public List<CommitValidationMessage> onCommitReceived(CommitReceivedEvent event)
       throws CommitValidationException {
-    Checker checker = new Checker(event, false, permissionBackend);
+    Checker checker = new Checker(event, false);
     try {
       Project.NameKey project = event.project.getNameKey();
       PluginConfig cfg = cfgFactory.getFromProjectConfigWithInheritance(project, pluginName);
@@ -158,7 +154,6 @@ public class OwnersValidator implements CommitValidationListener {
     // An inner class to keep needed data specific to one commit event.
     CommitReceivedEvent event;
     boolean verbose;
-    PermissionBackend permissionBackend;
     List<CommitValidationMessage> messages;
     Map<String, ObjectId> allFiles; // changedFilePath => ObjectId
     Map<String, String> readFiles; // project:file => content
@@ -166,10 +161,9 @@ public class OwnersValidator implements CommitValidationListener {
     // Collect all email addresses from all files and check each address only once.
     Map<String, Set<String>> email2lines;
 
-    Checker(CommitReceivedEvent event, boolean verbose, PermissionBackend permissionBackend) {
+    Checker(CommitReceivedEvent event, boolean verbose) {
       this.event = event;
       this.verbose = verbose;
-      this.permissionBackend = permissionBackend;
       messages = new ArrayList<>();
       readFiles = new HashMap<>();
       checkedFiles = new HashSet<>();
@@ -359,7 +353,7 @@ public class OwnersValidator implements CommitValidationListener {
       addVerboseMsg("check repo file " + key);
       String content =
           OwnersDb.getRepoFile(
-              permissionBackend,
+              null, /* permissionBackend */
               readFiles,
               repoManager,
               null,
