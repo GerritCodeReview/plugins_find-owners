@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e41fecf3_05076880",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/OwnersDb.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 291,
+      "author": {
+        "id": 1034308
+      },
+      "writtenOn": "2019-06-08T07:37:05Z",
+      "side": 1,
+      "message": "In the future, it might be better to split out the improved logging part of these CLs from the actual intended change. That would make it easier to revert the workaround, if we discover why there are NPEs causing issues later.",
+      "revId": "c5ce973be71d7f75c3baba6ce7f7b404ccdedbec",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    }
+  ]
+}
