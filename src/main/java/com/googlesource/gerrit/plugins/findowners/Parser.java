@@ -56,7 +56,7 @@ class Parser {
   protected static final String COMMA = "[\\s]*,[\\s]*"; // used in unit tests
 
   // Separator for project and file paths in an include line.
-  private static final String COLUMN = "[\\s]*:[\\s]*"; // project:file
+  private static final String COLON = "[\\s]*:[\\s]*"; // project:file
 
   private static final String BOL = "^[\\s]*"; // begin-of-line
   private static final String EOL = "[\\s]*(#.*)?$"; // end-of-line
@@ -67,10 +67,10 @@ class Parser {
   private static final String EMAIL_LIST =
       "(" + EMAIL_OR_STAR + "(" + COMMA + EMAIL_OR_STAR + ")*)";
 
-  // A Gerrit project name followed by a column and optional spaces.
-  private static final String PROJECT_NAME = "([^\\s:]+" + COLUMN + ")?";
+  // A Gerrit project name followed by a colon and optional spaces.
+  private static final String PROJECT_NAME = "([^\\s:]+" + COLON + ")?";
 
-  // A relative or absolute file path name without any column or space character.
+  // A relative or absolute file path name without any colon or space character.
   private static final String FILE_PATH = "([^\\s:#]+)";
 
   private static final String PROJECT_AND_FILE = PROJECT_NAME + FILE_PATH;
@@ -213,7 +213,7 @@ class Parser {
     String projectName = m.group(2);
     if (projectName != null && projectName.length() > 1) {
       // PROJECT_NAME ends with ':'
-      projectName = projectName.split(COLUMN, -1)[0].trim();
+      projectName = projectName.split(COLON, -1)[0].trim();
     } else {
       projectName = project; // default project name
     }
