@@ -1,3 +1,5 @@
+# Gerrit find-owners plugin
+
 This plugin works with Gerrit projects that
 use Android or Chromium compatible **OWNERS** files.
 The **OWNERS** files specify *owners*, or active maintainers,
