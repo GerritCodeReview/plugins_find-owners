@@ -131,7 +131,7 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
       return changeData.reviewers().all().stream()
           .map(accountCache::get)
           .flatMap(Streams::stream)
-          .map(a -> a.getAccount().getPreferredEmail())
+          .map(a -> a.getAccount().preferredEmail())
           .filter(Objects::nonNull)
           .collect(toList());
     } catch (StorageException e) {
