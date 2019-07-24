@@ -69,7 +69,7 @@ public class Checker {
       if (p.value() != 0 && p.label().equals("Code-Review")) {
         // Reviewers may have no preferred email, skip them if the preferred email is not set.
         Optional<String> preferredEmail =
-            accountCache.get(p.accountId()).map(a -> a.getAccount().getPreferredEmail());
+            accountCache.get(p.accountId()).map(a -> a.getAccount().preferredEmail());
         if (preferredEmail.isPresent()) {
           map.put(preferredEmail.get(), Integer.valueOf(p.value()));
         }
@@ -82,7 +82,7 @@ public class Checker {
     Optional<String> author =
         accountCache
             .get(changeData.change().getOwner())
-            .map(a -> a.getAccount().getPreferredEmail());
+            .map(a -> a.getAccount().preferredEmail());
     if (author.isPresent() && (!map.containsKey(author.get()) || map.get(author.get()) == 0)) {
       map.put(author.get(), minVoteLevel);
     }

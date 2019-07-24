@@ -174,7 +174,7 @@ public class ApiIT extends FindOwners {
       // Action.getReviewers and Checker.getVotes use accountCache to get email address.
       Optional<Account> account = accountCache.get(id1).map(AccountState::getAccount);
       assertWithMessage("account %s", id1).about(optionals()).that(account).isPresent();
-      assertThat(account.get().getPreferredEmail()).isEqualTo(emails1[i]);
+      assertThat(account.get().preferredEmail()).isEqualTo(emails1[i]);
     }
     // Wrong or non-existing email address.
     String[] wrongEmails = {"nobody", "@g.com", "nobody@g.com", "*"};
