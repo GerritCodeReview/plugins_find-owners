@@ -176,7 +176,6 @@ public abstract class FindOwners extends LightweightPluginDaemonTest {
             accountCache,
             emails,
             repoManager,
-            pluginConfig,
             r.getChange(),
             1);
     Checker c = new Checker(repoManager, pluginConfig, null, r.getChange(), 1);
@@ -241,10 +240,13 @@ public abstract class FindOwners extends LightweightPluginDaemonTest {
   }
 
   protected String projectOwnersFileName(Project.NameKey name) {
+    // This function is called repeatedly in ConfigIT without recreating config.
+    // So, here we recreate config, to get the latest owners file name.
+    setConfig();
     return config.getOwnersFileName(projectCache.get(name), null);
   }
 
   protected Cache getCache() {
-    return Cache.getInstance(pluginConfig, repoManager);
+    return Cache.getInstance(config, repoManager);
   }
 }

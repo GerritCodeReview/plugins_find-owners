@@ -16,7 +16,7 @@ The `<id>` is a Gerrit change ID. This API can have three parameters:
 * **patchset**: is the patchset number of the change to look for changed files.
   By default the current (latest) patchset of given change is used.
 
-* **debug**: can be set to true or false to override the configuration variable
+* **debug**: can be set to true/1 or false/0 to override the configuration variable
   **addDebugMsg**.
 
 * **nocache**: can be set to true to collect owerns info without using the cached OwnersDb.
@@ -31,13 +31,28 @@ http://<gerrit_server>/changes/29/owners?debug=true&patchset=3
 
 This API returns a JSON object with the following attributes:
 
-* **minOwnerVoteLevel**: is 1 by default, but could be set to 2.
+* **addDebugMsg**: is false by default. It can be set to true in a
+   development/test gerrit.config file, or with the `debug=1`
+   REST URL parameter. When it is true, extra **dbgmsgs** attributes
+   are included in this JSON object.
+
+* **maxCacheAge**: has default value 0; can be defined in gerrit.config.
+   It is the number of seconds OWNERS info that will stay in a cache.
+
+* **maxCacheSize**: has default value 100; can be defined in gerrit.config.
+   It is the number of most recently accessed CLs OWNERS info that will stay in a cache.
+
+* **minOwnerVoteLevel**: is 1 by default; can be set to 2 in gerrit.config.
    It is the minimal Code-Review vote value all changed files must get
    from at least one owner to make a change submittable.
 
-* **addDebugMsg**: is false by default. In a development/test configuration,
-   this attribute could be true, to tell a client to display extra debug
-   information.
+* **ownersFileName**: is "OWNERS" by default; can be redefined in project.config
+   or gerrit.config. It is the name of OWNERS file.
+
+* **rejectErrorInOwners**: is false by default; can be redefined in
+   project.config or gerrit.config.
+   When enabled, the CL uploader will check and reject OWNERS file with
+   wrong syntax or unknown email address.
 
 * **change**: is the change number.
 

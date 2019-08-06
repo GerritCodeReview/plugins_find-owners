@@ -40,7 +40,6 @@ public class Checker {
   private static final String EXEMPT_MESSAGE2 = "Exempted-From-Owner-Approval:";
 
   private final GitRepositoryManager repoManager;
-  private final PluginConfigFactory configFactory;
   private final Config config;
   private final ProjectState projectState; // could be null when used by FindOwnersIT
   private final ChangeData changeData;
@@ -53,7 +52,6 @@ public class Checker {
       ChangeData changeData,
       int v) {
     this.repoManager = repoManager;
-    this.configFactory = configFactory;
     this.projectState = projectState;
     this.changeData = changeData;
     this.config = new Config(configFactory);
@@ -154,7 +152,7 @@ public class Checker {
     // One update to a Gerrit change can call submit_rule or submit_filter
     // many times. So this function should use cached values.
     OwnersDb db =
-        Cache.getInstance(configFactory, repoManager)
+        Cache.getInstance(config, repoManager)
             .get(
                 true,
                 null, /* allow submit checker to read all OWNERS files */
@@ -162,7 +160,6 @@ public class Checker {
                 accountCache,
                 emails,
                 repoManager,
-                configFactory,
                 changeData);
     if (db.getNumOwners() <= 0) {
       return 0;
