@@ -24,7 +24,6 @@ import com.google.gerrit.reviewdb.client.Account;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.account.AccountCache;
 import com.google.gerrit.server.account.Emails;
-import com.google.gerrit.server.config.PluginConfigFactory;
 import com.google.gerrit.server.git.GitRepositoryManager;
 import com.google.gerrit.server.permissions.PermissionBackend;
 import com.google.gerrit.server.permissions.PermissionBackendException;
@@ -82,7 +81,7 @@ class OwnersDb {
       Emails emails,
       String key,
       GitRepositoryManager repoManager,
-      PluginConfigFactory configFactory,
+      Config config,
       ChangeData changeData,
       String branch,
       Collection<String> files) {
@@ -91,7 +90,7 @@ class OwnersDb {
     this.repoManager = repoManager;
     this.emails = emails;
     this.key = key;
-    this.config = new Config(configFactory);
+    this.config = config;
     try {
       InetAddress inetAddress = InetAddress.getLocalHost();
       logs.add("HostName:" + inetAddress.getHostName());

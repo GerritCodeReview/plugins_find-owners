@@ -46,8 +46,9 @@ public class ApiIT extends FindOwners {
     ChangeInfo info2 = newChangeInfo("test2 GetOwners");
     assertThat(info2._number).isEqualTo(info1._number + 1);
     String expected =
-        ")]}' { minOwnerVoteLevel:1, addDebugMsg:false, change:"
-            + info1._number
+        ")]}' { addDebugMsg:false, maxCacheAge:0, maxCacheSize:1000,"
+            + " minOwnerVoteLevel:1, ownersFileName:OWNERS, rejectErrorInOwners:false,"
+            + (" change:" + info1._number)
             + ", patchset:1, file2owners:{}, reviewers:[], owners:[], files:[] }";
     Cache cache = getCache().init(0, 10); // reset, no Cache
     assertThat(cache.size()).isEqualTo(0L);

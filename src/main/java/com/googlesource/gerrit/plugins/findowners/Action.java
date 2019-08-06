@@ -58,7 +58,6 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
   private final ChangeData.Factory changeDataFactory;
   private final GitRepositoryManager repoManager;
   private final PermissionBackend permissionBackend;
-  private final PluginConfigFactory configFactory;
   private final Provider<CurrentUser> userProvider;
   private final ProjectCache projectCache;
   private final Config config;
@@ -86,7 +85,6 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
     this.emails = emails;
     this.repoManager = repoManager;
     this.projectCache = projectCache;
-    this.configFactory = configFactory;
     this.config = new Config(configFactory);
   }
 
@@ -164,7 +162,7 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
     ProjectState projectState = projectCache.get(changeData.project());
     Boolean useCache = params.nocache == null || !params.nocache;
     OwnersDb db =
-        Cache.getInstance(configFactory, repoManager)
+        Cache.getInstance(config, repoManager)
             .get(
                 useCache,
                 permissionBackend,
@@ -172,22 +170,17 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
                 accountCache,
                 emails,
                 repoManager,
-                configFactory,
                 changeData,
                 patchset);
     Collection<String> changedFiles = changeData.currentFilePaths();
     Map<String, Set<String>> file2Owners = db.findOwners(changedFiles);
 
     Boolean addDebugMsg = (params.debug != null) ? params.debug : config.getAddDebugMsg();
-    RestResult obj =
-        new RestResult(config.getMinOwnerVoteLevel(projectState, changeData), addDebugMsg);
-    obj.change = changeData.getId().get();
+    RestResult obj = new RestResult(config, projectState, changeData, addDebugMsg);
     obj.patchset = patchset;
     obj.ownerRevision = db.revision;
     if (addDebugMsg) {
       obj.dbgmsgs.user = getUserName();
-      obj.dbgmsgs.project = changeData.change().getProject().get();
-      obj.dbgmsgs.branch = changeData.change().getDest().branch();
       obj.dbgmsgs.errors = db.errors;
       obj.dbgmsgs.path2owners = Util.makeSortedMap(db.path2Owners);
       obj.dbgmsgs.owner2paths = Util.makeSortedMap(db.owner2Paths);
@@ -220,23 +213,6 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
               && userProvider.get() instanceof IdentifiedUser
               && status != Status.ABANDONED
               && status != Status.MERGED;
-      // If alwaysShowButton is true, skip expensive owner lookup.
-      if (needFindOwners && !config.getAlwaysShowButton()) {
-        needFindOwners = false; // Show button only if some owner is found.
-        OwnersDb db =
-            Cache.getInstance(configFactory, repoManager)
-                .get(
-                    true, // use cached OwnersDb
-                    permissionBackend,
-                    projectCache.get(resource.getProject()),
-                    accountCache,
-                    emails,
-                    repoManager,
-                    configFactory,
-                    changeData);
-        logger.atFiner().log("getDescription db key = %s", db.key);
-        needFindOwners = db.getNumOwners() > 0;
-      }
       return new Description()
           .setLabel("Find Owners")
           .setTitle("Find owners to add to Reviewers list")
