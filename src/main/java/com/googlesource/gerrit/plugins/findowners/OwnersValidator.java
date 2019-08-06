@@ -15,14 +15,12 @@
 package com.googlesource.gerrit.plugins.findowners;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static com.googlesource.gerrit.plugins.findowners.Config.OWNERS;
-import static com.googlesource.gerrit.plugins.findowners.Config.OWNERS_FILE_NAME;
 import static com.googlesource.gerrit.plugins.findowners.Config.REJECT_ERROR_IN_OWNERS;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Multimap;
+import com.google.common.flogger.FluentLogger;
 import com.google.gerrit.extensions.annotations.Exports;
-import com.google.gerrit.extensions.annotations.PluginName;
 import com.google.gerrit.extensions.api.projects.ProjectConfigEntryType;
 import com.google.gerrit.extensions.registration.DynamicSet;
 import com.google.gerrit.reviewdb.client.Account;
@@ -36,7 +34,6 @@ import com.google.gerrit.server.git.GitRepositoryManager;
 import com.google.gerrit.server.git.validators.CommitValidationException;
 import com.google.gerrit.server.git.validators.CommitValidationListener;
 import com.google.gerrit.server.git.validators.CommitValidationMessage;
-import com.google.gerrit.server.project.NoSuchProjectException;
 import com.google.inject.AbstractModule;
 import com.google.inject.Inject;
 import java.io.BufferedReader;
@@ -64,6 +61,8 @@ import org.eclipse.jgit.treewalk.filter.TreeFilter;
 
 /** Check syntax of changed OWNERS files. */
 public class OwnersValidator implements CommitValidationListener {
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
   private interface TreeWalkVisitor {
     void onVisit(TreeWalk tw);
   }
@@ -87,67 +86,67 @@ public class OwnersValidator implements CommitValidationListener {
     };
   }
 
-  private final String pluginName;
-  private final PluginConfigFactory cfgFactory;
+  private final Config config;
   private final GitRepositoryManager repoManager;
   private final Emails emails;
 
   @Inject
-  OwnersValidator(
-      @PluginName String pluginName,
-      PluginConfigFactory cfgFactory,
-      GitRepositoryManager repoManager,
-      Emails emails) {
-    this.pluginName = pluginName;
-    this.cfgFactory = cfgFactory;
+  OwnersValidator(PluginConfigFactory cfgFactory, GitRepositoryManager repoManager, Emails emails) {
+    this(new Config(cfgFactory), repoManager, emails);
+  }
+
+  @VisibleForTesting
+  OwnersValidator(PluginConfig config, GitRepositoryManager repoManager, Emails emails) {
+    this(new Config(config), repoManager, emails);
+  }
+
+  private OwnersValidator(Config config, GitRepositoryManager repoManager, Emails emails) {
+    this.config = config;
     this.repoManager = repoManager;
     this.emails = emails;
   }
 
-  public static String getOwnersFileName(PluginConfig cfg) {
-    return getOwnersFileName(cfg, OWNERS);
-  }
-
-  public static String getOwnersFileName(PluginConfig cfg, String defaultName) {
-    return cfg.getString(OWNERS_FILE_NAME, defaultName);
-  }
-
-  public String getOwnersFileName(Project.NameKey project) {
-    String name = getOwnersFileName(cfgFactory.getFromGerritConfig(pluginName, true));
-    try {
-      return getOwnersFileName(
-          cfgFactory.getFromProjectConfigWithInheritance(project, pluginName), name);
-    } catch (NoSuchProjectException e) {
-      return name;
-    }
+  @VisibleForTesting
+  String getOwnersFileName() {
+    return config.getOwnersFileName();
   }
 
   @VisibleForTesting
-  static boolean isActive(PluginConfig cfg) {
-    return cfg.getBoolean(REJECT_ERROR_IN_OWNERS, false);
+  public String getOwnersFileName(Project project) {
+    return config.getOwnersFileName(project);
+  }
+
+  @VisibleForTesting
+  boolean isActive(Project project) {
+    return config.getRejectErrorInOwners(project);
+  }
+
+  @VisibleForTesting
+  boolean isActive() {
+    return config.getRejectErrorInOwners();
   }
 
   @Override
   public List<CommitValidationMessage> onCommitReceived(CommitReceivedEvent event)
       throws CommitValidationException {
+    if (!isActive(event.project)) {
+      return new ArrayList<>();
+    }
     Checker checker = new Checker(event, false);
     try {
-      Project.NameKey project = event.project.getNameKey();
-      PluginConfig cfg = cfgFactory.getFromProjectConfigWithInheritance(project, pluginName);
-      if (isActive(cfg)) {
-        checker.check(getOwnersFileName(project));
+      checker.check(getOwnersFileName(event.project));
+      if (checker.hasError()) {
+        checker.addError(
+            "See OWNERS file syntax document at "
+                + "https://gerrit.googlesource.com/plugins/find-owners/+/"
+                + "master/src/main/resources/Documentation/syntax.md");
+        throw new CommitValidationException("found invalid owners file", checker.messages);
       }
-    } catch (NoSuchProjectException | IOException e) {
-      throw new CommitValidationException("failed to check owners files", e);
+      return checker.messages;
+    } catch (IOException e) {
+      logger.atSevere().withCause(e).log("Failed in onCommitReceived");
+      return new ArrayList<>();
     }
-    if (checker.hasError()) {
-      checker.addError(
-          "See OWNERS file syntax document at "
-              + "https://gerrit.googlesource.com/plugins/find-owners/+/"
-              + "master/src/main/resources/Documentation/syntax.md");
-      throw new CommitValidationException("found invalid owners file", checker.messages);
-    }
-    return checker.messages;
   }
 
   class Checker {

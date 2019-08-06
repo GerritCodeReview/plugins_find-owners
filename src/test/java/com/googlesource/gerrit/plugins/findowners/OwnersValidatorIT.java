@@ -126,18 +126,22 @@ public class OwnersValidatorIT extends FindOwners {
   private static final PluginConfig ENABLED_CONFIG = createEnabledConfig(); // use OWNERS
   private static final PluginConfig DISABLED_CONFIG = createDisabledConfig();
 
+  private OwnersValidator newOwnersValidator(PluginConfig cfg) {
+    return new OwnersValidator(cfg, repoManager, new MockedEmails());
+  }
+
   @Test
   public void chekIsActiveAndFileName() throws Exception {
     // This check should be enabled in project.config, default is not active.
-    assertThat(OwnersValidator.isActive(EMPTY_CONFIG)).isFalse();
-    assertThat(OwnersValidator.isActive(ENABLED_CONFIG)).isTrue();
-    assertThat(OwnersValidator.isActive(ANDROID_CONFIG)).isTrue();
-    assertThat(OwnersValidator.isActive(DISABLED_CONFIG)).isFalse();
+    assertThat(newOwnersValidator(EMPTY_CONFIG).isActive()).isFalse();
+    assertThat(newOwnersValidator(ENABLED_CONFIG).isActive()).isTrue();
+    assertThat(newOwnersValidator(ANDROID_CONFIG).isActive()).isTrue();
+    assertThat(newOwnersValidator(DISABLED_CONFIG).isActive()).isFalse();
     // Default file name is "OWNERS".
-    assertThat(OwnersValidator.getOwnersFileName(EMPTY_CONFIG)).isEqualTo(OWNERS);
-    assertThat(OwnersValidator.getOwnersFileName(ENABLED_CONFIG)).isEqualTo(OWNERS);
-    assertThat(OwnersValidator.getOwnersFileName(DISABLED_CONFIG)).isEqualTo(OWNERS);
-    assertThat(OwnersValidator.getOwnersFileName(ANDROID_CONFIG)).isEqualTo(OWNERS_ANDROID);
+    assertThat(newOwnersValidator(EMPTY_CONFIG).getOwnersFileName()).isEqualTo(OWNERS);
+    assertThat(newOwnersValidator(ENABLED_CONFIG).getOwnersFileName()).isEqualTo(OWNERS);
+    assertThat(newOwnersValidator(DISABLED_CONFIG).getOwnersFileName()).isEqualTo(OWNERS);
+    assertThat(newOwnersValidator(ANDROID_CONFIG).getOwnersFileName()).isEqualTo(OWNERS_ANDROID);
   }
 
   private static final ImmutableMap<String, String> FILES_WITHOUT_OWNERS =
@@ -392,10 +396,9 @@ public class OwnersValidatorIT extends FindOwners {
 
   private List<String> validate(CommitReceivedEvent event, boolean verbose, PluginConfig cfg)
       throws Exception {
-    OwnersValidator validator =
-        new OwnersValidator("find-owners", pluginConfig, repoManager, new MockedEmails());
+    OwnersValidator validator = newOwnersValidator(cfg);
     OwnersValidator.Checker checker = validator.new Checker(event, verbose);
-    checker.check(OwnersValidator.getOwnersFileName(cfg));
+    checker.check(validator.getOwnersFileName());
     return transformMessages(checker.messages);
   }
 

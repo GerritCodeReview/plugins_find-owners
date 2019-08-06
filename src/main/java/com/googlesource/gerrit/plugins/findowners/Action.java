@@ -58,7 +58,6 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
   private final ChangeData.Factory changeDataFactory;
   private final GitRepositoryManager repoManager;
   private final PermissionBackend permissionBackend;
-  private final PluginConfigFactory configFactory;
   private final Provider<CurrentUser> userProvider;
   private final ProjectCache projectCache;
   private final Config config;
@@ -86,7 +85,6 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
     this.emails = emails;
     this.repoManager = repoManager;
     this.projectCache = projectCache;
-    this.configFactory = configFactory;
     this.config = new Config(configFactory);
   }
 
@@ -164,7 +162,7 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
     ProjectState projectState = projectCache.get(changeData.project());
     Boolean useCache = params.nocache == null || !params.nocache;
     OwnersDb db =
-        Cache.getInstance(configFactory, repoManager)
+        Cache.getInstance(config, repoManager)
             .get(
                 useCache,
                 permissionBackend,
@@ -172,7 +170,6 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
                 accountCache,
                 emails,
                 repoManager,
-                configFactory,
                 changeData,
                 patchset);
     Collection<String> changedFiles = changeData.currentFilePaths();
@@ -220,23 +217,6 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
               && userProvider.get() instanceof IdentifiedUser
               && status != Status.ABANDONED
               && status != Status.MERGED;
-      // If alwaysShowButton is true, skip expensive owner lookup.
-      if (needFindOwners && !config.getAlwaysShowButton()) {
-        needFindOwners = false; // Show button only if some owner is found.
-        OwnersDb db =
-            Cache.getInstance(configFactory, repoManager)
-                .get(
-                    true, // use cached OwnersDb
-                    permissionBackend,
-                    projectCache.get(resource.getProject()),
-                    accountCache,
-                    emails,
-                    repoManager,
-                    configFactory,
-                    changeData);
-        logger.atFiner().log("getDescription db key = %s", db.key);
-        needFindOwners = db.getNumOwners() > 0;
-      }
       return new Description()
           .setLabel("Find Owners")
           .setTitle("Find owners to add to Reviewers list")
