@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d66c1cde_6562b609",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Config.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1034308
+      },
+      "writtenOn": "2019-08-09T01:08:45Z",
+      "side": 1,
+      "message": "config",
+      "range": {
+        "startLine": 38,
+        "startChar": 79,
+        "endLine": 38,
+        "endChar": 84
+      },
+      "revId": "c8d38070dd2599dff68669050f630fa76214093c",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0f32e50e_ed1def07",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Config.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1034308
+      },
+      "writtenOn": "2019-08-09T01:08:45Z",
+      "side": 1,
+      "message": "Is there a reason for these lines to move as well as get edited? I think that this could move back for a more minimal diff with no functional change.",
+      "revId": "c8d38070dd2599dff68669050f630fa76214093c",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1a3c97c3_285f2f63",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Config.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 202,
+      "author": {
+        "id": 1034308
+      },
+      "writtenOn": "2019-08-09T01:08:45Z",
+      "side": 1,
+      "message": "empty",
+      "range": {
+        "startLine": 202,
+        "startChar": 46,
+        "endLine": 202,
+        "endChar": 52
+      },
+      "revId": "c8d38070dd2599dff68669050f630fa76214093c",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    }
+  ]
+}
