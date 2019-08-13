@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "aee7f3b3_c879429b",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1024147
+      },
+      "writtenOn": "2019-08-13T10:55:47Z",
+      "side": 1,
+      "message": "GitRepository",
+      "range": {
+        "startLine": 10,
+        "startChar": 45,
+        "endLine": 10,
+        "endChar": 57
+      },
+      "revId": "c5a55bf6f9c2ac69fabb8970f1b86ec03cbf9eb1",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3ee9ebaa_2d20a509",
+        "filename": "src/main/java/com/googlesource/gerrit/plugins/findowners/Cache.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 1024147
+      },
+      "writtenOn": "2019-08-13T10:55:47Z",
+      "side": 1,
+      "message": "does this have the right toString() method?\n\nshould use %s , no?",
+      "range": {
+        "startLine": 172,
+        "startChar": 61,
+        "endLine": 172,
+        "endChar": 66
+      },
+      "revId": "c5a55bf6f9c2ac69fabb8970f1b86ec03cbf9eb1",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    }
+  ]
+}
