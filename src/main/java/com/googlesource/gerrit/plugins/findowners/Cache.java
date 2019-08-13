@@ -14,7 +14,6 @@
 
 package com.googlesource.gerrit.plugins.findowners;
 
-
 import com.google.common.cache.CacheBuilder;
 import com.google.common.flogger.FluentLogger;
 import com.google.gerrit.exceptions.StorageException;
@@ -31,6 +30,7 @@ import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 /** Save OwnersDb in a cache for multiple calls to submit_filter. */
 class Cache {
@@ -83,6 +83,7 @@ class Cache {
           CacheBuilder.newBuilder()
               .maximumSize(maxSize)
               .expireAfterWrite(Duration.ofSeconds(maxSeconds))
+              .recordStats()
               .build();
     } else {
       logger.atInfo().log("Cache disabled.");
@@ -168,6 +169,8 @@ class Cache {
     try {
       logger.atFiner().log(
           "Get from cache %s, key=%s, cache size=%d", dbCache, key, dbCache.size());
+      logger.atFine().atMostEvery(30, TimeUnit.SECONDS).log(
+          "FindOwnersCacheStats: " + dbCache.stats());
       return dbCache.get(
           key,
           new Callable<OwnersDb>() {
