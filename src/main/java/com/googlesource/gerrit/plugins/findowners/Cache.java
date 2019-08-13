@@ -83,6 +83,7 @@ class Cache {
           CacheBuilder.newBuilder()
               .maximumSize(maxSize)
               .expireAfterWrite(Duration.ofSeconds(maxSeconds))
+              .recordStats()
               .build();
     } else {
       logger.atInfo().log("Cache disabled.");
@@ -168,6 +169,7 @@ class Cache {
     try {
       logger.atFiner().log(
           "Get from cache %s, key=%s, cache size=%d", dbCache, key, dbCache.size());
+      logger.atFine().log("FindOwnersCacheStats: " + dbCache.stats());
       return dbCache.get(
           key,
           new Callable<OwnersDb>() {
