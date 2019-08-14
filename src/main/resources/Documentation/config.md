@@ -1,8 +1,15 @@
 Configuration
 =============
 
-Here we show first an example use case followed by more
-details of each configuration rule and variable.
+## Table of Contents
+* [Example from AOSP](#example-from-aosp)
+* [Global vs Project Variables](#global-vs-project-variables)
+* [Submit Rules and Filters](#submit-rules-and-filters)
+* [Exempt from Owner Approval](#exempt-from-owner-approval)
+* [Minimal Owner Code-Review Vote](#minimal-owner-code-review-vote)
+* [OWNERS File Name](#owners-file-name)
+* [OWNERS Upload Validator](#owners-upload-validator)
+* [More Prolog Examples](#more-prolog-examples)
 
 ## Example from AOSP
 
@@ -22,7 +29,6 @@ following steps:
         enable = true
         maxCacheAge = 30
         maxCacheSize = 2000
-        alwaysShowButton = true
     ```
     * **enable = true** enables the plugin for all projects.
     * **maxCacheAge** is the number of seconds owners info will stay in
@@ -31,8 +37,6 @@ following steps:
       be no cache.
     * **maxCacheSize** limits the number of owners info stored in the
       cache to reduce memory footprint.
-    * **alwaysShowButton** parameter is useful for older Gerrit UI.
-      Current Gerrit UI always displays the `[FIND OWNERS]` button.
 
 1. Enable the upload validator in `project.config` of
    the `All-Projects` project, in the `refs/meta/config` branch:
@@ -123,7 +127,52 @@ following steps:
       and `change_find_owners_labels`.
 
 
-## The **`submit_rule`** and **`submit_filter`**
+## Global vs Project Variables
+
+In the AOSP example, we saw that some variables are defined in global
+`gerrit.config` and some are defined in project specific `project.config`
+files. The Prolog submit rules are defined in the `rules.pl` files of
+each project. The following is a summary of all user configurable
+variables for this plugin.
+
+* Global variables must be defined in `gerrit.config`:
+
+    * `enabled` should be true to enable this plugin.
+      Note that this variable enables the UI `[FIND OWNERS]`
+      button but not yet the submit rules and upload validator.
+
+    * `maxCacheAge` has default value 0, meaning no cache.
+      All CLs for one Gerrit site share the same cache of
+      owners info, which will stay in cache for up to `maxCacheAge`
+      seconds.
+
+    * `maxCacheSize` has default value 1000. When `maxCacheAge` is non-zero,
+      up to `maxCacheSize` owner info objects will be stored in the cache.
+
+    * `minOwnerVoteLevel` has default value 1. It means that when owner
+      approval check is enabled, every changed file needs at least one
+      owner's `Code-Review` +1 vote. This variable can be defined to 2 to
+      require owner's +2 `Code-Review` votes.
+
+    * `addDebugMsg` has default value false. When it is defined to true,
+      the find-owners REST API will add extra debug messages by default
+      in the returned JSON object.
+
+* Project variables should be defined in `project.config`
+  of the `All-Projects` project and inherited by all other projects,
+  or they can be defined in each individual project.
+
+    * `rejectErrorInOwners` has default value false. When it is true,
+      an *upload-validator* will check all new and changed OWNERS files
+      and reject the upload when any syntax error is found. If any owner
+      email address in an OWNERS file is not found on the Gerrit site,
+      it will also be considered an error and the upload will be rejected.
+
+    * `ownersFileName` has default value "OWNERS". It can be defined to
+       a different name such as "OWNERS.android" if "OWNERS" files already
+       exist for other purpose.
+
+## Submit Rules and Filters
 
 To enforce the *owner-approval-before-submit* rule, this plugin provides
 **`find_owners:submit_rule/1`** and **`find_owners:submit_filter/2`**
@@ -132,7 +181,7 @@ predicates for Gerrit projects.
 If a Gerrit project wants to enforce this *owner-approval* policy,
 it can add a `submit_rule` to the [`rules.pl` file](
 https://gerrit-review.googlesource.com/Documentation/config-project-config.html#file-rules_pl)
-in `refs/meta/config` like this:
+in the `refs/meta/config` branch like this:
 
 ```prolog
 submit_rule(S) :- find_owners:submit_rule(S).
@@ -146,6 +195,11 @@ define a `submit_filter` in their common parent project's
 ```prolog
 submit_filter(In, Out) :- find_owners:submit_filter(In, Out).
 ```
+
+As we saw in the AOSP example, it is much easier to use only the `submit_filter`
+in the `All-Projects` project to check owner approval for all projects.
+If any project or branch need to opt-out this check, simple Prolog rules can
+be defined to skip them, see the `opt_out_find_owners` rule in the AOSP example.
 
 By default the `find_owners:submit_rule` calls `gerrit:default_submit`,
 and the `find_owners:submit_filter` passes `In` to `Out`.
@@ -174,8 +228,9 @@ When `label('Owner-Approved', may(_))` is added to the submit rule output,
 Gerrit displays a grey 'Owner-Approved' label. To avoid confusion,
 this `may(_)` state label could be removed by the `submit_filter` of
 the root level `All-Projects`.
+See the `change_find_owners_labels` rule in the AOSP example.
 
-## Exempt from owner approval
+## Exempt from Owner Approval
 
 A change can be declared as exempt from owner approval in the submit message,
 with a special keyword `Exempt-From-Owner-Approval:` followed by some
@@ -186,14 +241,14 @@ can be used to skip `find_owners:submit_filter` for any project, branch, or user
 For example, special automerge processes could create changes
 that do not need either Code-Review vote or owner approval.
 
-## Default minimal owner Code-Review level
+## Minimal Owner Code-Review Vote
 
 When `find_owners:submit_rule(S)` or `find_owners:submit_filter(In,Out)`
 are applied, the default requirement is **+1** Code-Review
 vote from at least one owner of every changed file.
 To change this default level, define the plugin `minOwnerVoteLevel` parameter.
 
-## Default OWNERS file name
+## OWNERS File Name
 
 This plugin finds owners in default OWNERS files.
 If a project has already used OWNERS files for other purpose,
@@ -203,7 +258,7 @@ If ownersFileName is defined to something other than `OWNERS`,
 the project should have such a specified file at the root directory.
 Otherwise it would be considered a configuration or Gerrit server error.
 
-## Validate OWNERS files before upload
+## OWNERS Upload Validator
 
 To check syntax of OWNERS files before they are uploaded,
 set the following variable in `project.config` files.
@@ -213,7 +268,9 @@ set the following variable in `project.config` files.
     rejectErrorInOwners = true
 ```
 
-## Example 0, call `submit_filter/2`
+## More Prolog Examples
+
+### Call `submit_filter/2`
 
 The simplest configuration adds to `rules.pl` of the root
 `All-Projects` project.
@@ -224,7 +281,7 @@ submit_filter(In, Out) :- find_owners:submit_filter(In, Out).
 
 All projects will need at least +1 Code-Review vote from an owner of every changed files.
 
-## Example 1, call `submit_rule/2`
+### Call `submit_rule/2`
 
 To enabled owner approval requirement only for a project,
 add the following to its `rules.pl`.
@@ -234,27 +291,17 @@ This example also changes the default and require **+2** owner Code-Review votes
 submit_rule(S) :- find_owners:submit_rule(S, 2).
 ```
 
-## Example 2, call `submit_filter/3`
+### Call `submit_filter/3`
 
-To enabled owner approval requirement only for a project and its child projects,
+To enabled owner approval requirement only for child projects,
 add the following to `rules.pl`.
 This example explicitly define the required owner Code-Review vote level to 1.
 
 ```prolog
 submit_filter(In, Out) :- find_owners:submit_filter(In, Out, 1).
 ```
-## Example 3, define `minOwnerVoteLevel`
 
-Add the following to global `gerrit.config`
-or a project's `project.config` file,
-to change the default and require **+2** owner Code-Review votes.
-
-```bash
-[plugin "find-owners"]
-    minOwnerVoteLevel = 2
-```
-
-## Example 4, call `remove_may_label/2`
+### Call `remove_may_label/2`
 
 If a change does not need *owner approval*, the *optional* greyed out
 `Owner-Approved` label might cause some confusion.
@@ -267,7 +314,7 @@ submit_filter(In, Out) :-
   find_owners:remove_may_label(Temp, Out).
 ```
 
-## Example 5, call `remove_need_label/2`
+### Call `remove_need_label/2`
 
 To make all changes with some special property,
 e.g., from the auto merger, exempt from owner approval,
@@ -279,24 +326,5 @@ submit_filter(In, Out) :-
   find_owners:remove_need_label(In, Out).
 ```
 
-## Example 6, define `addDebugMsg`
-
-Add the following to global `gerrit.config`,
-to debug the find-owners plugin.
-
-```bash
-[plugin "find-owners"]
-    addDebugMsg = true
-```
-
-## Example 7, change default OWNERS file name
-
-Add the following to global `gerrit.config`
-or a project's `project.config` file,
-to change the default "OWNERS" file name,
-e.g., to "OWNERS.android".
-
-```bash
-[plugin "find-owners"]
-    ownersFileName = OWNERS.android
-```
+Please review the AOSP example again for more choices to opt-in or opt-out
+the find-owners submit filter.
