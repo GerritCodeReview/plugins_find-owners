@@ -63,7 +63,7 @@ public class IncludeIT extends FindOwners {
             + getRepoFileLog(projectName + ":refs/heads/master:./OWNERS", "OWNERS:(...)")
             + "parseLine:include:P1/P2:f1, "
             + "getRepoFile:P1/P2:refs/heads/master:f1, "
-            + "hasReadAccessException:project\\u0027P1/P2\\u0027isunavailable, " // cannot read
+            + "hasReadAccessException:project'P1/P2'isunavailable, " // cannot read
             + "parseLine:include:(), " // missing file is treated as empty
             + concat("parseLine:include:", projectName, ":./d1/d2/../../f2, ")
             + getRepoFileLog(projectName + ":refs/heads/master:f2", "f2(NOTFOUND)")
@@ -114,7 +114,7 @@ public class IncludeIT extends FindOwners {
             + getRepoFileLog(projectName + ":refs/heads/master:./OWNERS", "OWNERS:(...)")
             + "parseLine:include:P1/P2:f1, "
             + "getRepoFile:P1/P2:refs/heads/master:f1, "
-            + "hasReadAccessException:project\\u0027P1/P2\\u0027isunavailable, "
+            + "hasReadAccessException:project'P1/P2'isunavailable, "
             + "parseLine:include:(), " // P1/P2 is still not found
             + concat("parseLine:include:", projectName, ":./d1/d2/../../f2, ")
             + getRepoFileLog(projectName + ":refs/heads/master:f2", "f2:(...)")
