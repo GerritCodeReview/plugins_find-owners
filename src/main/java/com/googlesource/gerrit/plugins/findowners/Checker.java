@@ -22,8 +22,10 @@ import com.google.gerrit.server.account.AccountCache;
 import com.google.gerrit.server.account.Emails;
 import com.google.gerrit.server.config.PluginConfigFactory;
 import com.google.gerrit.server.git.GitRepositoryManager;
+import com.google.gerrit.server.patch.PatchListCache;
 import com.google.gerrit.server.project.ProjectState;
 import com.google.gerrit.server.query.change.ChangeData;
+import com.google.gerrit.server.rules.PrologEnvironment;
 import com.google.gerrit.server.rules.StoredValues;
 import com.googlecode.prolog_cafe.lang.Prolog;
 import java.util.HashMap;
@@ -39,28 +41,34 @@ public class Checker {
   private static final String EXEMPT_MESSAGE1 = "Exempt-From-Owner-Approval:";
   private static final String EXEMPT_MESSAGE2 = "Exempted-From-Owner-Approval:";
 
+  private final AccountCache accountCache;
   private final GitRepositoryManager repoManager;
+  private final Emails emails;
   private final Config config;
   private final ProjectState projectState; // could be null when used by FindOwnersIT
   private final ChangeData changeData;
   private int minVoteLevel;
 
   Checker(
+      AccountCache accountCache,
+      PatchListCache patchListCache,
       GitRepositoryManager repoManager,
+      Emails emails,
       PluginConfigFactory configFactory,
       ProjectState projectState,
       ChangeData changeData,
       int v) {
+    this.accountCache = accountCache;
     this.repoManager = repoManager;
+    this.emails = emails;
     this.projectState = projectState;
     this.changeData = changeData;
-    this.config = new Config(configFactory);
+    this.config = new Config(configFactory, null, accountCache, patchListCache, emails);
     minVoteLevel = v;
   }
 
   /** Returns a map from reviewer email to vote value. */
-  Map<String, Integer> getVotes(AccountCache accountCache, ChangeData changeData)
-      throws StorageException {
+  Map<String, Integer> getVotes(ChangeData changeData) {
     Map<String, Integer> map = new HashMap<>();
     for (PatchSetApproval p : changeData.currentApprovals()) {
       // Only collect non-zero Code-Review votes.
@@ -110,12 +118,12 @@ public class Checker {
   }
 
   /** Returns 1 if owner approval is found, -1 if missing, 0 if unneeded. */
-  int findApproval(AccountCache accountCache, OwnersDb db) throws StorageException {
+  int findApproval(OwnersDb db) {
     Map<String, Set<String>> file2Owners = db.findOwners(changeData.currentFilePaths());
     if (file2Owners.isEmpty()) { // do not need owner approval
       return 0;
     }
-    Map<String, Integer> votes = getVotes(accountCache, changeData);
+    Map<String, Integer> votes = getVotes(changeData);
     for (Set<String> owners : file2Owners.values()) {
       if (!findOwnersInVotes(owners, votes)) {
         return -1;
@@ -129,15 +137,18 @@ public class Checker {
     ChangeData changeData = null;
     try {
       changeData = StoredValues.CHANGE_DATA.get(engine);
+      PrologEnvironment env = (PrologEnvironment) engine.control;
       Checker checker =
           new Checker(
+              StoredValues.ACCOUNT_CACHE.get(engine),
+              env.getArgs().getPatchListCache(),
               StoredValues.REPO_MANAGER.get(engine),
+              StoredValues.EMAILS.get(engine),
               StoredValues.PLUGIN_CONFIG_FACTORY.get(engine),
               StoredValues.PROJECT_STATE.get(engine),
               changeData,
               minVoteLevel);
-      return checker.findApproval(
-          StoredValues.ACCOUNT_CACHE.get(engine), StoredValues.EMAILS.get(engine));
+      return checker.findApproval();
     } catch (StorageException e) {
       logger.atSevere().withCause(e).log("Exception for %s ", Config.getChangeId(changeData));
       return 0; // owner approval may or may not be required.
@@ -145,7 +156,7 @@ public class Checker {
   }
 
   /** Returns 1 if owner approval is found, -1 if missing, 0 if unneeded. */
-  int findApproval(AccountCache accountCache, Emails emails) throws StorageException {
+  int findApproval() {
     if (isExemptFromOwnerApproval(changeData)) {
       return 0;
     }
@@ -168,11 +179,11 @@ public class Checker {
       minVoteLevel = config.getMinOwnerVoteLevel(projectState, changeData);
     }
     logger.atFiner().log("findApproval db key = %s", db.key);
-    return findApproval(accountCache, db);
+    return findApproval(db);
   }
 
   /** Returns true if exempt from owner approval. */
-  static boolean isExemptFromOwnerApproval(ChangeData changeData) throws StorageException {
+  static boolean isExemptFromOwnerApproval(ChangeData changeData) {
     try {
       String message = changeData.commitMessage();
       if (message.contains(EXEMPT_MESSAGE1) || message.contains(EXEMPT_MESSAGE2)) {
