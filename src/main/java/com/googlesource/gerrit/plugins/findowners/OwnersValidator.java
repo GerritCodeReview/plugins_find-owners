@@ -25,6 +25,7 @@ import com.google.gerrit.extensions.api.projects.ProjectConfigEntryType;
 import com.google.gerrit.extensions.registration.DynamicSet;
 import com.google.gerrit.reviewdb.client.Account;
 import com.google.gerrit.reviewdb.client.Project;
+import com.google.gerrit.server.account.AccountCache;
 import com.google.gerrit.server.account.Emails;
 import com.google.gerrit.server.config.PluginConfig;
 import com.google.gerrit.server.config.PluginConfigFactory;
@@ -34,6 +35,7 @@ import com.google.gerrit.server.git.GitRepositoryManager;
 import com.google.gerrit.server.git.validators.CommitValidationException;
 import com.google.gerrit.server.git.validators.CommitValidationListener;
 import com.google.gerrit.server.git.validators.CommitValidationMessage;
+import com.google.gerrit.server.patch.PatchListCache;
 import com.google.inject.AbstractModule;
 import com.google.inject.Inject;
 import java.io.BufferedReader;
@@ -91,17 +93,33 @@ public class OwnersValidator implements CommitValidationListener {
   private final Emails emails;
 
   @Inject
-  OwnersValidator(PluginConfigFactory cfgFactory, GitRepositoryManager repoManager, Emails emails) {
-    this(new Config(cfgFactory), repoManager, emails);
+  OwnersValidator(
+      PluginConfigFactory cfgFactory,
+      AccountCache accountCache,
+      PatchListCache patchListCache,
+      GitRepositoryManager repoManager,
+      Emails emails) {
+    this(cfgFactory, null, accountCache, patchListCache, repoManager, emails);
   }
 
   @VisibleForTesting
-  OwnersValidator(PluginConfig config, GitRepositoryManager repoManager, Emails emails) {
-    this(new Config(config), repoManager, emails);
+  OwnersValidator(
+      PluginConfig config,
+      AccountCache accountCache,
+      PatchListCache patchListCache,
+      GitRepositoryManager repoManager,
+      Emails emails) {
+    this(null, config, accountCache, patchListCache, repoManager, emails);
   }
 
-  private OwnersValidator(Config config, GitRepositoryManager repoManager, Emails emails) {
-    this.config = config;
+  private OwnersValidator(
+      PluginConfigFactory cfgFactory,
+      PluginConfig config,
+      AccountCache accountCache,
+      PatchListCache patchListCache,
+      GitRepositoryManager repoManager,
+      Emails emails) {
+    this.config = new Config(cfgFactory, config, accountCache, patchListCache, emails);
     this.repoManager = repoManager;
     this.emails = emails;
   }

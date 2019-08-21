@@ -34,6 +34,7 @@ import com.google.gerrit.reviewdb.client.BranchNameKey;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.reviewdb.client.RefNames;
 import com.google.gerrit.server.account.Emails;
+import com.google.gerrit.server.patch.PatchListCache;
 import com.google.gerrit.server.permissions.PermissionBackend;
 import com.google.inject.Inject;
 import org.eclipse.jgit.lib.ObjectLoader;
@@ -51,13 +52,14 @@ public abstract class FindOwners extends LightweightPluginDaemonTest {
   @Inject protected Emails emails;
   @Inject protected PermissionBackend permissionBackend;
   @Inject protected ProjectOperations projectOperations;
+  @Inject protected PatchListCache patchListCache;
 
   protected static final String PLUGIN_NAME = "find-owners";
   protected Config config;
 
   @Before
   public void setConfig() {
-    config = new Config(pluginConfig);
+    config = new Config(pluginConfig, null, null, null, null);
   }
 
   protected String oneOwnerList(String email) {
@@ -163,6 +165,7 @@ public abstract class FindOwners extends LightweightPluginDaemonTest {
             .to("refs/for/" + REFS_CONFIG);
     commit.assertOkStatus();
     approveSubmit(commit);
+    testRepo = cloneProject(project); // reset the testRepo after cfg change
   }
 
   protected int checkApproval(PushOneCommit.Result r) throws Exception {
@@ -178,8 +181,17 @@ public abstract class FindOwners extends LightweightPluginDaemonTest {
             repoManager,
             r.getChange(),
             1);
-    Checker c = new Checker(repoManager, pluginConfig, null, r.getChange(), 1);
-    return c.findApproval(accountCache, db);
+    Checker c =
+        new Checker(
+            accountCache,
+            patchListCache,
+            repoManager,
+            emails,
+            pluginConfig,
+            null,
+            r.getChange(),
+            1);
+    return c.findApproval(db);
   }
 
   // To simplify test case code, the REST API returned JSON string is filtered to
