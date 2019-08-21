@@ -17,8 +17,11 @@ package com.googlesource.gerrit.plugins.findowners;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.flogger.FluentLogger;
 import com.google.gerrit.reviewdb.client.Project;
+import com.google.gerrit.server.account.AccountCache;
+import com.google.gerrit.server.account.Emails;
 import com.google.gerrit.server.config.PluginConfig;
 import com.google.gerrit.server.config.PluginConfigFactory;
+import com.google.gerrit.server.patch.PatchListCache;
 import com.google.gerrit.server.project.NoSuchProjectException;
 import com.google.gerrit.server.project.ProjectState;
 import com.google.gerrit.server.query.change.ChangeData;
@@ -48,10 +51,10 @@ class Config {
   private final PluginConfigFactory configFactory;
 
   // Each call to API entry point creates one new Config and parses gerrit.config.
-  private final PluginConfig gerritConfig;
+  private final BasePluginConfig gerritConfig;
 
   // Each Config has a cache of project.config, with projectName:changeId key.
-  private final Map<String, PluginConfig> projectConfigMap;
+  private final Map<String, BasePluginConfig> projectConfigMap;
 
   // Global/plugin config parameters.
   private boolean addDebugMsg = false;
@@ -60,32 +63,70 @@ class Config {
   private int maxCacheSize = 1000;
   private boolean reportSyntaxError = false;
 
+  // Gerrit server objects to set up JS initcode for JSEConfig.
+  private final AccountCache accountCache;
+  private final PatchListCache patchListCache;
+  private final Emails emails;
+
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
-  Config(PluginConfigFactory configFactory) {
-    // Called by Action() and Checker.findApproval, through Prolog submit filter.
-    this(configFactory, null);
-  }
-
-  @VisibleForTesting
-  Config(PluginConfig rawConfig) {
-    this(null, rawConfig);
-  }
-
-  Config(PluginConfigFactory configFactory, PluginConfig config) {
+  Config(
+      PluginConfigFactory configFactory, // null when called from unit tests
+      PluginConfig config, // null when called by Action and Checker
+      AccountCache accountCache,
+      PatchListCache patchListCache,
+      Emails emails) {
     this.configFactory = configFactory;
-    this.projectConfigMap = new HashMap<>();
+    this.accountCache = accountCache;
+    this.patchListCache = patchListCache;
+    this.emails = emails;
+    projectConfigMap = new HashMap<>();
     if (configFactory == null && config == null) { // When called from integration tests.
-      this.gerritConfig = config;
+      gerritConfig = null;
       return;
     }
-    this.gerritConfig = config == null ? configFactory.getFromGerritConfig(PLUGIN_NAME) : config;
-    // Get config variables from the plugin section of gerrit.config.
+    if (config == null) {
+      config = configFactory.getFromGerritConfig(PLUGIN_NAME);
+    }
+    // Get config variables from the plugin section of gerrit.config
+    // It could use JS in value expressions, if useJSE key value is true
+    // and JSEPluginConfig is available.
+    gerritConfig = newConfig(PLUGIN_NAME, config, null, null, null);
     addDebugMsg = gerritConfig.getBoolean(ADD_DEBUG_MSG, false);
     minOwnerVoteLevel = gerritConfig.getInt(MIN_OWNER_VOTE_LEVEL, 1);
     maxCacheAge = gerritConfig.getInt(MAX_CACHE_AGE, 0);
     maxCacheSize = gerritConfig.getInt(MAX_CACHE_SIZE, 1000);
     reportSyntaxError = gerritConfig.getBoolean(REPORT_SYNTAX_ERROR, false);
+  }
+
+  AccountCache accountCache() {
+    return accountCache;
+  }
+
+  Emails emails() {
+    return emails;
+  }
+
+  PatchListCache patchListCache() {
+    return patchListCache;
+  }
+
+  private static BasePluginConfig newConfig(
+      String name, PluginConfig cfg, Project project, ProjectState state, ChangeData changeData) {
+    // This function is called
+    // (1) per Config (global gerrit.config), when Action or Checker API is called,
+    //     with null project, state, and changeData.
+    // (2) per ProjectState and ChangeData, for project.config, when getProjectConfig is called.
+    //     with null project and non-null state and changeData.
+    // (3) per Project, for project.config, by OwnersValidator,
+    //     with non-null project and null state and changeData.
+    // Now only BasePluginConfig is returned.
+    // In the future, other child class of BasePluginConfig could be returned,
+    // depending on project, state, and changeData..
+    if (changeData != null && state == null && project == null) {
+      logger.atSevere().log("Unexpected null pointer for change %s", getChangeId(changeData));
+    }
+    return new BasePluginConfig(name, cfg);
   }
 
   boolean getAddDebugMsg() {
@@ -143,6 +184,12 @@ class Config {
     return reportSyntaxError;
   }
 
+  static String getProjectName(ProjectState state, Project project) {
+    return state != null
+        ? state.getProject().getName()
+        : (project != null ? project.getName() : "(unknown project)");
+  }
+
   static String getChangeId(ChangeData data) {
     return data == null ? "(unknown change)" : ("c/" + data.getId().get());
   }
@@ -152,20 +199,32 @@ class Config {
   }
 
   // This is per ProjectState and ChangeData.
-  private PluginConfig getProjectConfig(ProjectState state, ChangeData data) {
+  BasePluginConfig getProjectConfig(ProjectState state, ChangeData data) {
     // A new Config object is created for every call to Action or Checker.
-    // So it is okay to reuse a PluginConfig per (ProjectState:ChangeData).
+    // So it is okay to reuse a BasePluginConfig per (ProjectState:ChangeData).
     // ProjectState parameter must not be null.
-    // The data parameter could be used in the future to generate change
-    // dependent PluginConfig.
+    // When the ChangeData parameter is null, the BasePluginConfig is created
+    // with a dummy CL info for the JS expression evaluator.
     String key = state.getName() + ":" + getChangeId(data);
     return projectConfigMap.computeIfAbsent(
-        key, (String k) -> configFactory.getFromProjectConfigWithInheritance(state, PLUGIN_NAME));
+        key,
+        (String k) ->
+            newConfig(
+                PLUGIN_NAME,
+                configFactory.getFromProjectConfigWithInheritance(state, PLUGIN_NAME),
+                null,
+                state,
+                data));
   }
 
   // Used by OwnersValidator and tests, not cached.
-  PluginConfig getProjectConfig(Project project) throws NoSuchProjectException {
-    return configFactory.getFromProjectConfigWithInheritance(project.getNameKey(), PLUGIN_NAME);
+  BasePluginConfig getProjectConfig(Project project) throws NoSuchProjectException {
+    return newConfig(
+        PLUGIN_NAME,
+        configFactory.getFromProjectConfigWithInheritance(project.getNameKey(), PLUGIN_NAME),
+        project,
+        null,
+        null);
   }
 
   String getOwnersFileName() {
