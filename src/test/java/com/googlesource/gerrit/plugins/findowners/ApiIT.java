@@ -115,6 +115,7 @@ public class ApiIT extends FindOwners {
             null,
             changeDataFactory,
             accountCache,
+            patchListCache,
             emails,
             repoManager,
             projectCache);
