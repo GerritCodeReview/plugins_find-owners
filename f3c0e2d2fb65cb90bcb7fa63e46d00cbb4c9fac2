@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0a996757_89ddadd4",
+        "filename": "src/main/resources/Documentation/config.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 1034308
+      },
+      "writtenOn": "2019-08-21T01:25:15Z",
+      "side": 1,
+      "message": "- (add a hyphen here, since - turns it into a bullet point)",
+      "range": {
+        "startLine": 133,
+        "startChar": 47,
+        "endLine": 133,
+        "endChar": 48
+      },
+      "revId": "f3c0e2d2fb65cb90bcb7fa63e46d00cbb4c9fac2",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c526ba65_fdb3a9e5",
+        "filename": "src/main/resources/Documentation/config.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 1034308
+      },
+      "writtenOn": "2019-08-21T01:25:15Z",
+      "side": 1,
+      "message": "hyphen",
+      "range": {
+        "startLine": 135,
+        "startChar": 52,
+        "endLine": 135,
+        "endChar": 53
+      },
+      "revId": "f3c0e2d2fb65cb90bcb7fa63e46d00cbb4c9fac2",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a5e9eb5b_162e4277",
+        "filename": "src/main/resources/Documentation/config.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 1034308
+      },
+      "writtenOn": "2019-08-21T01:25:15Z",
+      "side": 1,
+      "message": "another",
+      "range": {
+        "startLine": 173,
+        "startChar": 17,
+        "endLine": 173,
+        "endChar": 22
+      },
+      "revId": "f3c0e2d2fb65cb90bcb7fa63e46d00cbb4c9fac2",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f010aabc_f38d8dbd",
+        "filename": "src/main/resources/Documentation/config.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 201,
+      "author": {
+        "id": 1034308
+      },
+      "writtenOn": "2019-08-21T01:25:15Z",
+      "side": 1,
+      "message": "needs to opt-out of",
+      "range": {
+        "startLine": 201,
+        "startChar": 25,
+        "endLine": 201,
+        "endChar": 41
+      },
+      "revId": "f3c0e2d2fb65cb90bcb7fa63e46d00cbb4c9fac2",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d9f0ac8d_21937a57",
+        "filename": "src/main/resources/Documentation/config.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 330,
+      "author": {
+        "id": 1034308
+      },
+      "writtenOn": "2019-08-21T01:25:15Z",
+      "side": 1,
+      "message": "of the? I am not sure if that reads well, or if there is a better wording.",
+      "range": {
+        "startLine": 330,
+        "startChar": 0,
+        "endLine": 330,
+        "endChar": 3
+      },
+      "revId": "f3c0e2d2fb65cb90bcb7fa63e46d00cbb4c9fac2",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    }
+  ]
+}
