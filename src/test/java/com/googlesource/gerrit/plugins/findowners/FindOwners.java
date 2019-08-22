@@ -182,12 +182,21 @@ public abstract class FindOwners extends LightweightPluginDaemonTest {
     return c.findApproval(accountCache, db);
   }
 
-  // Remove '"' and space; replace '\n' with ' '; ignore "owner_revision" and "HostName:*".
+  // To simplify test case code, the REST API returned JSON string is filtered to
+  // remove '\t', ' ' and '"', but replace "\\\"" with '"',
+  // replace '\n' with space, remove "owner_revision:*" and "HostName:*",
+  // and replace some unicode with simple characters.
   protected static String filteredJson(String json) {
-    return json.replaceAll("[\" ]*", "")
+    return json.replaceAll("[\t ]", "")
+        .replace("\\\"", "\t")
+        .replace("\"", "")
+        .replace('\t', '"')
         .replace('\n', ' ')
         .replaceAll("owner_revision:[^ ]* ", "")
-        .replaceAll("HostName:[^ ]*, ", "");
+        .replaceAll("HostName:[^ ]*, ", "")
+        .replace("\\u0027", "'")
+        .replace("\\u003d", "=")
+        .replace("\\u003e", ">");
   }
 
   protected static String filteredJson(RestResponse response) throws Exception {
