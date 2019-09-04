@@ -79,8 +79,7 @@ class OwnerWeights {
   void addFile(String path, int level) {
     // If a file is added multiple times,
     // it should be added with lowest level first.
-    if (!files.contains(path)) {
-      files.add(path);
+    if (files.add(path)) {
       if (level <= 1) {
         countL1++;
       } else if (level <= 2) {
