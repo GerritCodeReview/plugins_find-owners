@@ -14,6 +14,7 @@
 
 package com.googlesource.gerrit.plugins.findowners;
 
+import com.google.common.base.Ascii;
 import com.google.common.collect.Ordering;
 import java.io.File;
 import java.io.IOException;
@@ -83,7 +84,8 @@ class Util {
   }
 
   static boolean parseBoolean(String s) {
-    return (s != null) && (s.equals("1") || s.equalsIgnoreCase("yes") || Boolean.parseBoolean(s));
+    return (s != null)
+        && (s.equals("1") || Ascii.equalsIgnoreCase(s, "yes") || Boolean.parseBoolean(s));
   }
 
   static SortedMap<String, List<String>> makeSortedMap(Map<String, Set<String>> map) {
@@ -95,9 +97,7 @@ class Util {
   }
 
   static void addKeyToMap(Map<String, Set<String>> map, String key) {
-    if (map.get(key) == null) {
-      map.put(key, new HashSet<>());
-    }
+    map.computeIfAbsent(key, (String k) -> new HashSet<>());
   }
 
   static void addToMap(Map<String, Set<String>> map, String key, String value) {
@@ -109,4 +109,6 @@ class Util {
     addKeyToMap(map, key);
     map.get(key).addAll(values);
   }
+
+  private Util() {}
 }
