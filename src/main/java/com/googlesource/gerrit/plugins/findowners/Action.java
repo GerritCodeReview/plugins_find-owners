@@ -176,7 +176,7 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
     Collection<String> changedFiles = changeData.currentFilePaths();
     Map<String, Set<String>> file2Owners = db.findOwners(changedFiles);
 
-    Boolean addDebugMsg = (params.debug != null) ? params.debug : config.getAddDebugMsg();
+    boolean addDebugMsg = (params.debug != null) ? params.debug : config.getAddDebugMsg();
     RestResult obj = new RestResult(config, projectState, changeData, addDebugMsg);
     obj.patchset = patchset;
     obj.ownerRevision = db.revision;

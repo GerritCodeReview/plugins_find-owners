@@ -372,7 +372,7 @@ class OwnersDb {
           Set<String> patterns = dir2Globs.get(dirPath + "/");
           for (String pat : patterns) {
             PathMatcher matcher = fileSystem.getPathMatcher("glob:" + pat);
-            if (matcher.matches(Paths.get(dirPath + "/" + baseName))) {
+            if (matcher.matches(Paths.get(dirPath, baseName))) {
               foundStar |= findStarOwner(pat, distance, paths, distances);
               foundNoParentGlob |= noParentGlobs.contains(pat);
               // Do not break here, a file could match multiple globs
