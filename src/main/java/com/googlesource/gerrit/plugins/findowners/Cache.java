@@ -209,11 +209,8 @@ class Cache {
   }
 
   public static Cache getInstance(Config config, GitRepositoryManager repoManager) {
-    Cache cache = cacheMap.get(repoManager);
-    if (cache == null) {
-      cache = new Cache(config);
-      cacheMap.put(repoManager, cache);
-    }
+    Cache cache =
+        cacheMap.computeIfAbsent(repoManager, (GitRepositoryManager k) -> new Cache(config));
     cache.config = config; // Always use newest config, although dbCache could have older data.
     return cache;
   }
