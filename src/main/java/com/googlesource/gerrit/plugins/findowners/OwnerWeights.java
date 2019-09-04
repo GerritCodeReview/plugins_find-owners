@@ -38,7 +38,7 @@ import java.util.Set;
  */
 class OwnerWeights {
   static class WeightComparator implements Comparator<String> {
-    private Map<String, OwnerWeights> map;
+    private final Map<String, OwnerWeights> map;
 
     WeightComparator(Map<String, OwnerWeights> weights) {
       map = weights;

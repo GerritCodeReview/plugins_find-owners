@@ -245,7 +245,7 @@ public class ParserTest {
     }
   }
 
-  private void testOneIncludeOrFileLine(
+  private static void testOneIncludeOrFileLine(
       String project, String line, String keyword, String projectName, String filePath) {
     String[] results = Parser.parseInclude(project, line);
     assertThat(results).hasLength(3);
@@ -254,11 +254,12 @@ public class ParserTest {
     assertThat(results[2]).isEqualTo(filePath);
   }
 
-  private void testOneFileLine(String project, String line, String projectName, String filePath) {
+  private static void testOneFileLine(
+      String project, String line, String projectName, String filePath) {
     testOneIncludeOrFileLine(project, line, "file", projectName, filePath);
   }
 
-  private void testOneIncludeLine(
+  private static void testOneIncludeLine(
       String project, String line, String projectName, String filePath) {
     testOneIncludeOrFileLine(project, line, "include", projectName, filePath);
   }

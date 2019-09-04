@@ -29,15 +29,15 @@ public class IncludeIT extends FindOwners {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
   @Rule public Watcher watcher = new Watcher(logger);
 
-  private String getRepoFileLog(String msg1, String msg2) {
+  private static String getRepoFileLog(String msg1, String msg2) {
     return "getRepoFile:" + msg1 + ", getFile:" + msg2 + ", ";
   }
 
-  private String concat(String s1, String s2) {
+  private static String concat(String s1, String s2) {
     return s1 + s2;
   }
 
-  private String concat(String s1, String s2, String s3) {
+  private static String concat(String s1, String s2, String s3) {
     return s1 + s2 + s3;
   }
 

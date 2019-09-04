@@ -104,12 +104,12 @@ class Parser {
   // A parser keeps current permissionBackend, readFiles, repoManager, project, branch,
   // included file path, and debug/trace logs.
   private final PermissionBackend permissionBackend;
-  private Map<String, String> readFiles;
-  private GitRepositoryManager repoManager;
-  private String branch; // All owners files are read from the same branch.
-  private IncludeStack stack; // a stack of including files.
-  private List<String> logs; // Keeps debug/trace messages.
-  private Map<String, Result> savedResults; // projectName:filePath => Parser.Result
+  private final Map<String, String> readFiles;
+  private final GitRepositoryManager repoManager;
+  private final String branch; // All owners files are read from the same branch.
+  private final IncludeStack stack; // a stack of including files.
+  private final List<String> logs; // Keeps debug/trace messages.
+  private final Map<String, Result> savedResults; // projectName:filePath => Parser.Result
 
   static class IncludeStack {
     Deque<String> projectName; // project/repository name of included file

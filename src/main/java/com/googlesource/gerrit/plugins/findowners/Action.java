@@ -97,7 +97,7 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
     return "?";
   }
 
-  private List<OwnerInfo> getOwners(OwnersDb db, Collection<String> files) {
+  private static List<OwnerInfo> getOwners(OwnersDb db, Collection<String> files) {
     Map<String, OwnerWeights> weights = new HashMap<>();
     db.findOwners(files, weights, new ArrayList<>());
     List<OwnerInfo> result = new ArrayList<>();
