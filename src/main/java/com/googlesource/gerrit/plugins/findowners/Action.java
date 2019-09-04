@@ -112,14 +112,13 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
   }
 
   @Override
-  public Response<RestResult> apply(RevisionResource rev)
-      throws IOException, StorageException, BadRequestException {
+  public Response<RestResult> apply(RevisionResource rev) throws IOException, BadRequestException {
     return apply(rev.getChangeResource(), new Parameters());
   }
 
   // Used by integration tests, because they do not have ReviewDb Provider.
   public Response<RestResult> apply(ChangeResource rsrc, Parameters params)
-      throws StorageException, BadRequestException {
+      throws BadRequestException {
     ChangeData changeData = changeDataFactory.create(rsrc.getChange());
     return getChangeData(params, changeData);
   }
@@ -142,7 +141,7 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
 
   /** Returns the current patchset number or the given patchsetNum if it is valid. */
   static int getValidPatchsetNum(ChangeData changeData, Integer patchsetNum)
-      throws StorageException, BadRequestException {
+      throws BadRequestException {
     int patchset = changeData.currentPatchSet().id().get();
     if (patchsetNum != null) {
       if (patchsetNum < 1 || patchsetNum > patchset) {
@@ -159,7 +158,7 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
 
   /** REST API to return owners info of a change. */
   public Response<RestResult> getChangeData(Parameters params, ChangeData changeData)
-      throws StorageException, BadRequestException {
+      throws BadRequestException {
     int patchset = getValidPatchsetNum(changeData, params.patchset);
     ProjectState projectState = projectCache.get(changeData.project());
     Boolean useCache = params.nocache == null || !params.nocache;

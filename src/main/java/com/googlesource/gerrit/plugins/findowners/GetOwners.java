@@ -15,7 +15,6 @@
 package com.googlesource.gerrit.plugins.findowners;
 
 import com.google.common.flogger.FluentLogger;
-import com.google.gerrit.exceptions.StorageException;
 import com.google.gerrit.extensions.restapi.BadRequestException;
 import com.google.gerrit.extensions.restapi.Response;
 import com.google.gerrit.extensions.restapi.RestReadView;
@@ -77,7 +76,7 @@ public class GetOwners implements RestReadView<ChangeResource> {
   }
 
   @Override
-  public Response<RestResult> apply(ChangeResource rsrc) throws IOException, StorageException {
+  public Response<RestResult> apply(ChangeResource rsrc) throws IOException {
     Action.Parameters params = new Action.Parameters();
     params.patchset = patchset;
     params.debug = (debug != null) ? Util.parseBoolean(debug) : null;

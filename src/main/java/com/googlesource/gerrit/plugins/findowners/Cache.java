@@ -16,7 +16,6 @@ package com.googlesource.gerrit.plugins.findowners;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.flogger.FluentLogger;
-import com.google.gerrit.exceptions.StorageException;
 import com.google.gerrit.server.account.AccountCache;
 import com.google.gerrit.server.account.Emails;
 import com.google.gerrit.server.git.GitRepositoryManager;
@@ -100,8 +99,7 @@ class Cache {
       AccountCache accountCache,
       Emails emails,
       GitRepositoryManager repoManager,
-      ChangeData changeData)
-      throws StorageException {
+      ChangeData changeData) {
     return get(
         useCache,
         permissionBackend,
@@ -122,8 +120,7 @@ class Cache {
       Emails emails,
       GitRepositoryManager repoManager,
       ChangeData changeData,
-      int patchset)
-      throws StorageException {
+      int patchset) {
     String branch = changeData.change().getDest().branch();
     String dbKey = Cache.makeKey(changeData.getId().get(), patchset, repoManager);
     // TODO: get changed files of the given patchset?
