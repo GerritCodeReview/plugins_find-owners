@@ -252,7 +252,7 @@ class OwnersDb {
               email =
                   accountCache
                       .get(ids.iterator().next())
-                      .map(a -> a.getAccount().preferredEmail())
+                      .map(a -> a.account().preferredEmail())
                       .orElse(null);
             }
           }

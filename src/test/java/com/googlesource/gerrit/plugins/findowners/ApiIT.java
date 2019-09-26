@@ -174,7 +174,7 @@ public class ApiIT extends FindOwners {
       assertThat(id1).isEqualTo(id3);
       assertThat(id1).isEqualTo(id4);
       // Action.getReviewers and Checker.getVotes use accountCache to get email address.
-      Optional<Account> account = accountCache.get(id1).map(AccountState::getAccount);
+      Optional<Account> account = accountCache.get(id1).map(AccountState::account);
       assertWithMessage("account %s", id1).about(optionals()).that(account).isPresent();
       assertThat(account.get().preferredEmail()).isEqualTo(emails1[i]);
     }
