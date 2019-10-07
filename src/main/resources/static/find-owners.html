@@ -1,0 +1,210 @@
+<!--
+@license
+Copyright (C) 2019 The Android Open Source Project
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<dom-module id="gr-find-owners">
+  <template>
+    <style include="shared-styles">
+      #findOwnersOverlay {
+        margin: 0 auto;
+        padding: 10px;
+        background-color: var(--view-background-color, #ffffff);
+        max-height: 90vh;
+        overflow: auto;
+      }
+
+      .fo-header,
+      .fo-files-and-owners {
+        padding-bottom: 10px;
+        margin-bottom: 10px;
+        border-bottom: 1px solid var(--border-color, #dddddd);
+      }
+
+      .fo-debug-info {
+        padding-top: 10px;
+        margin-top: 10px;
+        border-top: 1px solid var(--border-color, #dddddd);
+      }
+
+      h4 {
+        margin-top: 10px;
+        font-weight: var(--bold-text, 500);
+      }
+      .fo-header h3.title {
+        text-align: center;
+      }
+
+      .positive-vote {
+        color: var(--vote-text-color-recommended, green);
+      }
+
+      .negative-vote {
+        color: var(--vote-text-color-disliked, red);
+      }
+
+      .fo-file-group li {
+        margin-bottom: 5px;
+      }
+
+      label {
+        cursor: pointer;
+      }
+
+      .fo-action-group button {
+        padding: 10px;
+        cursor: pointer;
+      }
+
+      .fo-action-group .applyBtn {
+        background-color: var(--primary-button-background-color, #2a66d9);
+        color: var(--primary-button-text-color, #ffffff);
+      }
+    </style>
+    <div id="findOwnersOverlay">
+      <div class="fo-header">
+        <h3 class="title">Find Owners</h3>
+        <template is="dom-if" if="[[_isExemptedFromOwnerApproval(revision)]]">
+          <h4>This change is Exempt-From-Owner-Approval.</h4>
+        </template>
+        <template is="dom-if" if="[[fromSubmit]]">
+          <h4>WARNING: Need owner Code-Review vote before submit.</h4>
+        </template>
+        <h4>Check the box before owner names to select reviewers, then click the "Apply" button.</h4>
+        <p>
+          If owner-approval requirement is enabled, each file needs at least one Code-Review +1 vote from an owner.
+          Owners
+          listed after a file are ordered by their importance. (Or declare "
+          <strong> Exempt-From-Owner-Approval: </strong>
+          <i>reasons...</i>
+          " in the Commit Message.)
+        </p>
+      </div>
+
+      <div class="fo-files-and-owners">
+        <template is="dom-if" if="[[_noOwnerFound]]">
+          No owner was found for changed files.
+        </template>
+
+        <!-- All Groups of files and reviewers -->
+        <template is="dom-repeat" items="[[_fileGroups]]" as="group">
+          <h4>[[group.title]]</h4>
+          <ul class="fo-file-group">
+            <template
+              is="dom-repeat"
+              items="[[group.sections]]"
+              as="section">
+              <li>
+                <strong title="[[_computeSectionTooltip(section)]]">[[_computeSectionTitle(section)]]</strong>
+                <p>
+                <template
+                  is="dom-repeat"
+                  items="[[section.owners]]"
+                  as="owner">
+                  <label>
+                    <input
+                      type="checkbox"
+                      on-click="_checkboxChanges"
+                      checked$="[[owner.checked]]" />
+                    [[owner.name]]
+                  </label>
+                </template>
+                </p>
+              </li>
+            </template>
+          </ul>
+        </template>
+ 
+        <!-- Apply / Cancel buttons -->
+        <div class="fo-action-group">
+          <template is="dom-if" if="[[_showApplyBtn]]">
+            <button primary class="applyBtn" on-click="_applyChanges">Apply</button>
+          </template>
+          <template is="dom-if" if="[[_noOwnerFound]]">
+            <button on-click="_cancelChanges">OK</button>
+          </template>
+          <template is="dom-if" if="[[!_noOwnerFound]]">
+            <button on-click="_cancelChanges">Cancel</button>
+          </template>
+        </div>
+      </div>
+
+      <!-- Owners list -->
+      <template is="dom-if" if="[[!_noOwnerFound]]">
+        <div class="fo-owners">
+          <h4>Owners in alphabetical order:</h4>
+          <ul>
+            <template
+              is="dom-repeat"
+              items="[[_sortedOwners]]"
+              as="owner">
+              <li>
+                [[owner]]
+                <template is="dom-if" if="[[_hasVote(owner)]]">
+                  <span class$="[[_computeVoteClass(owner)]]">[[_retrieveVoteFrom(owner)]]</span>
+                </template>
+              </li>
+            </template>
+          </ul>
+        </div>
+      </template>
+
+      <!-- Debug info -->
+      <template is="dom-if" if="[[_showDebugInfo]]">
+        <div class="fo-debug-info">
+          <ul>
+            <li>
+              <strong>ChangeId: </strong>
+              <span>[[change._number]]</span>
+            </li>
+            <li>
+              <strong>Project: </strong>
+              <span>[[change.project]]</span>
+            </li>
+             <li>
+              <strong>Branch: </strong>
+              <span>[[change.branch]]</span>
+            </li>
+            <li>
+              <strong>changeOwner.email: </strong>
+              <span>[[change.owner.email]]</span>
+            </li>
+            <li>
+              <strong>Plugin url: </strong>
+              <span>[[_pluginUrl]]</span>
+            </li>
+            <li>
+              <strong>Change Owner: </strong>
+              <pre>[[stringify(change.owner)]]</pre>
+            </li>
+            <li>
+              <strong>commit.message: </strong>
+              <pre>[[stringify(revision.commit.message)]]</pre>
+            </li>
+            <template
+              is="dom-repeat"
+              items="[[_debugOwnerResponse]]"
+              as="field">
+              <li>
+                <strong>Server.[[field.key]]: </strong>
+                <pre>[[stringify(field.value)]]</pre>
+              </li>
+            </template>
+          </ul>
+        </div>
+      </template>
+    </div>
+  </template>
+  <script src="./find-owners.js"></script>
+</dom-module>
