@@ -120,22 +120,6 @@ Gerrit.install(function(self) {
     function getElement(id) {
       return document.getElementById(id);
     }
-    function httpGet(url, callback) {
-      var xhr = new XMLHttpRequest();
-      xhr.open('GET', url);
-      xhr.onreadystatechange = function() {
-        if (xhr.readyState == XMLHttpRequest.DONE) {
-          // skip special characters ")]}'\n"
-          callback(!!xhr.responseText ?
-                   JSON.parse(xhr.responseText.substring(5)) : {});
-        }
-      };
-      xhr.send();
-    }
-    function httpError(msg, callback) {
-      console.log('UNIMPLEMENTED: ' + msg);
-      callback();
-    }
     function restApiGet(url, callback) {
       self.restApi().get('/../..' + url).then(callback);
     }
@@ -545,13 +529,10 @@ Gerrit.install(function(self) {
     function callServer(callBack) {
       // Use the plugin REST API; pass only changeId;
       // let server get current patch set, project and branch info.
-      restApiGet('/changes/' + changeId + '/owners', showFindOwnersResults);
+      restApiGet('/changes/' + changeId + '/owners', callBack);
     }
-    event.stopPropagation();
+
     callServer(showFindOwnersResults);
-  }
-  function onFindOwners(context) {
-    popupFindOwnersPage(context, context.change, context.revision, false);
   }
   function onSubmit(change, revision) {
     const OWNER_REVIEW_LABEL = 'Owner-Review-Vote';
@@ -575,7 +556,11 @@ Gerrit.install(function(self) {
     changeActions.setIcon(actionKey, 'robot');
     changeActions.setTitle(actionKey, 'Find owners of changed files');
     changeActions.addTapListener(actionKey,
-        () => popupFindOwnersPage(null, change, revision, false));
+        (e) => {
+          if (e) e.stopPropagation();
+ 
+          popupFindOwnersPage(null, change, revision, false);
+        });
   }
   function onClick(event) {
     if (pageDiv.style.visibility != 'hidden' && !useContextPopup) {
