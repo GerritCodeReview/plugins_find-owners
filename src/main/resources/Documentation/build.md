@@ -23,7 +23,7 @@ bazel build plugins/find-owners
 The output is created in
 
 ```bash
-bazel-genfiles/plugins/find-owners/find-owners.jar
+bazel-bin/plugins/find-owners/find-owners.jar
 ```
 
 To execute the tests run:
