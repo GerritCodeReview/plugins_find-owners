@@ -29,7 +29,7 @@ bazel-bin/plugins/find-owners/find-owners.jar
 To execute the tests run:
 
 ```bash
-bazel test plugins/find-owners:findowners_tests
+bazel test plugins/find-owners/...
 ```
 
 or filtering using the comma separated tags:
