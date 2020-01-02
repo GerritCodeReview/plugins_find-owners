@@ -230,7 +230,9 @@ Gerrit.install(function(self) {
     }
     function showDiv(div, text) {
       div.style.display = 'inline';
-      div.innerHTML = text;
+      var innerDiv = document.createElement('div')
+      innerDiv.innerHTML = text;
+      div.appendChild(innerDiv);
     }
     function strElement(s) {
       var e = document.createElement('span');
@@ -290,8 +292,13 @@ Gerrit.install(function(self) {
       for (var i = 0; i < NUM_GROUP_TYPES; i++) {
         groupTypeDiv[i] = emptyDiv(GROUP_TYPE_DIV_ID[i]);
       }
+
+      var cancelButton = newButton('Cancel', hideFindOwnersPage);
+      cancelButton.style.display = 'inline';
+      cancelButton.style.float = 'right';
+      header.appendChild(cancelButton);
       addApplyButton();
-      args.push(newButton('Cancel', hideFindOwnersPage));
+
       var ownersDiv = emptyDiv(OWNERS_DIV_ID);
       var numCheckBoxes = 0;
       var owner2boxes = {}; // owner name ==> array of checkbox id
@@ -302,8 +309,10 @@ Gerrit.install(function(self) {
       function addApplyButton() {
         var apply = newButton('Apply', doApplyButton);
         apply.id = APPLY_BUTTON_ID;
-        apply.style.display = 'none';
-        args.push(apply);
+        apply.style.display = 'inline';
+        apply.style.visibility = 'hidden';
+        apply.style.float = 'right';
+        header.appendChild(apply);
       }
       function emptyDiv(id) {
         var e = document.createElement('div');
@@ -311,6 +320,9 @@ Gerrit.install(function(self) {
         e.style.display = 'none';
         args.push(e);
         return e;
+      }
+      function colorSpan(str, color) {
+        return `<span style="color: ${color};">${str}</span>`;
       }
       function doApplyButton() {
         addList = [];
@@ -327,7 +339,7 @@ Gerrit.install(function(self) {
         var checked = event.target.checked;
         var others = owner2boxes[name];
         others.forEach(function(id) { getElement(id).checked = checked; });
-        getElement(APPLY_BUTTON_ID).style.display = 'inline';
+        getElement(APPLY_BUTTON_ID).style.visibility = 'visible';
       }
       function addGroupsToDiv(div, keys, title) {
         if (keys.length <= 0) {
@@ -337,7 +349,7 @@ Gerrit.install(function(self) {
         div.innerHTML = '';
         div.style.display = 'inline';
         div.appendChild(strElement(title));
-        function addOwner(ownerEmail) {
+        function addOwner(ownersList, ownerEmail) {
           if (ownerEmail == '*') {
             return; // no need to list/select '*'
           }
@@ -349,17 +361,21 @@ Gerrit.install(function(self) {
             owner2boxes[name] = [];
           }
           owner2boxes[name].push(id);
+
+          let listItem = document.createElement('li');
+
           var box = document.createElement('input');
           box.type = 'checkbox';
           box.checked = (ownerEmail in reviewerId);
           box.id = id;
           box.value = name;
           box.onclick = clickBox;
-          div.appendChild(strElement('&nbsp;&nbsp; '));
+          listItem.appendChild(strElement('&nbsp;&nbsp; '));
           var nobr = document.createElement('nobr');
           nobr.appendChild(box);
           nobr.appendChild(strElement(name));
-          div.appendChild(nobr);
+          listItem.appendChild(nobr);
+          ownersList.appendChild(listItem);
         }
         keys.forEach(function(key) {
           var owners = groups[key].owners; // string of owner emails
@@ -377,8 +393,14 @@ Gerrit.install(function(self) {
           if (hasNamedOwner(reducedList)) {
             item += ':';
           }
+
           div.appendChild(strElement(item));
-          reducedList.forEach(addOwner);
+          let ownersList = document.createElement('ul');
+          ownersList.style.display = 'flex';
+          ownersList.style.listStyleType = 'none';
+
+          reducedList.forEach(addOwner.bind(this, ownersList));
+          div.appendChild(ownersList);
           div.appendChild(br());
         });
       }
@@ -394,8 +416,11 @@ Gerrit.install(function(self) {
           if (email != '*') { // do not list special email *
             var vote = reviewerVote[email];
             if ((email in reviewerVote) && vote != 0) {
-              email += ' <font color="' +
-                  ((vote > 0) ? 'green">(+' : 'red">(') + vote + ')</font>';
+              if (vote > 0) {
+                email += colorSpan('&nbsp;(+' + vote + ')', 'green');
+              } else {
+                email += colorSpan('&nbsp;(' + vote + ')', 'red');
+              }
             }
             div.appendChild(strElement('&nbsp;&nbsp;' + email + '<br>'));
           }
