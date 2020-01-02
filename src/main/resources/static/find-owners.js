@@ -228,10 +228,6 @@ Gerrit.install(function(self) {
     function isExemptedFromOwnerApproval() {
       return message.match(/(Exempted|Exempt)-From-Owner-Approval:/);
     }
-    function showDiv(div, text) {
-      div.style.display = 'inline';
-      div.innerHTML = text;
-    }
     function strElement(s) {
       var e = document.createElement('span');
       e.innerHTML = s;
@@ -248,6 +244,8 @@ Gerrit.install(function(self) {
       b.appendChild(document.createTextNode(name));
       b.className = BUTTON_STYLE;
       b.onclick = action;
+      b.style.display = 'inline';
+      b.style.float = 'right';
       return b;
     }
     function showJsonLines(args, key, obj) {
@@ -290,8 +288,11 @@ Gerrit.install(function(self) {
       for (var i = 0; i < NUM_GROUP_TYPES; i++) {
         groupTypeDiv[i] = emptyDiv(GROUP_TYPE_DIV_ID[i]);
       }
+
+      var cancelButton = newButton('Cancel', hideFindOwnersPage);
+      header.appendChild(cancelButton);
       addApplyButton();
-      args.push(newButton('Cancel', hideFindOwnersPage));
+
       var ownersDiv = emptyDiv(OWNERS_DIV_ID);
       var numCheckBoxes = 0;
       var owner2boxes = {}; // owner name ==> array of checkbox id
@@ -302,8 +303,8 @@ Gerrit.install(function(self) {
       function addApplyButton() {
         var apply = newButton('Apply', doApplyButton);
         apply.id = APPLY_BUTTON_ID;
-        apply.style.display = 'none';
-        args.push(apply);
+        apply.style.visibility = 'hidden';
+        header.appendChild(apply);
       }
       function emptyDiv(id) {
         var e = document.createElement('div');
@@ -311,6 +312,9 @@ Gerrit.install(function(self) {
         e.style.display = 'none';
         args.push(e);
         return e;
+      }
+      function colorSpan(str, color) {
+        return `<span style="color: ${color};">${str}</span>`;
       }
       function doApplyButton() {
         addList = [];
@@ -327,7 +331,7 @@ Gerrit.install(function(self) {
         var checked = event.target.checked;
         var others = owner2boxes[name];
         others.forEach(function(id) { getElement(id).checked = checked; });
-        getElement(APPLY_BUTTON_ID).style.display = 'inline';
+        getElement(APPLY_BUTTON_ID).style.visibility = 'visible';
       }
       function addGroupsToDiv(div, keys, title) {
         if (keys.length <= 0) {
@@ -337,7 +341,7 @@ Gerrit.install(function(self) {
         div.innerHTML = '';
         div.style.display = 'inline';
         div.appendChild(strElement(title));
-        function addOwner(ownerEmail) {
+        function addOwner(itemDiv, ownerEmail) {
           if (ownerEmail == '*') {
             return; // no need to list/select '*'
           }
@@ -349,17 +353,18 @@ Gerrit.install(function(self) {
             owner2boxes[name] = [];
           }
           owner2boxes[name].push(id);
+
           var box = document.createElement('input');
           box.type = 'checkbox';
           box.checked = (ownerEmail in reviewerId);
           box.id = id;
           box.value = name;
           box.onclick = clickBox;
-          div.appendChild(strElement('&nbsp;&nbsp; '));
+          itemDiv.appendChild(strElement('&nbsp;&nbsp; '));
           var nobr = document.createElement('nobr');
           nobr.appendChild(box);
           nobr.appendChild(strElement(name));
-          div.appendChild(nobr);
+          itemDiv.appendChild(nobr);
         }
         keys.forEach(function(key) {
           var owners = groups[key].owners; // string of owner emails
@@ -377,10 +382,15 @@ Gerrit.install(function(self) {
           if (hasNamedOwner(reducedList)) {
             item += ':';
           }
-          div.appendChild(strElement(item));
-          reducedList.forEach(addOwner);
-          div.appendChild(br());
+
+          let itemDiv = document.createElement('div');
+          itemDiv.style.paddingTop = '0.5em';
+          itemDiv.appendChild(strElement(item));
+          itemDiv.appendChild(br());
+          reducedList.forEach(addOwner.bind(this, itemDiv));
+          div.appendChild(itemDiv);
         });
+        div.lastElementChild.style.paddingBottom = '0.5em';
       }
       function addOwnersDiv(div, title) {
         div.innerHTML = '';
@@ -394,8 +404,11 @@ Gerrit.install(function(self) {
           if (email != '*') { // do not list special email *
             var vote = reviewerVote[email];
             if ((email in reviewerVote) && vote != 0) {
-              email += ' <font color="' +
-                  ((vote > 0) ? 'green">(+' : 'red">(') + vote + ')</font>';
+              if (vote > 0) {
+                email += colorSpan('&nbsp;(+' + vote + ')', 'green');
+              } else {
+                email += colorSpan('&nbsp;(' + vote + ')', 'red');
+              }
             }
             div.appendChild(strElement('&nbsp;&nbsp;' + email + '<br>'));
           }
@@ -409,8 +422,14 @@ Gerrit.install(function(self) {
         Object.keys(groups).sort().forEach(function(key) {
           listOfGroup[groups[key].type].push(key);
         });
-        showDiv(header, isExemptedFromOwnerApproval() ? HTML_IS_EXEMPTED :
-            ((onSubmit ? HTML_ONSUBMIT_HEADER : '') + HTML_SELECT_REVIEWERS));
+
+        // Add message to header div and make visible.
+        let headerMessageDiv = document.createElement('div');
+        headerMessageDiv.innerHTML = isExemptedFromOwnerApproval() ? HTML_IS_EXEMPTED :
+            ((onSubmit ? HTML_ONSUBMIT_HEADER : '') + HTML_SELECT_REVIEWERS);
+        header.appendChild(headerMessageDiv);
+        header.style.display = 'inline';
+
         numCheckBoxes = 0;
         owner2boxes = {};
         for (var i = 0; i < NUM_GROUP_TYPES; i++) {
