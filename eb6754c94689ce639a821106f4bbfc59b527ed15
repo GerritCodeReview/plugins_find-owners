@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "32d53160_c173780e",
+        "filename": "src/main/resources/static/find-owners.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 235,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2020-01-07T19:11:59Z",
+      "side": 1,
+      "message": "Is this change to fix some error or just to add some space around the text?\nIf the purpose is only to add more space, it would be clearer to change the \"text\" argument in the caller of this function, or the meaning of \"showDiv\" is changed.\nSince showDiv is only called once now, maybe it would be simpler to understand by inlining this code at the single call site.",
+      "range": {
+        "startLine": 233,
+        "startChar": 0,
+        "endLine": 235,
+        "endChar": 32
+      },
+      "revId": "eb6754c94689ce639a821106f4bbfc59b527ed15",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ef8e9e4e_fb7c5e11",
+        "filename": "src/main/resources/static/find-owners.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 313,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2020-01-07T19:11:59Z",
+      "side": 1,
+      "message": "Do you intent to change the layout and keep the space even when the button is hidden?\nAccording to https://www.w3schools.com/jsref/prop_style_visibility.asp\n... if you set display:none, it hides the entire element, while visibility:hidden means that the contents of the element will be invisible, but the element stays in its original position and size.\n\nThere is another \u0027OK\u0027 button. If all buttons have style.float \u003d \u0027right\u0027, that style can be set in newButton.",
+      "range": {
+        "startLine": 312,
+        "startChar": 0,
+        "endLine": 313,
+        "endChar": 42
+      },
+      "revId": "eb6754c94689ce639a821106f4bbfc59b527ed15",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4344d162_1af8e668",
+        "filename": "src/main/resources/static/find-owners.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 342,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2020-01-07T19:11:59Z",
+      "side": 1,
+      "message": "Same here. to use display",
+      "range": {
+        "startLine": 342,
+        "startChar": 0,
+        "endLine": 342,
+        "endChar": 65
+      },
+      "revId": "eb6754c94689ce639a821106f4bbfc59b527ed15",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c45302ff_30afef25",
+        "filename": "src/main/resources/static/find-owners.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 403,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2020-01-07T19:11:59Z",
+      "side": 1,
+      "message": "The commit message said \"Add space between files to improve readability\".\nAssuming that you want to increase spacing between output file groups,\ncould the same effect be achieved with some extra line space before HTML_BULLET?\nThe extra layer of \u0027ul\u0027 seems too complicated and depending on the spacing style of \u0027ul\u0027.\nAdding \u003cp\u003e before HTML_BULLET seems to leave too much space. How about something like the following for a half line space before HTML_BULLET?\n  \u003cspan style\u003d\"font-size:50%;\"\u003e\u0026nbsp;\u003c/span\u003e\u003cbr\u003e",
+      "range": {
+        "startLine": 397,
+        "startChar": 0,
+        "endLine": 403,
+        "endChar": 38
+      },
+      "revId": "eb6754c94689ce639a821106f4bbfc59b527ed15",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    }
+  ]
+}
