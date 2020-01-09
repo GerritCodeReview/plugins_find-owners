@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "239dea80_c798598c",
+        "filename": "src/main/resources/static/find-owners.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 235,
+      "author": {
+        "id": 1093900
+      },
+      "writtenOn": "2020-01-09T00:38:21Z",
+      "side": 1,
+      "message": "I\u0027m creating the two buttons as children of the |header| div before showDiv(header, text) is called. When header.innerHTML is set in showDiv(), the original children of |header| are overwritten. By placing |text| in its own div, |text| may be added to |header| without interfering with the buttons.\n\nI will inline this code at the call site.",
+      "parentUuid": "32d53160_c173780e",
+      "range": {
+        "startLine": 233,
+        "startChar": 0,
+        "endLine": 235,
+        "endChar": 32
+      },
+      "revId": "eb6754c94689ce639a821106f4bbfc59b527ed15",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "ef8e9e4e_fb7c5e11",
         "filename": "src/main/resources/static/find-owners.js",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2020-01-07T19:11:59Z",
       "side": 1,
       "message": "Do you intent to change the layout and keep the space even when the button is hidden?\nAccording to https://www.w3schools.com/jsref/prop_style_visibility.asp\n... if you set display:none, it hides the entire element, while visibility:hidden means that the contents of the element will be invisible, but the element stays in its original position and size.\n\nThere is another \u0027OK\u0027 button. If all buttons have style.float \u003d \u0027right\u0027, that style can be set in newButton.",
+      "range": {
+        "startLine": 312,
+        "startChar": 0,
+        "endLine": 313,
+        "endChar": 42
+      },
+      "revId": "eb6754c94689ce639a821106f4bbfc59b527ed15",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bf1326d6_516d067e",
+        "filename": "src/main/resources/static/find-owners.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 313,
+      "author": {
+        "id": 1093900
+      },
+      "writtenOn": "2020-01-09T00:38:21Z",
+      "side": 1,
+      "message": "That\u0027s my intention; I think it makes sense to let the buttons have a dedicated space so the layout doesn\u0027t change when the buttons appear. If you think it would be better to leave it as display:none I will change it back.\n\nI have moved button.style.float \u003d \u0027right\u0027 into newButton() as well as button.style.display \u003d \u0027inline\u0027 since both are used by both buttons.",
+      "parentUuid": "ef8e9e4e_fb7c5e11",
       "range": {
         "startLine": 312,
         "startChar": 0,
@@ -91,6 +139,30 @@
       "revId": "eb6754c94689ce639a821106f4bbfc59b527ed15",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8bed4dbc_4427bf3c",
+        "filename": "src/main/resources/static/find-owners.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 403,
+      "author": {
+        "id": 1093900
+      },
+      "writtenOn": "2020-01-09T00:38:21Z",
+      "side": 1,
+      "message": "I\u0027ve gotten rid of \u0027ul\u0027. I tried adding space with a span with reduced font size as you suggested but I couldn\u0027t make the empty line\u0027s height less than the height of the following line. Instead I have wrapped each file-and-owners in its own div with padding.",
+      "parentUuid": "c45302ff_30afef25",
+      "range": {
+        "startLine": 397,
+        "startChar": 0,
+        "endLine": 403,
+        "endChar": 38
+      },
+      "revId": "eb6754c94689ce639a821106f4bbfc59b527ed15",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
     }
   ]
 }
