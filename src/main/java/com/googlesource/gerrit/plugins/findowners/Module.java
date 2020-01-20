@@ -37,7 +37,7 @@ public class Module extends AbstractModule {
           }
         });
     DynamicSet.bind(binder(), WebUiPlugin.class)
-        .toInstance(new JavaScriptPlugin(Config.PLUGIN_NAME + ".js"));
+        .toInstance(new JavaScriptPlugin(Config.PLUGIN_NAME + ".html"));
 
     install(new PredicateModule());
   }

@@ -11,577 +11,546 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+(function (window) {
+  'use strict';
 
-Gerrit.install(function(self) {
-  // If context.popup API exists and popup content is small,
-  // use the API and set useContextPopup,
-  // otherwise, use pageDiv and set its visibility.
-  var useContextPopup = false;
-  var pageDiv = document.createElement('div');
-  document.body.appendChild(pageDiv);
-  function hideFindOwnersPage() {
-    pageDiv.style.visibility = 'hidden';
-  }
-  function popupFindOwnersPage(context, change, revision, onSubmit) {
-    const PADDING = 5;
-    const LARGE_PAGE_STYLE = Gerrit.css(
-        'visibility: hidden;' +
-        'background: rgba(200, 200, 200, 0.95);' +
-        'border: 3px solid;' +
-        'border-color: #c8c8c8;' +
-        'border-radius: 3px;' +
-        'position: fixed;' +
-        'z-index: 100;' +
-        'overflow: auto;' +
-        'padding: ' + PADDING + 'px;'
-        );
-    const BUTTON_STYLE = Gerrit.css(
-        'background-color: #4d90fe;' +
-        'border: 2px solid;' +
-        'border-color: #4d90fe;' +
-        'margin: 2px 10px 2px 10px;' +
-        'text-align: center;' +
-        'font-size: 8pt;' +
-        'font-weight: bold;' +
-        'color: #fff;' +
-        '-webkit-border-radius: 2px;' +
-        'cursor: pointer;'
-        );
-    const HTML_BULLET = '<small>&#x2605;</small>'; // a Black Star
-    const HTML_IS_EXEMPTED =
-        '<b>This change is Exempt-From-Owner-Approval.</b><br>';
+  /** @enum {number} */
+  const REVIEWER_STATUS = {
+    ADDED: 0,
+    REMOVED: 1,
+  };
 
-    const HTML_NO_OWNER =
-        '<b>No owner was found for changed files.</b>';
-    const HTML_ONSUBMIT_HEADER =
-        '<b>WARNING: Need owner Code-Review vote before submit.</b><hr>';
-    const HTML_OWNERS_HEADER = '<hr><b>Owners in alphabetical order:</b><br>';
-    const HTML_SELECT_REVIEWERS =
-        '<b>Check the box before owner names to select reviewers, ' +
-        'then click the "Apply" button.' +
-        '</b><br><small>If owner-approval requirement is enabled, ' +
-        'each file needs at least one Code-Review +1 vote from an owner. ' +
-        'Owners listed after a file are ordered by their importance. ' +
-        '(Or declare "<b><span style="font-size:80%;">' +
-        'Exempt-From-Owner-Approval:</span></b> ' +
-        '<i>reasons...</i>" in the Commit Message.)</small><br>';
 
-    // Changed files are put into groups.
-    // Each group has a unique list of owners and
-    // belongs to one of the 5 types based on owner status.
-    // Groups of a type are displayed in one HTML section.
-    // Group type names are mapped to ordered numbers starting from 0.
-    const GROUP_TYPE = {
-        'NEED_REVIEWER':  0, // no owner in Reviewers list yet
-        'NEED_APPROVAL':  1, // no owner Code-Review +1 yet
-        'STAR_APPROVED':  2, // has '*', no need of owner vote
-        'OWNER_APPROVED': 3, // has owner approval
-        'HAS_NO_OWNER':   4, // no owner at all, only shown with other types
-    };
-    const NUM_GROUP_TYPES = 5;
+  /** @enum {number} */
+  const GROUP_TYPE = {
+    NEED_REVIEWER: 0, // no owner in Reviewers list yet
+    NEED_APPROVAL: 1, // no owner Code-Review +1 yet
+    STAR_APPROVED: 2, // has '*', no need of owner vote
+    OWNER_APPROVED: 3, // has owner approval
+    HAS_NO_OWNER: 4, // no owner at all, only shown with other types
+  };
 
-    const HTML_GROUP_TYPE_HEADER = [
-        '<hr><b>Files with owners but no owner is in the Reviewers list:</b><br>',
-        '<hr><b>Files with owners but no Code-Review vote from an owner:</b><br>',
-        '<hr><b>Files with owners but can be approved by anyone (*):</b><br>',
-        '<hr><b>Files with +1 or +2 Code-Review vote from owners:</b><br>',
-        '<hr><b>Files without any named owner:</b><br>',
-    ];
+  /** @type {Object<GROUP_TYPE, string} */
+  const FILE_GROUP_TITLES = {
+    [GROUP_TYPE.NEED_REVIEWER]:
+      'Files with owners but no owner is in the Reviewers list:',
+    [GROUP_TYPE.NEED_APPROVAL]:
+      'Files with owners but no Code-Review vote from an owner:',
+    [GROUP_TYPE.STAR_APPROVED]:
+      'Files with owners but can be approved by anyone (*):',
+    [GROUP_TYPE.OWNER_APPROVED]:
+      'Files with +1 or +2 Code-Review vote from owners:',
+    [GROUP_TYPE.HAS_NO_OWNER]: 'Files without any named owner:',
+  };
 
-    const GROUP_TYPE_DIV_ID = [
-        'FindOwners:NeedReviewer',
-        'FindOwners:NeedApproval',
-        'FindOwners:StarApproved',
-        'FindOwners:OwnerApproved',
-        'FindOwners:HasNoOwner',
-    ];
+  const MIN_VOTE_LEVEL = 1;
 
-    const APPLY_BUTTON_ID = 'FindOwners:Apply';
-    const CHECKBOX_ID = 'FindOwners:CheckBox';
-    const HEADER_DIV_ID = 'FindOwners:Header';
-    const OWNERS_DIV_ID = 'FindOwners:Owners';
+  /**
+   * Show owners of all files as suggested reviewers.
+   */
+  Polymer({
+    is: 'gr-find-owners',
 
-    // Aliases to values in the context.
-    const branch = change.branch;
-    const changeId = change._number;
-    const changeOwner = change.owner;
-    const message = revision.commit.message;
-    const project = change.project;
+    properties: {
+      change: {
+        type: Object,
+      },
+      revision: {
+        type: Object,
+      },
+      restApi: Object,
 
-    var minVoteLevel = 1; // could be changed by server returned results.
-    var reviewerId = {}; // map from a reviewer's email to account id.
-    var reviewerVote = {}; // map from a reviewer's email to Code-Review vote.
+      // show backdrop on the overlay
+      withBackdrop: {
+        type: Boolean,
+        value: true,
+        reflectToAttribute: true,
+      },
+      scrollAction: {
+        type: String,
+        value: 'lock',
+        reflectToAttribute: true,
+      },
 
-    // addList and removeList are used only under applySelections.
-    var addList = []; // remain emails to add to reviewers
-    var removeList = []; // remain emails to remove from reviewers
-    var needRefresh = false; // true if to refresh after checkAddRemoveLists
+      // if overlay shows up from submit button
+      fromSubmit: {
+        type: Boolean,
+        value: false,
+      },
 
-    function getElement(id) {
-      return document.getElementById(id);
-    }
-    function restApiGet(url, callback) {
-      self.restApi().get('/../..' + url).then(callback);
-    }
-    function restApiPost(url, data, callback) {
-      self.restApi().post('/../..' + url, data).then(callback) ;
-    }
-    function restApiDelete(url, callback, errMessage) {
-      self.restApi().delete('/../..' + url).then(callback).catch((e) => {
-          alert(errMessage);
+      /**
+       * All groups on files map to owners and sections to show in the UI.
+       * @type {!{
+       *   sections: Array<{owners: Array, files: Array}>,
+       *   title: string;
+       * }}
+       */
+      _fileGroups: {
+        type: Array,
+        value() {
+          return [];
+        },
+      },
+
+      /**
+       * Map between owner (email) and all their statuses (checked),
+       * same owner share the same state across different files.
+       */
+      _ownerStatusMap: {
+        type: Object,
+        value() {
+          return {};
+        },
+      },
+
+      _noOwnerFound: {
+        type: Boolean,
+        value: false,
+      },
+      _showApplyBtn: {
+        type: Boolean,
+        value: false,
+      },
+      _sortedOwners: {
+        type: Array,
+        value() {
+          return [];
+        },
+      },
+
+      /** A map between reviewer email and their vote */
+      _reviewerVoteMap: {
+        type: Object,
+        value() {
+          return {};
+        }
+      },
+
+      /** A map between reviewer email and raw _account_id */
+      _reviewerIdMap: {
+        type: Object,
+        value() {
+          return {};
+        }
+      },
+
+      /**
+       * A map to record changes made by the user, additions and deletions,
+       * on any owner.
+       *
+       * @example
+       * `{owner_email: {status: 'ADD'}}`
+       */
+      _reviewerChanges: {
+        type: Object,
+        value() {
+          return {};
+        }
+      },
+
+      _showDebugInfo: {
+        type: Boolean,
+        value: false,
+      },
+      _debugOwnerResponse: {
+        type: Array,
+        value() {
+          return [];
+        },
+      },
+    },
+
+    behaviors: [
+      Polymer.IronOverlayBehavior,
+    ],
+
+    _hasVote(email) {
+      return this._reviewerVoteMap[email] &&
+        this._reviewerVoteMap[email] !== 0;
+    },
+
+    _computeVoteClass(email) {
+      return this._reviewerVoteMap[email] <= 0 ?
+        'negative-vote' : 'positive-vote';
+    },
+
+    _retrieveVoteFrom(email) {
+      const vote = this._reviewerVoteMap[email];
+      return `(${vote > 0 ? `+${vote}` : vote})`;
+    },
+
+    _getOwnerId(email) {
+      return this._reviewerIdMap[email];
+    },
+
+    _getOwnerName(email) {
+      return email.replace(/@[^ ]*/g, '');
+    },
+
+    _hasOwnerInReviewer(email) {
+      const changesOnReviewer = this._reviewerChanges[email];
+      return changesOnReviewer ?
+        changesOnReviewer.status === REVIEWER_STATUS.ADDED :
+        this._reviewerIdMap[email];
+    },
+
+    _getOwners() {
+      return this.restApi.get(`/changes/${this.change._number}/owners`);
+    },
+
+    _getReviewers() {
+      return this.restApi.get(`/changes/${this.change._number}/reviewers`);
+    },
+
+    open() {
+      if (!this.change || !this.revision || !this.restApi) {
+        console.error('Change, revision and restApi are required!');
+      }
+
+      this._populateContent().then(() => {
+        if (loadingToast) {
+          loadingToast.hide();
+        }
+        Polymer.IronOverlayBehaviorImpl.open.apply(this);
       });
-    }
-    function getReviewers(change, callBack) {
-      restApiGet('/changes/' + change + '/reviewers', callBack);
-    }
-    function setupReviewersMap(reviewerList) {
-      reviewerId = {};
-      reviewerVote = {};
-      reviewerList.forEach(function(reviewer) {
-        if ('email' in reviewer && '_account_id' in reviewer) {
-          reviewerId[reviewer.email] = reviewer._account_id;
-          reviewerVote[reviewer.email] = 0;
-          if ('approvals' in reviewer && 'Code-Review' in reviewer.approvals) {
-            reviewerVote[reviewer.email] =
-                parseInt(reviewer.approvals['Code-Review']);
+    },
+
+    _populateContent() {
+      return Promise.all([this._getOwners(), this._getReviewers()])
+        .then(([ownersResponse, reviewersResponse]) => {
+          const filesWithOwners = Object.keys(ownersResponse.file2owners);
+          if (!filesWithOwners.length) {
+            this._noOwnerFound = true;
+            return;
+          }
+
+          if (ownersResponse.addDebugMsg) {
+            this._populateDebug(ownersResponse);
+          }
+
+          this._generateReviewerIdAndVoteMap(ownersResponse, reviewersResponse);
+          this._populateFileGroups(ownersResponse);
+          this._populateOwnersList(ownersResponse);
+        })
+        .catch(e => {
+          this._showAlert(`An error occured: ${e}`);
+          console.error(e);
+        });
+    },
+
+    _generateReviewerIdAndVoteMap(ownersResponse, reviewersResponse) {
+      const reviewerIdMap = {};
+      const reviewerVoteMap = {};
+      for (const reviewer of reviewersResponse) {
+        if (reviewer.email && reviewer._account_id) {
+          reviewerIdMap[reviewer.email] = reviewer._account_id;
+          reviewerVoteMap[reviewer.email] = 0;
+          if (reviewer.approvals && reviewer.approvals['Code-Review']) {
             // The 'Code-Review' values could be "-2", "-1", " 0", "+1", "+2"
+            reviewerVoteMap[reviewer.email] =
+              parseInt(reviewer.approvals['Code-Review']);
           }
         }
-      });
-      // Give CL author a default minVoteLevel vote.
+      }
+
+      // Give CL author a default minVoteLevel vote
+      const changeOwner = this.change.owner;
       if (changeOwner != null &&
-          'email' in changeOwner && '_account_id' in changeOwner &&
-          (!(changeOwner.email in reviewerId) ||
-           reviewerVote[changeOwner.email] == 0)) {
-        reviewerId[changeOwner.email] = changeOwner._account_id;
-        reviewerVote[changeOwner.email] = minVoteLevel;
+        changeOwner.email && changeOwner._account_id &&
+        (!reviewerIdMap[changeOwner.email] ||
+          reviewerVoteMap[changeOwner.email] === 0)) {
+        reviewerIdMap[changeOwner.email] = changeOwner._account_id;
+        reviewerVoteMap[changeOwner.email] =
+          ownersResponse.minOwnerVoteLevel || MIN_VOTE_LEVEL;
       }
-    }
-    function checkAddRemoveLists() {
-      // Gerrit.post and delete are asynchronous.
-      // Do one at a time, with checkAddRemoveLists as callBack.
-      for (var i = 0; i < addList.length; i++) {
-        var email = addList[i];
-        if (!(email in reviewerId)) {
-          addList = addList.slice(i + 1, addList.length);
-          // A post request can fail if given reviewer email is invalid.
-          // Gerrit core UI shows the error dialog and does not provide
-          // a way for plugins to handle the error yet.
-          needRefresh = true;
-          restApiPost('/changes/' + changeId + '/reviewers',
-                      {'reviewer': email},
-                      checkAddRemoveLists);
-          return;
+
+      this._reviewerVoteMap = reviewerVoteMap;
+      this._reviewerIdMap = reviewerIdMap;
+    },
+
+    _populateDebug(ownersResponse) {
+      this._showDebugInfo = true;
+      this._debugOwnerResponse = Object.keys(ownersResponse).map(key => {
+        return { key, value: ownersResponse[key] };
+      });
+    },
+
+    _populateOwnersList(ownersResponse) {
+      // generate sorted owners list
+      const sortedOwners = ownersResponse.owners.sort((o1, o2) => {
+        return o1.email.localeCompare(o2.email);
+      });
+      this._sortedOwners = sortedOwners.filter(owner => owner.email !== '*')
+        .map(owner => owner.email);
+    },
+
+    _populateFileGroups(ownersResponse) {
+      this._ownerStatusMap = {};
+      this._reviewerChanges = {};
+
+      const filesWithOwners = Object.keys(ownersResponse.file2owners);
+      // generate fileGroups
+      const groups = {};
+      filesWithOwners.sort().forEach(file => {
+        const owners = Array.from(
+          new Set(ownersResponse.file2owners[file])
+        ).sort();
+        const ownersKey = owners.join(' ');
+        let groupType;
+        if (!this._hasNamedOwner(owners)) {
+          groupType = GROUP_TYPE.HAS_NO_OWNER;
+        } else if (this._hasOwnerApproval(
+          owners, ownersResponse.minOwnerVoteLevel || MIN_VOTE_LEVEL
+        )) {
+          groupType = GROUP_TYPE.OWNER_APPROVED;
+        } else if (this._hasStar(owners)) {
+          groupType = GROUP_TYPE.STAR_APPROVED;
+        } else if (!this._hasOwnerReviewer(owners)) {
+          groupType = GROUP_TYPE.NEED_REVIEWER;
+        } else {
+          groupType = GROUP_TYPE.NEED_APPROVAL;
         }
-      }
-      for (var i = 0; i < removeList.length; i++) {
-        var email = removeList[i];
-        if (email in reviewerId) {
-          removeList = removeList.slice(i + 1, removeList.length);
-          needRefresh = true;
-          restApiDelete('/changes/' + changeId +
-                        '/reviewers/' + reviewerId[email],
-                        checkAddRemoveLists,
-                        'Cannot delete reviewer: ' + email);
-          return;
-        }
-      }
-      hideFindOwnersPage();
-      if (needRefresh) {
-        needRefresh = false;
-        (!!Gerrit.refresh) ? Gerrit.refresh() : location.reload();
-      }
-      callServer(showFindOwnersResults);
-    }
-    function applyGetReviewers(reviewerList) {
-      setupReviewersMap(reviewerList);
-      checkAddRemoveLists(); // update and pop up window at the end
-    }
-    function hasStar(owners) {
-      return owners.some(function(owner) {
-        return owner == '*';
+        const group = groups[ownersKey] = groups[ownersKey] || {
+          owners: owners.filter(owner => owner !== '*').map(owner => {
+            this._ownerStatusMap[owner] = this._ownerStatusMap[owner] || {
+              email: owner,
+              name: this._getOwnerName(owner),
+              checked: this._hasOwnerInReviewer(owner),
+            }
+
+            return this._ownerStatusMap[owner];
+          }),
+          files: [],
+          type: groupType,
+        };
+        group.files.push(file);
       });
-    }
-    function hasNamedOwner(owners) {
-      return owners.some(function(owner) {
-        return owner != '*';
-      });
-    }
-    function hasOwnerReviewer(reviewers, owners) {
-      return owners.some(function(owner) {
-        return owner in reviewers;
-      });
-    }
-    function hasOwnerApproval(votes, owners) {
-      var foundApproval = false;
-      for (var j = 0; j < owners.length; j++) {
-        if (owners[j] in votes) {
-          var v = votes[owners[j]];
-          if (v < 0) {
-            return false; // cannot have any negative vote
+
+      // files that has no owner info
+      if (ownersResponse.files.length > filesWithOwners.length) {
+        const noOwnerGroup = groups['*'] = groups['*'] || {
+          owners: [],
+          files: [],
+          type: GROUP_TYPE.HAS_NO_OWNER,
+        };
+
+        ownersResponse.files.forEach(file => {
+          if (!ownersResponse.file2owners[file]) {
+            noOwnerGroup.files.push(file);
           }
-          foundApproval |= v >= minVoteLevel;
+        });
+      }
+
+      this._fileGroups = Object.values(Object.keys(groups)
+        .reduce((typeGroups, groupKey) => {
+          const group = groups[groupKey];
+          typeGroups[group.type] = typeGroups[group.type] || {
+            title: FILE_GROUP_TITLES[group.type],
+            sections: [],
+          };
+
+          const j = typeGroups[group.type].sections.length;
+          typeGroups[group.type].sections.push({
+            files: group.files,
+            owners: group.owners
+          });
+
+          return typeGroups;
+        }, {}));
+    },
+
+    _checkboxChanges($event) {
+      const owner = $event.model.owner;
+      const checked = $event.target.checked;
+      if (this._reviewerChanges[owner.email]) {
+        // Reset the change back to original
+        delete this._reviewerChanges[owner.email];
+      } else {
+        this._reviewerChanges[owner.email] = {
+          status: checked ? REVIEWER_STATUS.ADDED : REVIEWER_STATUS.REMOVED,
+        };
+      }
+
+      owner.checked = checked;
+
+      // re-compute the status for all checkboxes
+      this.set('_fileGroups', this._fileGroups.slice());
+
+      this._showApplyBtn = !!Object.keys(this._reviewerChanges).length;
+    },
+
+    /**
+     * fileGroups is not used, but needed,
+     * as this compute should be re-evaluated once it changed.
+     */
+    _computedStatusForOwner(owner, fileGroups) {
+      return owner.checked;
+    },
+
+    _computeSectionTooltip(section) {
+      return section.files.join(';');
+    },
+
+    _computeSectionTitle(section) {
+      return `${section.files[0]} ${section.files.length > 1 ?
+        `(${section.files.length} files)` : ''}:`;
+    },
+
+    _hasStar(owners) {
+      return owners.some((owner) => owner === '*');
+    },
+
+    _hasNamedOwner(owners) {
+      return owners.some((owner) => owner !== '*');
+    },
+
+    _hasOwnerReviewer(owners) {
+      return owners.some((owner) => this._reviewerIdMap[owner]);
+    },
+
+    _hasOwnerApproval(owners, minVoteLevel) {
+      let foundApproval = false;
+      for (let i = 0; i < owners.length; i++) {
+        const vote = this._reviewerVoteMap[owners[i]];
+        if (vote === undefined) continue;
+        if (vote < 0) {
+          return false; // cannot have any negative vote
         }
+        foundApproval |= vote >= minVoteLevel;
       }
       return foundApproval;
-    }
-    function isExemptedFromOwnerApproval() {
-      return message.match(/(Exempted|Exempt)-From-Owner-Approval:/);
-    }
-    function showDiv(div, text) {
-      div.style.display = 'inline';
-      div.innerHTML = text;
-    }
-    function strElement(s) {
-      var e = document.createElement('span');
-      e.innerHTML = s;
-      return e;
-    }
-    function br() {
-      return document.createElement('br');
-    }
-    function hr() {
-      return document.createElement('hr');
-    }
-    function newButton(name, action) {
-      var b = document.createElement('button');
-      b.appendChild(document.createTextNode(name));
-      b.className = BUTTON_STYLE;
-      b.onclick = action;
-      return b;
-    }
-    function showJsonLines(args, key, obj) {
-      showBoldKeyValueLines(args, key, JSON.stringify(obj, null, 2));
-    }
-    function showBoldKeyValueLines(args, key, value) {
-      args.push(hr(), strElement('<b>' + key + '</b>:'), br());
-      value.split('\n').forEach(function(line) {
-        args.push(strElement(line), br());
+    },
+
+    _isExemptedFromOwnerApproval(revision) {
+      if (!revision) return false;
+      return revision.commit.message.match(/(Exempted|Exempt)-From-Owner-Approval:/);
+    },
+
+    /**
+     * Alias to `JSON.stringify`, always preserve whitespaces
+     * @param {*} obj
+     */
+    stringify(obj) {
+      return JSON.stringify(obj, null, 2);
+    },
+
+    _cancelChanges() {
+      this.close();
+    },
+
+    _applyChanges() {
+      const promises = [];
+      Object.keys(this._reviewerChanges).forEach(reviewer => {
+        const changeStatus = this._reviewerChanges[reviewer.status];
+        if (changeStatus === REVIEWER_STATUS.ADDED) {
+          promises.push(this._addReviewer(reviewer));
+        } else if (changeStatus === REVIEWER_STATUS.REMOVED) {
+          promises.push(this._removeReviewer(reviewer));
+        }
       });
-    }
-    function showDebugMessages(result, args) {
-      function addKeyValue(key, value) {
-        args.push(strElement('<b>' + key + '</b>: ' + value + '<br>'));
-      }
-      args.push(hr());
-      addKeyValue('changeId', changeId);
-      addKeyValue('project', project);
-      addKeyValue('branch', branch);
-      addKeyValue('changeOwner.email', changeOwner.email);
-      addKeyValue('Gerrit.url', Gerrit.url());
-      addKeyValue('self.url', self.url());
-      showJsonLines(args, 'changeOwner', change.owner);
-      showBoldKeyValueLines(args, 'commit.message', message);
-      showJsonLines(args, 'Client reviewers Ids', reviewerId);
-      showJsonLines(args, 'Client reviewers Votes', reviewerVote);
-      Object.keys(result).forEach(function(k) {
-        showJsonLines(args, 'Server.' + k, result[k]);
+
+      return Promise.all(promises).then(() => {
+        this._showAlert('All reviewers added!');
+      }).catch(e => {
+        this._showAlert(`An error occured when updating reviewers: ${e}`);
       });
-    }
-    function showFilesAndOwners(result, args) {
-      var sortedOwners = result.owners.map(
-          function(ownerInfo) { return ownerInfo.email; });
-      var groups = {}; // a map from group_name to
-          // {'type': 0..(NUM_GROUP_TYPES-1),
-          //  'size': num_of_files_in_this_group,
-          //  'owners': space_separated_owner_emails}
-      var header = emptyDiv(HEADER_DIV_ID);
-      var groupTypeDiv = Array(NUM_GROUP_TYPES);
-      for (var i = 0; i < NUM_GROUP_TYPES; i++) {
-        groupTypeDiv[i] = emptyDiv(GROUP_TYPE_DIV_ID[i]);
-      }
-      addApplyButton();
-      args.push(newButton('Cancel', hideFindOwnersPage));
-      var ownersDiv = emptyDiv(OWNERS_DIV_ID);
-      var numCheckBoxes = 0;
-      var owner2boxes = {}; // owner name ==> array of checkbox id
-      var owner2email = {}; // owner name ==> email address
-      minVoteLevel =
-          ('minOwnerVoteLevel' in result ? result.minOwnerVoteLevel : 1);
+    },
 
-      function addApplyButton() {
-        var apply = newButton('Apply', doApplyButton);
-        apply.id = APPLY_BUTTON_ID;
-        apply.style.display = 'none';
-        args.push(apply);
-      }
-      function emptyDiv(id) {
-        var e = document.createElement('div');
-        e.id = id;
-        e.style.display = 'none';
-        args.push(e);
-        return e;
-      }
-      function doApplyButton() {
-        addList = [];
-        removeList = [];
-        // add each owner's email address to addList or removeList
-        Object.keys(owner2boxes).forEach(function(owner) {
-          (getElement(owner2boxes[owner][0]).checked ?
-              addList : removeList).push(owner2email[owner]);
+    _showAlert(msg) {
+      document.dispatchEvent(new CustomEvent('show-alert', {
+        detail: {
+          message: msg,
+        },
+      }));
+    },
+
+    _addReviewer(email) {
+      return this.restApi.post(`/changes/${this.change._number}/reviewers`, {
+        'reviewer': email
+      });
+    },
+
+    _removeReviewer(email) {
+      return this.restApi.delete(`/changes/${this.change._number}` +
+        `/reviewers/${this._reviewerIdMap[email]}`).catch(e => {
+          alert(`Cannot delete reviewer: ${email}`);
         });
-        getReviewers(changeId, applyGetReviewers);
+    },
+
+    close() {
+      Polymer.IronOverlayBehaviorImpl.close.apply(this);
+    },
+  });
+
+  // refers to the gr-find-owners element
+  let findOwnersEle = null;
+  let loadingToast = null;
+  // refers to find owners action key
+  let actionKey = null;
+
+  Gerrit.install((plugin) => {
+    const restApi = plugin.restApi();
+
+    /**
+     * Shows the overlay with file and owners info.
+     * @param {*} change
+     * @param {*} revision
+     * @param {boolean} fromSubmit
+     */
+    function popupFindOwnersPage(change, revision, fromSubmit) {
+      if (findOwnersEle) {
+        findOwnersEle.remove();
       }
-      function clickBox(event) {
-        var name = event.target.value;
-        var checked = event.target.checked;
-        var others = owner2boxes[name];
-        others.forEach(function(id) { getElement(id).checked = checked; });
-        getElement(APPLY_BUTTON_ID).style.display = 'inline';
-      }
-      function addGroupsToDiv(div, keys, title) {
-        if (keys.length <= 0) {
-          div.style.display = 'none';
-          return;
-        }
-        div.innerHTML = '';
-        div.style.display = 'inline';
-        div.appendChild(strElement(title));
-        function addOwner(ownerEmail) {
-          if (ownerEmail == '*') {
-            return; // no need to list/select '*'
-          }
-          numCheckBoxes++;
-          var name = ownerEmail.replace(/@[^ ]*/g, '');
-          owner2email[name] = ownerEmail;
-          var id = CHECKBOX_ID + ':' + numCheckBoxes;
-          if (!(name in owner2boxes)) {
-            owner2boxes[name] = [];
-          }
-          owner2boxes[name].push(id);
-          var box = document.createElement('input');
-          box.type = 'checkbox';
-          box.checked = (ownerEmail in reviewerId);
-          box.id = id;
-          box.value = name;
-          box.onclick = clickBox;
-          div.appendChild(strElement('&nbsp;&nbsp; '));
-          var nobr = document.createElement('nobr');
-          nobr.appendChild(box);
-          nobr.appendChild(strElement(name));
-          div.appendChild(nobr);
-        }
-        keys.forEach(function(key) {
-          var owners = groups[key].owners; // string of owner emails
-          var numFiles = groups[key].size;
-          var item = HTML_BULLET + '&nbsp;<b>' + key + '</b>' +
-              ((numFiles > 1) ? (' (' + numFiles + ' files)') : '');
-          var setOfOwners = new Set(owners.split(' '));
-          function add2list(list, email) {
-            if (setOfOwners.has(email)) {
-              list.push(email);
-            }
-            return list;
-          }
-          var reducedList = sortedOwners.reduce(add2list, []);
-          if (hasNamedOwner(reducedList)) {
-            item += ':';
-          }
-          div.appendChild(strElement(item));
-          reducedList.forEach(addOwner);
-          div.appendChild(br());
-        });
-      }
-      function addOwnersDiv(div, title) {
-        div.innerHTML = '';
-        div.style.display = 'inline';
-        div.appendChild(strElement(title));
-        function compareOwnerInfo(o1, o2) {
-          return o1.email.localeCompare(o2.email);
-        }
-        result.owners.sort(compareOwnerInfo).forEach(function(ownerInfo) {
-          var email = ownerInfo.email;
-          if (email != '*') { // do not list special email *
-            var vote = reviewerVote[email];
-            if ((email in reviewerVote) && vote != 0) {
-              email += ' <font color="' +
-                  ((vote > 0) ? 'green">(+' : 'red">(') + vote + ')</font>';
-            }
-            div.appendChild(strElement('&nbsp;&nbsp;' + email + '<br>'));
-          }
-        });
-      }
-      function updateDivContent() {
-        var listOfGroup = Array(NUM_GROUP_TYPES);
-        for (var i = 0; i < NUM_GROUP_TYPES; i++) {
-          listOfGroup[i] = [];
-        }
-        Object.keys(groups).sort().forEach(function(key) {
-          listOfGroup[groups[key].type].push(key);
-        });
-        showDiv(header, isExemptedFromOwnerApproval() ? HTML_IS_EXEMPTED :
-            ((onSubmit ? HTML_ONSUBMIT_HEADER : '') + HTML_SELECT_REVIEWERS));
-        numCheckBoxes = 0;
-        owner2boxes = {};
-        for (var i = 0; i < NUM_GROUP_TYPES; i++) {
-          addGroupsToDiv(groupTypeDiv[i], listOfGroup[i], HTML_GROUP_TYPE_HEADER[i]);
-        }
-        addOwnersDiv(ownersDiv, HTML_OWNERS_HEADER);
-      }
-      function createGroups() {
-        var owners2group = {}; // owner list to group name
-        var firstNoOwnerFile = null;
-        var keysOfFile2Owners = Object.keys(result.file2owners);
-        keysOfFile2Owners.sort().forEach(function(name) {
-          var splitOwners = result.file2owners[name];
-          var owners = splitOwners.join(' ');
-          if (owners in owners2group) {
-            groups[owners2group[owners]].size += 1;
-          } else {
-            owners2group[owners] = name;
-            var type;
-            if (!hasNamedOwner(splitOwners)) {
-              firstNoOwnerFile = name;
-              type = GROUP_TYPE.HAS_NO_OWNER;
-            } else if (hasOwnerApproval(reviewerVote, splitOwners)) {
-              type = GROUP_TYPE.OWNER_APPROVED;
-            } else if (hasStar(splitOwners)) {
-              type = GROUP_TYPE.STAR_APPROVED;
-            } else if (!hasOwnerReviewer(reviewerId, splitOwners)) {
-              type = GROUP_TYPE.NEED_REVIEWER;
-            } else {
-              type = GROUP_TYPE.NEED_APPROVAL;
-            }
-            groups[name] = {'type':type, 'size':1, 'owners':owners};
-          }
-        });
-        var numNoOwnerFiles = result.files.length - keysOfFile2Owners.length;
-        if (keysOfFile2Owners.length > 0 && numNoOwnerFiles > 0) {
-          if (!!firstNoOwnerFile) {
-            // count other files as HAS_NO_OWNER
-            groups[firstNoOwnerFile].size += numNoOwnerFiles;
-          } else {
-            // use one of the no-owner-file as group name
-            for (var i = 0; i < result.files.length; i++) {
-              var name = result.files[i];
-              if (!(name in result.file2owners) &&
-                  !(('./' + name) in result.file2owners)) {
-                groups[name] = {
-                  'type': GROUP_TYPE.HAS_NO_OWNER,
-                  'size': numNoOwnerFiles,
-                  'owners': '*',
-                };
-                break;
-              }
-            }
-          }
-        }
-      }
-      createGroups();
-      updateDivContent();
-    }
-    function showFindOwnersResults(result) {
-      function prepareElements() {
-        var elems = [];
-        var text = Object.keys(result.file2owners).length <= 0 ? HTML_NO_OWNER : null;
-        useContextPopup = !!context && !!text && !!context.popup;
-        if (!!text) {
-          if (useContextPopup) {
-            elems.push(hr(), strElement(text), hr());
-            var onClick = function() { context.hide(); };
-            elems.push(context.button('OK', {onclick: onClick}), hr());
-          } else {
-            elems.push(strElement(text), newButton('OK', hideFindOwnersPage));
-          }
-        } else {
-          showFilesAndOwners(result, elems);
-          if (result.addDebugMsg) {
-            showDebugMessages(result, elems);
-          }
-        }
-        return elems;
-      }
-      function popupWindow(reviewerList) {
-        setupReviewersMap(reviewerList);
-        var elems = prepareElements();
-        if (useContextPopup) {
-          context.popup(context.div.apply(this, elems));
-        } else {
-          while (pageDiv.firstChild) {
-            pageDiv.removeChild(pageDiv.firstChild);
-          }
-          elems.forEach(function(e) { pageDiv.appendChild(e); });
-          pageDiv.className = LARGE_PAGE_STYLE;
-          // Calculate required height, limited to 85% of window height,
-          // and required width, limited to 75% of window width.
-          var maxHeight = Math.round(window.innerHeight * 0.85);
-          var maxWidth = Math.round(window.innerWidth * 0.75);
-          pageDiv.style.top = '5%';
-          pageDiv.style.height = 'auto';
-          pageDiv.style.left = '10%';
-          pageDiv.style.width = 'auto';
-          var rect = pageDiv.getBoundingClientRect();
-          if (rect.width > maxWidth) {
-            pageDiv.style.width = maxWidth + 'px';
-            rect = pageDiv.getBoundingClientRect();
-          }
-          pageDiv.style.left = Math.round((window.innerWidth - rect.width) / 2) + 'px';
-          if (rect.height > maxHeight) {
-            pageDiv.style.height = maxHeight + 'px';
-            rect = pageDiv.getBoundingClientRect();
-          }
-          pageDiv.style.top = Math.round((window.innerHeight - rect.height) / 2) + 'px';
-          pageDiv.style.visibility = 'visible';
-        }
-      }
-      getReviewers(changeId, popupWindow);
-    }
-    function callServer(callBack) {
-      // Use the plugin REST API; pass only changeId;
-      // let server get current patch set, project and branch info.
-      restApiGet('/changes/' + changeId + '/owners', callBack);
+
+      findOwnersEle = document.createElement('gr-find-owners');
+      document.body.appendChild(findOwnersEle);
+
+      findOwnersEle.change = change;
+      findOwnersEle.revision = revision;
+      findOwnersEle.restApi = restApi;
+      findOwnersEle.fromSubmit = fromSubmit;
+
+      loadingToast = document.createElement('gr-alert');
+      loadingToast.toast = true;
+      loadingToast.show('Loading owners info for this change ...', '');
+      findOwnersEle.open();
     }
 
-    callServer(showFindOwnersResults);
-  }
-  function onSubmit(change, revision) {
-    const OWNER_REVIEW_LABEL = 'Owner-Review-Vote';
-    if (change.labels.hasOwnProperty(OWNER_REVIEW_LABEL)) {
-      // Pop up Find Owners page; do not submit.
-      popupFindOwnersPage(null, change, revision, true);
-      return false;
+    if (window.Polymer) {
+      plugin.on('showchange', (change, revision) => {
+        const changeActions = plugin.changeActions();
+        // hide previous 'Find Owners' button under 'MORE'
+        changeActions.setActionHidden('revision', 'find-owners~find-owners', true);
+        if (actionKey) {
+          changeActions.removeTapListener(actionKey);
+          changeActions.remove(actionKey);
+        }
+        actionKey = changeActions.add('revision', '[FIND OWNERS]');
+        changeActions.setIcon(actionKey, 'robot');
+        changeActions.setTitle(actionKey, 'Find owners of changed files');
+        changeActions.addTapListener(actionKey,
+          () => popupFindOwnersPage(change, revision, false));
+      });
+    } else {
+      console.log('WARNING, no [FIND OWNERS] button');
     }
-    return true; // Okay to submit.
-  }
-  var actionKey = null;
-  function onShowChangePolyGerrit(change, revision) {
-    var changeActions = self.changeActions();
-    // Hide previous 'Find Owners' button under 'MORE'.
-    changeActions.setActionHidden('revision', 'find-owners~find-owners', true);
-    if (!!actionKey) {
-      changeActions.removeTapListener(actionKey);
-      changeActions.remove(actionKey);
-    }
-    actionKey = changeActions.add('revision', '[FIND OWNERS]');
-    changeActions.setIcon(actionKey, 'robot');
-    changeActions.setTitle(actionKey, 'Find owners of changed files');
-    changeActions.addTapListener(actionKey,
-        (e) => {
-          if (e) e.stopPropagation();
 
-          popupFindOwnersPage(null, change, revision, false);
-        });
-  }
-  function onClick(event) {
-    if (pageDiv.style.visibility != 'hidden' && !useContextPopup) {
-      var x = event.clientX;
-      var y = event.clientY;
-      var rect = pageDiv.getBoundingClientRect();
-      if (x < rect.left || x >= rect.left + rect.width ||
-          y < rect.top || y >= rect.top + rect.height) {
-        hideFindOwnersPage();
+    // when the "Submit" button is clicked, call onSubmit
+    plugin.on('submitchange', (change, revision) => {
+      const OWNER_REVIEW_LABEL = 'Owner-Review-Vote';
+      if (change.labels.hasOwnProperty(OWNER_REVIEW_LABEL)) {
+        // pop up Find Owners page; do not submit
+        popupFindOwnersPage(change, revision, true);
+        return false;
       }
-    }
-  }
-  if (window.Polymer) {
-    self.on('showchange', onShowChangePolyGerrit);
-  } else {
-    console.log('WARNING, no [FIND OWNERS] button');
-  }
-  // When the "Submit" button is clicked, call onSubmit.
-  self.on('submitchange', onSubmit);
-  // Clicks outside the pop up window should close the window.
-  document.body.addEventListener('click', onClick);
-  // Leaving page should close the window.
-  window.addEventListener('popstate', hideFindOwnersPage);
-});
+      return true; // okay to submit
+    });
+
+    window.addEventListener('popstate', () => {
+      if (findOwnersEle) {
+        findOwnersEle.remove();
+        findOwnersEle = null;
+      }
+    });
+  });
+})(window);
