@@ -82,6 +82,24 @@
     },
     {
       "key": {
+        "uuid": "a5318903_d6e3f2f3",
+        "filename": "src/main/resources/static/find-owners.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1086906
+      },
+      "writtenOn": "2020-01-20T11:31:52Z",
+      "side": 1,
+      "message": "ya i try to not use elements from gerrit (except the gr-button) in plugin. but since its core, i guess it should be fine",
+      "parentUuid": "16ea1b4c_ec102c1a",
+      "revId": "1511a62b1418a768b758f65b37726bb29a29db6f",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "0384d9b3_4a831e7e",
         "filename": "src/main/resources/static/find-owners.js",
         "patchSetId": 4
