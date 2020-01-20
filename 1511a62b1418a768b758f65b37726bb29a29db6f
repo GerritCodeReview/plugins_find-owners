@@ -1,0 +1,107 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b4c0ad43_6f5810cc",
+        "filename": "src/main/resources/static/find-owners.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1013302
+      },
+      "writtenOn": "2020-01-20T11:15:33Z",
+      "side": 1,
+      "message": "All margins and paddings in this file should be based on --spacing vars. You probably want to choose between m and l:\n--spacing-m: 8px;\n--spacing-l: 12px;",
+      "revId": "1511a62b1418a768b758f65b37726bb29a29db6f",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c365526f_c0c73059",
+        "filename": "src/main/resources/static/find-owners.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1013302
+      },
+      "writtenOn": "2020-01-20T11:15:33Z",
+      "side": 1,
+      "message": "I think you should remove all the fallback values. Better to break than to silently use fallback colors.",
+      "range": {
+        "startLine": 23,
+        "startChar": 56,
+        "endLine": 23,
+        "endChar": 62
+      },
+      "revId": "1511a62b1418a768b758f65b37726bb29a29db6f",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fd513527_7a2419f8",
+        "filename": "src/main/resources/static/find-owners.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1013302
+      },
+      "writtenOn": "2020-01-20T11:15:33Z",
+      "side": 1,
+      "message": "maybe 90vw",
+      "range": {
+        "startLine": 25,
+        "startChar": 19,
+        "endLine": 25,
+        "endChar": 23
+      },
+      "revId": "1511a62b1418a768b758f65b37726bb29a29db6f",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "16ea1b4c_ec102c1a",
+        "filename": "src/main/resources/static/find-owners.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1013302
+      },
+      "writtenOn": "2020-01-20T11:15:33Z",
+      "side": 1,
+      "message": "It would be best to re-use gr-overlay and gr-dialog for this plugin. gr-checkers-list does that for example.",
+      "revId": "1511a62b1418a768b758f65b37726bb29a29db6f",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0384d9b3_4a831e7e",
+        "filename": "src/main/resources/static/find-owners.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 500,
+      "author": {
+        "id": 1013302
+      },
+      "writtenOn": "2020-01-20T11:15:33Z",
+      "side": 1,
+      "message": "This should be using plugin.popup(), which uses GrPopupInterface, which uses \u003cgr-plugin-popup\u003e, which uses \u003cgr-overlay\u003e.",
+      "range": {
+        "startLine": 500,
+        "startChar": 13,
+        "endLine": 500,
+        "endChar": 32
+      },
+      "revId": "1511a62b1418a768b758f65b37726bb29a29db6f",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    }
+  ]
+}
