@@ -18,6 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.google.gerrit.acceptance.testsuite.project.TestProjectUpdate.block;
 import static com.google.gerrit.entities.RefNames.REFS_CONFIG;
 import static com.google.gerrit.server.group.SystemGroupBackend.REGISTERED_USERS;
+import static com.google.gerrit.server.project.ProjectCache.illegalState;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.gerrit.acceptance.LightweightPluginDaemonTest;
@@ -175,7 +176,7 @@ public abstract class FindOwners extends LightweightPluginDaemonTest {
         cache.get(
             true,
             null,
-            projectCache.get(project),
+            projectCache.get(project).orElseThrow(illegalState(project)),
             accountCache,
             emails,
             repoManager,
@@ -264,7 +265,7 @@ public abstract class FindOwners extends LightweightPluginDaemonTest {
     // This function is called repeatedly in ConfigIT without recreating config.
     // So, here we recreate config, to get the latest owners file name.
     setConfig();
-    return config.getOwnersFileName(projectCache.get(name), null);
+    return config.getOwnersFileName(projectCache.get(name).orElseThrow(illegalState(name)));
   }
 
   protected Cache getCache() {
