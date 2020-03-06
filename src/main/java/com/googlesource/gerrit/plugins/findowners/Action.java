@@ -14,6 +14,7 @@
 
 package com.googlesource.gerrit.plugins.findowners;
 
+import static com.google.gerrit.server.project.ProjectCache.illegalState;
 import static java.util.stream.Collectors.toList;
 
 import com.google.common.collect.Streams;
@@ -160,7 +161,8 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
   public Response<RestResult> getChangeData(Parameters params, ChangeData changeData)
       throws BadRequestException {
     int patchset = getValidPatchsetNum(changeData, params.patchset);
-    ProjectState projectState = projectCache.get(changeData.project());
+    ProjectState projectState =
+        projectCache.get(changeData.project()).orElseThrow(illegalState(changeData.project()));
     Boolean useCache = params.nocache == null || !params.nocache;
     OwnersDb db =
         Cache.getInstance(config, repoManager)
