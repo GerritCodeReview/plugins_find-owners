@@ -7,13 +7,12 @@ load(
     "gerrit_plugin",
 )
 
+MODULE = ["src/main/java/com/googlesource/gerrit/plugins/findowners/Module.java"]
+
 prolog_cafe_library(
     name = "find_owners_prolog_rules",
     srcs = glob(["src/main/prolog/*.pl"]),
-    deps = [
-        ":find_owners",
-        "//prolog:gerrit-prolog-common",
-    ],
+    deps = PLUGIN_DEPS_NEVERLINK + [":find_owners"],
 )
 
 FIND_OWNERS_SRCS = glob(["src/main/java/**/*.java"])
@@ -29,7 +28,7 @@ java_library(
 
 gerrit_plugin(
     name = "find-owners",
-    srcs = FIND_OWNERS_SRCS,
+    srcs = MODULE,
     manifest_entries = [
         "Gerrit-PluginName: find-owners",
         "Gerrit-ReloadMode: restart",
@@ -39,7 +38,7 @@ gerrit_plugin(
         "Implementation-URL: https://gerrit.googlesource.com/plugins/find-owners",
     ],
     resources = glob(["src/main/resources/**/*"]),
-    deps = FIND_OWNERS_DEPS + [":find_owners_prolog_rules"],
+    deps = [":find_owners", ":find_owners_prolog_rules"],
 )
 
 # Libraries used by all find-owners junit tests.
@@ -73,21 +72,21 @@ java_library(
 java_library(
     name = "find_owners_IT",
     testonly = 1,
-    srcs = glob(["src/test/java/**/FindOwners.java"]),
+    srcs = MODULE + glob(["src/test/java/**/FindOwners.java"]),
     deps = FIND_OWNERS_TESTS_DEPS + FIND_OWNERS_IT_DEPS,
 )
 
 # Simple fast junit non-IT tests.
 junit_tests(
     name = "findowners_junit_tests",
+    size = "small",
     srcs = glob(["src/test/java/**/*Test.java"]),
     deps = FIND_OWNERS_TESTS_DEPS + [":find_owners_junit"],
 )
 
-# IT tests.
 junit_tests(
     name = "findowners_IT_tests",
+    size = "large",
     srcs = glob(["src/test/java/**/*IT.java"]),
-    shard_count = 4,
     deps = FIND_OWNERS_IT_TESTS_DEPS + FIND_OWNERS_TESTS_DEPS,
 )
