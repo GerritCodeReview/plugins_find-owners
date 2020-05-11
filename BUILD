@@ -2,34 +2,36 @@ load("//lib/prolog:prolog.bzl", "prolog_cafe_library")
 load("//tools/bzl:junit.bzl", "junit_tests")
 load(
     "//tools/bzl:plugin.bzl",
+    "PLUGIN_DEPS",
     "PLUGIN_DEPS_NEVERLINK",
     "PLUGIN_TEST_DEPS",
     "gerrit_plugin",
 )
 
-prolog_cafe_library(
-    name = "find_owners_prolog_rules",
-    srcs = glob(["src/main/prolog/*.pl"]),
-    deps = [
-        ":find_owners",
-        "//prolog:gerrit-prolog-common",
+MODULE = ["src/main/java/com/googlesource/gerrit/plugins/findowners/Module.java"]
+
+java_library(
+    name = "find-owners-lib",
+    srcs = glob(
+        ["src/main/java/**/*.java"],
+        exclude = MODULE,
+    ),
+    deps = PLUGIN_DEPS_NEVERLINK + [
+        "@prolog-runtime//jar:neverlink",
     ],
 )
 
-FIND_OWNERS_SRCS = glob(["src/main/java/**/*.java"])
-
-FIND_OWNERS_DEPS = ["@prolog-runtime//jar:neverlink"]
-
-java_library(
-    name = "find_owners",
-    srcs = FIND_OWNERS_SRCS,
-    resources = glob(["src/main/resources/**/*"]),
-    deps = FIND_OWNERS_DEPS + PLUGIN_DEPS_NEVERLINK,
+prolog_cafe_library(
+    name = "find-owners-prolog-rules",
+    srcs = glob(["src/main/prolog/*.pl"]),
+    deps = PLUGIN_DEPS_NEVERLINK + [
+        ":find-owners-lib",
+    ],
 )
 
 gerrit_plugin(
     name = "find-owners",
-    srcs = FIND_OWNERS_SRCS,
+    srcs = MODULE,
     manifest_entries = [
         "Gerrit-PluginName: find-owners",
         "Gerrit-ReloadMode: restart",
@@ -39,55 +41,52 @@ gerrit_plugin(
         "Implementation-URL: https://gerrit.googlesource.com/plugins/find-owners",
     ],
     resources = glob(["src/main/resources/**/*"]),
-    deps = FIND_OWNERS_DEPS + [":find_owners_prolog_rules"],
+    deps = [
+        ":find-owners-lib",
+        ":find-owners-prolog-rules",
+    ],
 )
 
-# Libraries used by all find-owners junit tests.
-FIND_OWNERS_TESTS_DEPS = PLUGIN_TEST_DEPS
-
-FIND_OWNERS_TESTS_DEPS = FIND_OWNERS_TESTS_DEPS + [
-    ":find_owners",
-]
-
-# Base find_owners_IT library depends on these Gerrit IT acceptance libraries.
-FIND_OWNERS_IT_DEPS = [
-    "@commons-io//jar",
-]
-
-# All IT tests need the find_owners_IT and find_owners_IT libraries.
-FIND_OWNERS_IT_TESTS_DEPS = FIND_OWNERS_IT_DEPS + [
-    ":find_owners_IT",
-    ":find_owners_junit",
-    ":find_owners_prolog_rules",
-]
-
-# Utilities for junit tests.
 java_library(
-    name = "find_owners_junit",
+    name = "find-owners-junit",
     testonly = 1,
     srcs = glob(["src/test/java/**/Watcher.java"]),
-    deps = FIND_OWNERS_TESTS_DEPS,
+    deps = PLUGIN_TEST_DEPS,
 )
 
-# Base class and utilities for IT tests.
 java_library(
-    name = "find_owners_IT",
+    name = "find-owners-IT",
     testonly = 1,
     srcs = glob(["src/test/java/**/FindOwners.java"]),
-    deps = FIND_OWNERS_TESTS_DEPS + FIND_OWNERS_IT_DEPS,
+    deps = PLUGIN_TEST_DEPS + [
+        ":find-owners-junit",
+        ":find-owners-lib",
+        ":find-owners__plugin",
+    ],
 )
 
-# Simple fast junit non-IT tests.
+# Separate fast junit tests from slow interation (IT) tests.
 junit_tests(
     name = "findowners_junit_tests",
     srcs = glob(["src/test/java/**/*Test.java"]),
-    deps = FIND_OWNERS_TESTS_DEPS + [":find_owners_junit"],
+    tags = ["findowners"],
+    deps = PLUGIN_DEPS + PLUGIN_TEST_DEPS + [
+        "@commons-io//jar",
+        ":find-owners-junit",
+        ":find-owners-lib",
+    ],
 )
 
-# IT tests.
 junit_tests(
     name = "findowners_IT_tests",
     srcs = glob(["src/test/java/**/*IT.java"]),
-    shard_count = 4,
-    deps = FIND_OWNERS_IT_TESTS_DEPS + FIND_OWNERS_TESTS_DEPS,
+    tags = ["findowners"],
+    deps = PLUGIN_DEPS + PLUGIN_TEST_DEPS + [
+        "@commons-io//jar",
+        ":find-owners-IT",
+        ":find-owners-junit",
+        ":find-owners-lib",
+        ":find-owners-prolog-rules",
+        ":find-owners__plugin",
+    ],
 )
