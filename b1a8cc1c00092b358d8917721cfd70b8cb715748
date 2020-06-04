@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8c20b5cd_418a118c",
+        "filename": "src/main/resources/static/find-owners.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1013302
+      },
+      "writtenOn": "2020-06-04T18:45:56Z",
+      "side": 1,
+      "message": "Nit: Maybe create... instead of get... for all methods.",
+      "range": {
+        "startLine": 48,
+        "startChar": 10,
+        "endLine": 48,
+        "endChar": 23
+      },
+      "revId": "b1a8cc1c00092b358d8917721cfd70b8cb715748",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    }
+  ]
+}
