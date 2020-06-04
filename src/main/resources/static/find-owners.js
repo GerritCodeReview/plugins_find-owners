@@ -230,7 +230,7 @@ Gerrit.install(function(self) {
     }
     function strElement(s) {
       var e = document.createElement('span');
-      e.textContent = s;
+      e.innerHTML = s;
       return e;
     }
     function br() {
@@ -338,7 +338,7 @@ Gerrit.install(function(self) {
           div.style.display = 'none';
           return;
         }
-        div.textContent = '';
+        div.innerHTML = '';
         div.style.display = 'inline';
         div.appendChild(strElement(title));
         function addOwner(itemDiv, ownerEmail) {
@@ -393,7 +393,7 @@ Gerrit.install(function(self) {
         div.lastElementChild.style.paddingBottom = '0.5em';
       }
       function addOwnersDiv(div, title) {
-        div.textContent = '';
+        div.innerHTML = '';
         div.style.display = 'inline';
         div.appendChild(strElement(title));
         function compareOwnerInfo(o1, o2) {
@@ -425,7 +425,7 @@ Gerrit.install(function(self) {
 
         // Add message to header div and make visible.
         let headerMessageDiv = document.createElement('div');
-        headerMessageDiv.textContent = isExemptedFromOwnerApproval() ? HTML_IS_EXEMPTED :
+        headerMessageDiv.innerHTML = isExemptedFromOwnerApproval() ? HTML_IS_EXEMPTED :
             ((onSubmit ? HTML_ONSUBMIT_HEADER : '') + HTML_SELECT_REVIEWERS);
         header.appendChild(headerMessageDiv);
         header.style.display = 'inline';
