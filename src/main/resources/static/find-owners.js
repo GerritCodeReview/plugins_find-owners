@@ -33,8 +33,7 @@ Gerrit.install(function(self) {
         'position: fixed;' +
         'z-index: 100;' +
         'overflow: auto;' +
-        'padding: ' + PADDING + 'px;'
-        );
+        'padding: ' + PADDING + 'px;');
     const BUTTON_STYLE = Gerrit.css(
         'background-color: #4d90fe;' +
         'border: 2px solid;' +
@@ -45,26 +44,55 @@ Gerrit.install(function(self) {
         'font-weight: bold;' +
         'color: #fff;' +
         '-webkit-border-radius: 2px;' +
-        'cursor: pointer;'
-        );
-    const HTML_BULLET = '<small>&#x2605;</small>'; // a Black Star
-    const HTML_IS_EXEMPTED =
-        '<b>This change is Exempt-From-Owner-Approval.</b><br>';
+        'cursor: pointer;');
+    const createElWithText = (tagName, text) => {
+      const el = document.createElement(tagName);
+      if (text) el.textContent = text;
+      return el;
+    };
 
-    const HTML_NO_OWNER =
-        '<b>No owner was found for changed files.</b>';
-    const HTML_ONSUBMIT_HEADER =
-        '<b>WARNING: Need owner Code-Review vote before submit.</b><hr>';
-    const HTML_OWNERS_HEADER = '<hr><b>Owners in alphabetical order:</b><br>';
-    const HTML_SELECT_REVIEWERS =
-        '<b>Check the box before owner names to select reviewers, ' +
-        'then click the "Apply" button.' +
-        '</b><br><small>If owner-approval requirement is enabled, ' +
-        'each file needs at least one Code-Review +1 vote from an owner. ' +
-        'Owners listed after a file are ordered by their importance. ' +
-        '(Or declare "<b><span style="font-size:80%;">' +
-        'Exempt-From-Owner-Approval:</span></b> ' +
-        '<i>reasons...</i>" in the Commit Message.)</small><br>';
+    const createBulletEl = () => {
+      return createElWithText('small', '\u2605');  // a Black Star
+    };
+    const createIsExemptedEl = () => {
+      return createElWithText('b', 'This change is Exempt-From-Owner-Approval.');
+    };
+
+    const createNoOwnerEl = () => {
+      return createElWithText('b', 'No owner was found for changed files.');
+    };
+
+    const createOnSubmitHeader = () => {
+      return createElWithText(
+          'b', 'WARNING: Need owner Code-Review vote before submit.');
+    };
+
+    const createOwnersHeaderEl = () => {
+      return createElWithText('b', 'Owners in alphabetical order:');
+    };
+
+    const createSelectReviewersEl = () => {
+      const el = document.createElement('p');
+      el.appendChild(createElWithText(
+          'b',
+          'Check the box before owner names to select reviewers, ' +
+              'then click the "Apply" button.'));
+      el.appendChild(createElWithText('br'));
+      const smallEl = createElWithText(
+          'small',
+          'If owner-approval requirement is enabled, ' +
+              'each file needs at least one Code-Review +1 vote from an owner. ' +
+              'Owners listed after a file are ordered by their importance. ' +
+              '(Or declare "');
+      const smallerEl = createElWithText('b', 'Exempt-From-Owner-Approval:');
+      smallerEl.style.fontSize = '80%';
+      smallEl.appendChild(smallerEl);
+      smallEl.appendChild(createElWithText('i', 'reasons...'));
+      smallEl.appendChild(document.createTextNode('" in the commit message.)'));
+      el.appendChild(smallEl);
+      el.appendChild(createElWithText('br'));
+      return el;
+    };
 
     // Changed files are put into groups.
     // Each group has a unique list of owners and
@@ -72,28 +100,38 @@ Gerrit.install(function(self) {
     // Groups of a type are displayed in one HTML section.
     // Group type names are mapped to ordered numbers starting from 0.
     const GROUP_TYPE = {
-        'NEED_REVIEWER':  0, // no owner in Reviewers list yet
-        'NEED_APPROVAL':  1, // no owner Code-Review +1 yet
-        'STAR_APPROVED':  2, // has '*', no need of owner vote
-        'OWNER_APPROVED': 3, // has owner approval
-        'HAS_NO_OWNER':   4, // no owner at all, only shown with other types
+      'NEED_REVIEWER': 0,   // no owner in Reviewers list yet
+      'NEED_APPROVAL': 1,   // no owner Code-Review +1 yet
+      'STAR_APPROVED': 2,   // has '*', no need of owner vote
+      'OWNER_APPROVED': 3,  // has owner approval
+      'HAS_NO_OWNER': 4,    // no owner at all, only shown with other types
     };
     const NUM_GROUP_TYPES = 5;
 
+    const createGroupTypeHeaderEl = (text) => {
+      const el = createElWithText('span');
+      el.appendChild(createElWithText('hr'));
+      el.appendChild(createElWithText('b', text));
+      el.appendChild(createElWithText('br'));
+      return el;
+    };
     const HTML_GROUP_TYPE_HEADER = [
-        '<hr><b>Files with owners but no owner is in the Reviewers list:</b><br>',
-        '<hr><b>Files with owners but no Code-Review vote from an owner:</b><br>',
-        '<hr><b>Files with owners but can be approved by anyone (*):</b><br>',
-        '<hr><b>Files with +1 or +2 Code-Review vote from owners:</b><br>',
-        '<hr><b>Files without any named owner:</b><br>',
+      createGroupTypeHeaderEl(
+          'Files with owners but no owner is in the Reviewers list:'),
+      createGroupTypeHeaderEl(
+          'Files with owners but no Code-Review vote from an owner:'),
+      createGroupTypeHeaderEl(
+          'Files with owners but can be approved by anyone (*):'),
+      createGroupTypeHeaderEl('Files with +1 or +2 Code-Review vote from owners:'),
+      createGroupTypeHeaderEl('Files without any named owner:'),
     ];
 
     const GROUP_TYPE_DIV_ID = [
-        'FindOwners:NeedReviewer',
-        'FindOwners:NeedApproval',
-        'FindOwners:StarApproved',
-        'FindOwners:OwnerApproved',
-        'FindOwners:HasNoOwner',
+      'FindOwners:NeedReviewer',
+      'FindOwners:NeedApproval',
+      'FindOwners:StarApproved',
+      'FindOwners:OwnerApproved',
+      'FindOwners:HasNoOwner',
     ];
 
     const APPLY_BUTTON_ID = 'FindOwners:Apply';
@@ -108,14 +146,14 @@ Gerrit.install(function(self) {
     const message = revision.commit.message;
     const project = change.project;
 
-    var minVoteLevel = 1; // could be changed by server returned results.
-    var reviewerId = {}; // map from a reviewer's email to account id.
-    var reviewerVote = {}; // map from a reviewer's email to Code-Review vote.
+    var minVoteLevel = 1;   // could be changed by server returned results.
+    var reviewerId = {};    // map from a reviewer's email to account id.
+    var reviewerVote = {};  // map from a reviewer's email to Code-Review vote.
 
     // addList and removeList are used only under applySelections.
-    var addList = []; // remain emails to add to reviewers
-    var removeList = []; // remain emails to remove from reviewers
-    var needRefresh = false; // true if to refresh after checkAddRemoveLists
+    var addList = [];         // remain emails to add to reviewers
+    var removeList = [];      // remain emails to remove from reviewers
+    var needRefresh = false;  // true if to refresh after checkAddRemoveLists
 
     function getElement(id) {
       return document.getElementById(id);
@@ -124,11 +162,11 @@ Gerrit.install(function(self) {
       self.restApi().get('/../..' + url).then(callback);
     }
     function restApiPost(url, data, callback) {
-      self.restApi().post('/../..' + url, data).then(callback) ;
+      self.restApi().post('/../..' + url, data).then(callback);
     }
     function restApiDelete(url, callback, errMessage) {
       self.restApi().delete('/../..' + url).then(callback).catch((e) => {
-          alert(errMessage);
+        alert(errMessage);
       });
     }
     function getReviewers(change, callBack) {
@@ -149,8 +187,8 @@ Gerrit.install(function(self) {
         }
       });
       // Give CL author a default minVoteLevel vote.
-      if (changeOwner != null &&
-          'email' in changeOwner && '_account_id' in changeOwner &&
+      if (changeOwner != null && 'email' in changeOwner &&
+          '_account_id' in changeOwner &&
           (!(changeOwner.email in reviewerId) ||
            reviewerVote[changeOwner.email] == 0)) {
         reviewerId[changeOwner.email] = changeOwner._account_id;
@@ -168,9 +206,9 @@ Gerrit.install(function(self) {
           // Gerrit core UI shows the error dialog and does not provide
           // a way for plugins to handle the error yet.
           needRefresh = true;
-          restApiPost('/changes/' + changeId + '/reviewers',
-                      {'reviewer': email},
-                      checkAddRemoveLists);
+          restApiPost(
+              '/changes/' + changeId + '/reviewers', {'reviewer': email},
+              checkAddRemoveLists);
           return;
         }
       }
@@ -179,10 +217,9 @@ Gerrit.install(function(self) {
         if (email in reviewerId) {
           removeList = removeList.slice(i + 1, removeList.length);
           needRefresh = true;
-          restApiDelete('/changes/' + changeId +
-                        '/reviewers/' + reviewerId[email],
-                        checkAddRemoveLists,
-                        'Cannot delete reviewer: ' + email);
+          restApiDelete(
+              '/changes/' + changeId + '/reviewers/' + reviewerId[email],
+              checkAddRemoveLists, 'Cannot delete reviewer: ' + email);
           return;
         }
       }
@@ -195,7 +232,7 @@ Gerrit.install(function(self) {
     }
     function applyGetReviewers(reviewerList) {
       setupReviewersMap(reviewerList);
-      checkAddRemoveLists(); // update and pop up window at the end
+      checkAddRemoveLists();  // update and pop up window at the end
     }
     function hasStar(owners) {
       return owners.some(function(owner) {
@@ -218,7 +255,7 @@ Gerrit.install(function(self) {
         if (owners[j] in votes) {
           var v = votes[owners[j]];
           if (v < 0) {
-            return false; // cannot have any negative vote
+            return false;  // cannot have any negative vote
           }
           foundApproval |= v >= minVoteLevel;
         }
@@ -233,12 +270,6 @@ Gerrit.install(function(self) {
       e.innerHTML = s;
       return e;
     }
-    function br() {
-      return document.createElement('br');
-    }
-    function hr() {
-      return document.createElement('hr');
-    }
     function newButton(name, action) {
       var b = document.createElement('button');
       b.appendChild(document.createTextNode(name));
@@ -252,16 +283,18 @@ Gerrit.install(function(self) {
       showBoldKeyValueLines(args, key, JSON.stringify(obj, null, 2));
     }
     function showBoldKeyValueLines(args, key, value) {
-      args.push(hr(), strElement('<b>' + key + '</b>:'), br());
+      args.push(
+          createElWithText('hr'), strElement('<b>' + key + '</b>:'),
+          createElWithText('br'));
       value.split('\n').forEach(function(line) {
-        args.push(strElement(line), br());
+        args.push(strElement(line), createElWithText('br'));
       });
     }
     function showDebugMessages(result, args) {
       function addKeyValue(key, value) {
         args.push(strElement('<b>' + key + '</b>: ' + value + '<br>'));
       }
-      args.push(hr());
+      args.push(createElWithText('hr'));
       addKeyValue('changeId', changeId);
       addKeyValue('project', project);
       addKeyValue('branch', branch);
@@ -277,12 +310,13 @@ Gerrit.install(function(self) {
       });
     }
     function showFilesAndOwners(result, args) {
-      var sortedOwners = result.owners.map(
-          function(ownerInfo) { return ownerInfo.email; });
-      var groups = {}; // a map from group_name to
-          // {'type': 0..(NUM_GROUP_TYPES-1),
-          //  'size': num_of_files_in_this_group,
-          //  'owners': space_separated_owner_emails}
+      var sortedOwners = result.owners.map(function(ownerInfo) {
+        return ownerInfo.email;
+      });
+      var groups = {};  // a map from group_name to
+                        // {'type': 0..(NUM_GROUP_TYPES-1),
+                        //  'size': num_of_files_in_this_group,
+                        //  'owners': space_separated_owner_emails}
       var header = emptyDiv(HEADER_DIV_ID);
       var groupTypeDiv = Array(NUM_GROUP_TYPES);
       for (var i = 0; i < NUM_GROUP_TYPES; i++) {
@@ -295,8 +329,8 @@ Gerrit.install(function(self) {
 
       var ownersDiv = emptyDiv(OWNERS_DIV_ID);
       var numCheckBoxes = 0;
-      var owner2boxes = {}; // owner name ==> array of checkbox id
-      var owner2email = {}; // owner name ==> email address
+      var owner2boxes = {};  // owner name ==> array of checkbox id
+      var owner2email = {};  // owner name ==> email address
       minVoteLevel =
           ('minOwnerVoteLevel' in result ? result.minOwnerVoteLevel : 1);
 
@@ -314,15 +348,17 @@ Gerrit.install(function(self) {
         return e;
       }
       function colorSpan(str, color) {
-        return `<span style="color: ${color};">${str}</span>`;
+        const el = createElWithText('span', str)
+        el.style.color = color;
+        return el;
       }
       function doApplyButton() {
         addList = [];
         removeList = [];
         // add each owner's email address to addList or removeList
         Object.keys(owner2boxes).forEach(function(owner) {
-          (getElement(owner2boxes[owner][0]).checked ?
-              addList : removeList).push(owner2email[owner]);
+          (getElement(owner2boxes[owner][0]).checked ? addList : removeList)
+              .push(owner2email[owner]);
         });
         getReviewers(changeId, applyGetReviewers);
       }
@@ -330,20 +366,22 @@ Gerrit.install(function(self) {
         var name = event.target.value;
         var checked = event.target.checked;
         var others = owner2boxes[name];
-        others.forEach(function(id) { getElement(id).checked = checked; });
+        others.forEach(function(id) {
+          getElement(id).checked = checked;
+        });
         getElement(APPLY_BUTTON_ID).style.display = 'inline';
       }
-      function addGroupsToDiv(div, keys, title) {
+      function addGroupsToDiv(div, keys, titleEl) {
         if (keys.length <= 0) {
           div.style.display = 'none';
           return;
         }
         div.innerHTML = '';
         div.style.display = 'inline';
-        div.appendChild(strElement(title));
+        div.appendChild(titleEl);
         function addOwner(itemDiv, ownerEmail) {
           if (ownerEmail == '*') {
-            return; // no need to list/select '*'
+            return;  // no need to list/select '*'
           }
           numCheckBoxes++;
           var name = ownerEmail.replace(/@[^ ]*/g, '');
@@ -360,17 +398,22 @@ Gerrit.install(function(self) {
           box.id = id;
           box.value = name;
           box.onclick = clickBox;
-          itemDiv.appendChild(strElement('&nbsp;&nbsp; '));
+          itemDiv.appendChild(createElWithText('span', '\u00a0\u00a0'));
           var nobr = document.createElement('nobr');
           nobr.appendChild(box);
           nobr.appendChild(strElement(name));
           itemDiv.appendChild(nobr);
         }
         keys.forEach(function(key) {
-          var owners = groups[key].owners; // string of owner emails
+          var owners = groups[key].owners;  // string of owner emails
           var numFiles = groups[key].size;
-          var item = HTML_BULLET + '&nbsp;<b>' + key + '</b>' +
-              ((numFiles > 1) ? (' (' + numFiles + ' files)') : '');
+
+          var itemEl = createElWithText('span');
+          itemEl.appendChild(createBulletEl());
+          itemEl.appendChild(document.createTextNode('\u00a0'));
+          itemEl.appendChild(createElWithText('b', key));
+          itemEl.appendChild(document.createTextNode(
+              ((numFiles > 1) ? (' (' + numFiles + ' files)') : '')));
           var setOfOwners = new Set(owners.split(' '));
           function add2list(list, email) {
             if (setOfOwners.has(email)) {
@@ -380,37 +423,44 @@ Gerrit.install(function(self) {
           }
           var reducedList = sortedOwners.reduce(add2list, []);
           if (hasNamedOwner(reducedList)) {
-            item += ':';
+            itemEl.appendChild(document.createTextNode(':'));
           }
 
           let itemDiv = document.createElement('div');
           itemDiv.style.paddingTop = '0.5em';
-          itemDiv.appendChild(strElement(item));
-          itemDiv.appendChild(br());
+          itemDiv.appendChild(itemEl);
+          itemDiv.appendChild(createElWithText('br'));
           reducedList.forEach(addOwner.bind(this, itemDiv));
           div.appendChild(itemDiv);
         });
         div.lastElementChild.style.paddingBottom = '0.5em';
       }
-      function addOwnersDiv(div, title) {
-        div.innerHTML = '';
+      function addOwnersDiv(div, titleEl) {
+        div.textContent = '';
         div.style.display = 'inline';
-        div.appendChild(strElement(title));
+        div.appendChild(titleEl);
+        div.appendChild(createElWithText('br'));
         function compareOwnerInfo(o1, o2) {
           return o1.email.localeCompare(o2.email);
         }
         result.owners.sort(compareOwnerInfo).forEach(function(ownerInfo) {
           var email = ownerInfo.email;
-          if (email != '*') { // do not list special email *
+          var emailEl = createElWithText('span', email);
+          if (email != '*') {  // do not list special email *
             var vote = reviewerVote[email];
             if ((email in reviewerVote) && vote != 0) {
               if (vote > 0) {
-                email += colorSpan('&nbsp;(+' + vote + ')', 'green');
+                emailEl.appendChild(
+                    colorSpan('\u00a0(+' + vote + ')', 'green'));
               } else {
-                email += colorSpan('&nbsp;(' + vote + ')', 'red');
+                emailEl.appendChild(colorSpan('\u00a0(' + vote + ')', 'red'));
               }
             }
-            div.appendChild(strElement('&nbsp;&nbsp;' + email + '<br>'));
+            const spanEl = createElWithText('span');
+            spanEl.appendChild(document.createTextNode('\u00a0\u00a0'));
+            spanEl.appendChild(emailEl);
+            spanEl.appendChild(createElWithText('br'));
+            div.appendChild(spanEl);
           }
         });
       }
@@ -425,20 +475,27 @@ Gerrit.install(function(self) {
 
         // Add message to header div and make visible.
         let headerMessageDiv = document.createElement('div');
-        headerMessageDiv.innerHTML = isExemptedFromOwnerApproval() ? HTML_IS_EXEMPTED :
-            ((onSubmit ? HTML_ONSUBMIT_HEADER : '') + HTML_SELECT_REVIEWERS);
+        if (isExemptedFromOwnerApproval()) {
+          headerMessageDiv.appendChild(createIsExemptedEl());
+        } else {
+          if (onSubmit) {
+            headerMessageDiv.appendChild(createOnSubmitHeader());
+          }
+          headerMessageDiv.appendChild(createSelectReviewersEl());
+        }
         header.appendChild(headerMessageDiv);
         header.style.display = 'inline';
 
         numCheckBoxes = 0;
         owner2boxes = {};
         for (var i = 0; i < NUM_GROUP_TYPES; i++) {
-          addGroupsToDiv(groupTypeDiv[i], listOfGroup[i], HTML_GROUP_TYPE_HEADER[i]);
+          addGroupsToDiv(
+              groupTypeDiv[i], listOfGroup[i], HTML_GROUP_TYPE_HEADER[i]);
         }
-        addOwnersDiv(ownersDiv, HTML_OWNERS_HEADER);
+        addOwnersDiv(ownersDiv, createOwnersHeaderEl());
       }
       function createGroups() {
-        var owners2group = {}; // owner list to group name
+        var owners2group = {};  // owner list to group name
         var firstNoOwnerFile = null;
         var keysOfFile2Owners = Object.keys(result.file2owners);
         keysOfFile2Owners.sort().forEach(function(name) {
@@ -461,7 +518,7 @@ Gerrit.install(function(self) {
             } else {
               type = GROUP_TYPE.NEED_APPROVAL;
             }
-            groups[name] = {'type':type, 'size':1, 'owners':owners};
+            groups[name] = {'type': type, 'size': 1, 'owners': owners};
           }
         });
         var numNoOwnerFiles = result.files.length - keysOfFile2Owners.length;
@@ -492,15 +549,19 @@ Gerrit.install(function(self) {
     function showFindOwnersResults(result) {
       function prepareElements() {
         var elems = [];
-        var text = Object.keys(result.file2owners).length <= 0 ? HTML_NO_OWNER : null;
-        useContextPopup = !!context && !!text && !!context.popup;
-        if (!!text) {
+        var textEl =
+            Object.keys(result.file2owners).length <= 0 ? createNoOwnerEl() : null;
+        useContextPopup = !!context && !!textEl && !!context.popup;
+        if (!!textEl) {
           if (useContextPopup) {
-            elems.push(hr(), strElement(text), hr());
-            var onClick = function() { context.hide(); };
-            elems.push(context.button('OK', {onclick: onClick}), hr());
+            elems.push(createElWithText('hr'), textEl, createElWithText('hr'));
+            var onClick = function() {
+              context.hide();
+            };
+            elems.push(
+                context.button('OK', {onclick: onClick}), createElWithText('hr'));
           } else {
-            elems.push(strElement(text), newButton('OK', hideFindOwnersPage));
+            elems.push(textEl, newButton('OK', hideFindOwnersPage));
           }
         } else {
           showFilesAndOwners(result, elems);
@@ -519,7 +580,9 @@ Gerrit.install(function(self) {
           while (pageDiv.firstChild) {
             pageDiv.removeChild(pageDiv.firstChild);
           }
-          elems.forEach(function(e) { pageDiv.appendChild(e); });
+          elems.forEach(function(e) {
+            pageDiv.appendChild(e);
+          });
           pageDiv.className = LARGE_PAGE_STYLE;
           // Calculate required height, limited to 85% of window height,
           // and required width, limited to 75% of window width.
@@ -534,12 +597,14 @@ Gerrit.install(function(self) {
             pageDiv.style.width = maxWidth + 'px';
             rect = pageDiv.getBoundingClientRect();
           }
-          pageDiv.style.left = Math.round((window.innerWidth - rect.width) / 2) + 'px';
+          pageDiv.style.left =
+              Math.round((window.innerWidth - rect.width) / 2) + 'px';
           if (rect.height > maxHeight) {
             pageDiv.style.height = maxHeight + 'px';
             rect = pageDiv.getBoundingClientRect();
           }
-          pageDiv.style.top = Math.round((window.innerHeight - rect.height) / 2) + 'px';
+          pageDiv.style.top =
+              Math.round((window.innerHeight - rect.height) / 2) + 'px';
           pageDiv.style.visibility = 'visible';
         }
       }
@@ -560,7 +625,7 @@ Gerrit.install(function(self) {
       popupFindOwnersPage(null, change, revision, true);
       return false;
     }
-    return true; // Okay to submit.
+    return true;  // Okay to submit.
   }
   var actionKey = null;
   function onShowChangePolyGerrit(change, revision) {
@@ -574,20 +639,19 @@ Gerrit.install(function(self) {
     actionKey = changeActions.add('revision', '[FIND OWNERS]');
     changeActions.setIcon(actionKey, 'robot');
     changeActions.setTitle(actionKey, 'Find owners of changed files');
-    changeActions.addTapListener(actionKey,
-        (e) => {
-          if (e) e.stopPropagation();
+    changeActions.addTapListener(actionKey, (e) => {
+      if (e) e.stopPropagation();
 
-          popupFindOwnersPage(null, change, revision, false);
-        });
+      popupFindOwnersPage(null, change, revision, false);
+    });
   }
   function onClick(event) {
     if (pageDiv.style.visibility != 'hidden' && !useContextPopup) {
       var x = event.clientX;
       var y = event.clientY;
       var rect = pageDiv.getBoundingClientRect();
-      if (x < rect.left || x >= rect.left + rect.width ||
-          y < rect.top || y >= rect.top + rect.height) {
+      if (x < rect.left || x >= rect.left + rect.width || y < rect.top ||
+          y >= rect.top + rect.height) {
         hideFindOwnersPage();
       }
     }
