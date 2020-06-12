@@ -85,10 +85,12 @@ public class Checker {
     // The preferred email of the author may not be set. Pushing changes only requires an email in
     // the external IDs, but the preferred email may still be null (also emails may have been
     // deleted after creating the change). Skip the author if it doesn't have a preferred email.
-    Optional<String> author =
+    if (config.getAutoAuthorApproval()) {
+      Optional<String> author =
         accountCache.get(changeData.change().getOwner()).map(a -> a.account().preferredEmail());
-    if (author.isPresent() && (!map.containsKey(author.get()) || map.get(author.get()) == 0)) {
-      map.put(author.get(), minVoteLevel);
+      if (author.isPresent() && (!map.containsKey(author.get()) || map.get(author.get()) == 0)) {
+        map.put(author.get(), minVoteLevel);
+      }
     }
     return map;
   }

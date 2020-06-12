@@ -146,6 +146,7 @@ Gerrit.install(function(self) {
     const message = revision.commit.message;
     const project = change.project;
 
+    var autoAuthorApproval = true;   // could be changed by server returned results.
     var minVoteLevel = 1;   // could be changed by server returned results.
     var reviewerId = {};    // map from a reviewer's email to account id.
     var reviewerVote = {};  // map from a reviewer's email to Code-Review vote.
@@ -185,9 +186,11 @@ Gerrit.install(function(self) {
             // The 'Code-Review' values could be "-2", "-1", " 0", "+1", "+2"
           }
         }
+        console.log(reviewerList);
+        console.log(reviewerVote);
       });
       // Give CL author a default minVoteLevel vote.
-      if (changeOwner != null && 'email' in changeOwner &&
+      if (autoAuthorApproval && changeOwner != null && 'email' in changeOwner &&
           '_account_id' in changeOwner &&
           (!(changeOwner.email in reviewerId) ||
            reviewerVote[changeOwner.email] == 0)) {
@@ -331,6 +334,8 @@ Gerrit.install(function(self) {
       var numCheckBoxes = 0;
       var owner2boxes = {};  // owner name ==> array of checkbox id
       var owner2email = {};  // owner name ==> email address
+      autoAuthorApproval = 
+          ('autoAuthorApproval' in result ? result.autoAuthorApproval : true);
       minVoteLevel =
           ('minOwnerVoteLevel' in result ? result.minOwnerVoteLevel : 1);
 

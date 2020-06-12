@@ -157,6 +157,9 @@ variables for this plugin.
     * `addDebugMsg` has default value false. When it is defined to true,
       the find-owners REST API will add extra debug messages by default
       in the returned JSON object.
+    * `autoAuthorApproval` has a default value of true.  When it is defined to 
+      false, no assumptions will be made about a vote from an author who is
+      also an owner.  
 
 * Project variables should be defined in `project.config`
   of the `All-Projects` project and inherited by all other projects,
