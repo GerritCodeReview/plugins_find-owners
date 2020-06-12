@@ -27,6 +27,9 @@ public class RestResult {
   @SerializedName("addDebugMsg")
   boolean addDebugMsg;
 
+  @SerializedName("autoAuthorApproval")
+  boolean autoAuthorApproval;
+
   @SerializedName("maxCacheAge")
   int maxCacheAge;
 
@@ -56,6 +59,7 @@ public class RestResult {
 
   RestResult(Config config, ProjectState projectState, ChangeData changeData, boolean addDebugMsg) {
     this.addDebugMsg = addDebugMsg;
+    autoAuthorApproval = config.getAutoAuthorApproval();
     maxCacheAge = config.getMaxCacheAge();
     maxCacheSize = config.getMaxCacheSize();
     minOwnerVoteLevel = config.getMinOwnerVoteLevel(projectState, changeData);

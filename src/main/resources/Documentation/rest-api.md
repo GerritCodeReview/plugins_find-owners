@@ -36,6 +36,10 @@ This API returns a JSON object with the following attributes:
    REST URL parameter. When it is true, extra **dbgmsgs** attributes
    are included in this JSON object.
 
+* **autoAuthorApproval**: is true by default. can be set to false in gerrit.config.  
+   When true Authors are assumed to have voted at minOwnerVoteLevel. 
+   When false no assumptions are made about Authors vote.
+
 * **maxCacheAge**: has default value 0; can be defined in gerrit.config.
    It is the number of seconds OWNERS info that will stay in a cache.
 

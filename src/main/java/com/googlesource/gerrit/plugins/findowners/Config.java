@@ -32,6 +32,7 @@ import java.util.Map;
 class Config {
   // Name of config parameters that should be defined in gerrit.config:
   static final String ADD_DEBUG_MSG = "addDebugMsg"; // include "dbgmsgs" in returned JSON object
+  static final String AUTO_AUTHOR_APPROVAL = "autoAuthorApproval"; // default true
   static final String MAX_CACHE_AGE = "maxCacheAge"; // seconds to stay in cache
   static final String MAX_CACHE_SIZE = "maxCacheSize"; // number of OwnersDb in cache
   static final String MIN_OWNER_VOTE_LEVEL = "minOwnerVoteLevel"; // default +1
@@ -58,6 +59,7 @@ class Config {
 
   // Global/plugin config parameters.
   private boolean addDebugMsg = false;
+  private boolean autoAuthorApproval = true;
   private int minOwnerVoteLevel = 1;
   private int maxCacheAge = 0;
   private int maxCacheSize = 1000;
@@ -93,6 +95,7 @@ class Config {
     // and JSEPluginConfig is available.
     gerritConfig = newConfig(PLUGIN_NAME, config, null, null, null);
     addDebugMsg = gerritConfig.getBoolean(ADD_DEBUG_MSG, false);
+    autoAuthorApproval = gerritConfig.getBoolean(AUTO_AUTHOR_APPROVAL, true);
     minOwnerVoteLevel = gerritConfig.getInt(MIN_OWNER_VOTE_LEVEL, 1);
     maxCacheAge = gerritConfig.getInt(MAX_CACHE_AGE, 0);
     maxCacheSize = gerritConfig.getInt(MAX_CACHE_SIZE, 1000);
@@ -131,6 +134,10 @@ class Config {
 
   boolean getAddDebugMsg() {
     return addDebugMsg; // defined globally, not per-project
+  }
+
+  boolean getAutoAuthorApproval() {
+    return autoAuthorApproval;
   }
 
   int getMaxCacheAge() {

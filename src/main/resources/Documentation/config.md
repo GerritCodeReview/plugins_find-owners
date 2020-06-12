@@ -157,6 +157,9 @@ variables for this plugin.
     * `addDebugMsg` has default value false. When it is defined to true,
       the find-owners REST API will add extra debug messages by default
       in the returned JSON object.
+    * `autoAuthorApproval` has a default value of true.  When it is defined to 
+      false, no assumptions will be made about a vote from an author who is
+      also an owner.  
 
 * Project variables should be defined in `project.config`
   of the `All-Projects` project and inherited by all other projects,
@@ -177,6 +180,13 @@ variables for this plugin.
 To enforce the *owner-approval-before-submit* rule, this plugin provides
 **`find_owners:submit_rule/1`** and **`find_owners:submit_filter/2`**
 predicates for Gerrit projects.
+
+By default change authors are assumed to have approved changes since gerrit
+does not allow adding authors as reviewers.  A side effec of this is a change
+from an author may appear to have bypassed the *owner-approval-before-submit*
+rule since there may not be a Code-Review vote from an owner.  This behavior
+can be changed by setting the global variable autoAuthorApproval to false
+in gerrit.config.
 
 If a Gerrit project wants to enforce this *owner-approval* policy,
 it can add a `submit_rule` to the [`rules.pl` file](
