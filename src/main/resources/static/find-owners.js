@@ -13,6 +13,12 @@
 // limitations under the License.
 
 Gerrit.install(function(self) {
+  const ENABLED_EXPERIMENTS = window.ENABLED_EXPERIMENTS || [];
+  if (ENABLED_EXPERIMENTS.includes('UiFeature__plugin_code_owners')) {
+    // Disable if experiment UiFeature__plugin_code_owners is enabled
+    return;
+  }
+
   // If context.popup API exists and popup content is small,
   // use the API and set useContextPopup,
   // otherwise, use pageDiv and set its visibility.
