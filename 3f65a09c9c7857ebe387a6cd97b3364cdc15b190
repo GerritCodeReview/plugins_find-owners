@@ -42,6 +42,24 @@
     },
     {
       "key": {
+        "uuid": "39840b91_21b52741",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1019852
+      },
+      "writtenOn": "2020-06-17T13:50:46Z",
+      "side": 1,
+      "message": "I could not find this behavior documented anywhere.  I think it may be trying to work around the issue of not being able to add an author as a code reviewer.  I\u0027ll work on updating the patch today.",
+      "parentUuid": "3241829d_e9bbefe3",
+      "revId": "3f65a09c9c7857ebe387a6cd97b3364cdc15b190",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "8a515c19_c9253d39",
         "filename": "/COMMIT_MSG",
         "patchSetId": 1
