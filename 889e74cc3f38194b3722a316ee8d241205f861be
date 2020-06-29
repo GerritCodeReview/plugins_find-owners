@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "99543fa3_49f1ec51",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1086906
+      },
+      "writtenOn": "2020-06-29T08:43:18Z",
+      "side": 1,
+      "message": "js change lgtm",
+      "revId": "889e74cc3f38194b3722a316ee8d241205f861be",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1447743a_f17218a0",
+        "filename": "src/main/resources/static/find-owners.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 336,
+      "author": {
+        "id": 1086906
+      },
+      "writtenOn": "2020-06-29T08:43:18Z",
+      "side": 1,
+      "message": "nit: it\u0027s recommended to use `hasOwnProperty` instead of `in`, but since there are log `in`s in this file already, its not a required change to make for this change",
+      "range": {
+        "startLine": 336,
+        "startChar": 10,
+        "endLine": 336,
+        "endChar": 41
+      },
+      "revId": "889e74cc3f38194b3722a316ee8d241205f861be",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    }
+  ]
+}
