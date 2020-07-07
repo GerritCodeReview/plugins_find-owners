@@ -72,7 +72,7 @@ public class OwnersValidatorIT extends FindOwners {
 
   private static class MockedCommitReceivedEvent extends CommitReceivedEvent {
     MockedCommitReceivedEvent(String project, RevWalk revWalk, RevCommit commit) {
-      this.project = new Project(Project.nameKey(project));
+      this.project = Project.builder(Project.nameKey(project)).build();
       this.revWalk = revWalk;
       this.commit = commit;
       this.refName = "master";
