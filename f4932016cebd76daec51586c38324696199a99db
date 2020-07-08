@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "32fc8214_01249841",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1026112
+      },
+      "writtenOn": "2020-07-08T13:40:27Z",
+      "side": 1,
+      "message": "Already done by https://gerrit-review.googlesource.com/c/plugins/find-owners/+/274527",
+      "revId": "f4932016cebd76daec51586c38324696199a99db",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    }
+  ]
+}
