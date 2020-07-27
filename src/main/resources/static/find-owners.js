@@ -16,6 +16,9 @@ Gerrit.install(function(self) {
   const ENABLED_EXPERIMENTS = window.ENABLED_EXPERIMENTS || [];
   if (ENABLED_EXPERIMENTS.includes('UiFeature__plugin_code_owners')) {
     // Disable if experiment UiFeature__plugin_code_owners is enabled
+    // Also hide previous 'Find Owners' button under 'MORE'.
+    var changeActions = self.changeActions();
+    changeActions.setActionHidden('revision', 'find-owners~find-owners', true);
     return;
   }
 
