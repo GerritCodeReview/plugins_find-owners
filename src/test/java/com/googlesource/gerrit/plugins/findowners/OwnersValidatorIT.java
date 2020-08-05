@@ -42,6 +42,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jgit.api.AddCommand;
@@ -61,6 +62,7 @@ import org.junit.Test;
 @TestPlugin(name = "find-owners", sysModule = "com.googlesource.gerrit.plugins.findowners.Module")
 public class OwnersValidatorIT extends FindOwners {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
   @Rule public Watcher watcher = new Watcher(logger);
 
   private void addProjectFile(String project, String file, String content) throws Exception {
@@ -122,7 +124,7 @@ public class OwnersValidatorIT extends FindOwners {
 
   private static final String OWNERS_ANDROID = "OWNERS.android"; // alternative OWNERS file name
   private static final PluginConfig ANDROID_CONFIG = createAndroidConfig(); // use OWNERS_ANDROID
-  private static final PluginConfig EMPTY_CONFIG = new PluginConfig("", new Config());
+  private static final PluginConfig EMPTY_CONFIG = PluginConfig.create("", new Config(), null);
   private static final PluginConfig ENABLED_CONFIG = createEnabledConfig(); // use OWNERS
   private static final PluginConfig DISABLED_CONFIG = createDisabledConfig();
 
@@ -349,21 +351,22 @@ public class OwnersValidatorIT extends FindOwners {
   }
 
   private static PluginConfig createEnabledConfig() {
-    PluginConfig c = new PluginConfig("", new Config());
-    c.setBoolean(REJECT_ERROR_IN_OWNERS, true);
-    return c;
+    PluginConfig.Update update = new PluginConfig.Update("", new Config(), Optional.empty());
+    update.setBoolean(REJECT_ERROR_IN_OWNERS, true);
+    return update.asPluginConfig();
   }
 
   private static PluginConfig createDisabledConfig() {
-    PluginConfig c = new PluginConfig("", new Config());
-    c.setBoolean(REJECT_ERROR_IN_OWNERS, false);
-    return c;
+    PluginConfig.Update update = new PluginConfig.Update("", new Config(), Optional.empty());
+    update.setBoolean(REJECT_ERROR_IN_OWNERS, false);
+    return update.asPluginConfig();
   }
 
   private static PluginConfig createAndroidConfig() {
-    PluginConfig c = createEnabledConfig();
-    c.setString(OWNERS_FILE_NAME, OWNERS_ANDROID);
-    return c;
+    PluginConfig.Update update = new PluginConfig.Update("", new Config(), Optional.empty());
+    update.setBoolean(REJECT_ERROR_IN_OWNERS, true);
+    update.setString(OWNERS_FILE_NAME, OWNERS_ANDROID);
+    return update.asPluginConfig();
   }
 
   private RevCommit makeCommit(RevWalk rw, String message, Map<String, String> fileStrings)

@@ -33,7 +33,7 @@ public final class BaseConfigTest {
       throws ConfigInvalidException {
     Config cfg = new Config();
     cfg.fromText(content); // could throw ConfigInvalidException
-    return new BaseConfig(name, new PluginConfig(name, cfg));
+    return new BaseConfig(name, PluginConfig.create(name, cfg, null));
   }
 
   private static String pluginSection(String name) {
