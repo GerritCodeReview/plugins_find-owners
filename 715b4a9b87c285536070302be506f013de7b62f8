@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6f2268c7_62420d38",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1069404
+      },
+      "writtenOn": "2020-08-13T23:27:42Z",
+      "side": 1,
+      "message": "I really have no idea what I\u0027m doing with regards to JavaScript, but I tested this out locally and it seems to work. ",
+      "revId": "715b4a9b87c285536070302be506f013de7b62f8",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    }
+  ]
+}
