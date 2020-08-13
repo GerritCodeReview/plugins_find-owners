@@ -16,6 +16,23 @@
       "revId": "715b4a9b87c285536070302be506f013de7b62f8",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0937872f_351fd90b",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1034308
+      },
+      "writtenOn": "2020-08-13T23:59:33Z",
+      "side": 1,
+      "message": "So Android also uses a Min vote of +2 in order for changes to get merged, but OWNERS are required to at least +1. +2 implies that someone fully reviewed the code, rather than just said that it was an appropriate change to make (which is more of what OWNERS is for). Ideally, we\u0027d have a completely different label than reusing CR, but Android and other groups felt that there were already too many different labels. Changing this as this patch shows seems like it would break our existing expectations.",
+      "revId": "715b4a9b87c285536070302be506f013de7b62f8",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
     }
   ]
 }
