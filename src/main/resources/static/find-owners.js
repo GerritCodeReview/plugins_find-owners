@@ -83,7 +83,7 @@ Gerrit.install(function(self) {
       return createElWithText('b', 'Owners in alphabetical order:');
     };
 
-    const createSelectReviewersEl = () => {
+    const createSelectReviewersEl = (minCRVote) => {
       const el = document.createElement('p');
       el.appendChild(createElWithText(
           'b',
@@ -93,7 +93,7 @@ Gerrit.install(function(self) {
       const smallEl = createElWithText(
           'small',
           'If owner-approval requirement is enabled, ' +
-              'each file needs at least one Code-Review +1 vote from an owner. ' +
+              `each file needs at least one Code-Review +${minCRVote} vote from an owner. ` +
               'Owners listed after a file are ordered by their importance. ' +
               '(Or declare "');
       const smallerEl = createElWithText('b', 'Exempt-From-Owner-Approval:');
@@ -134,7 +134,7 @@ Gerrit.install(function(self) {
           'Files with owners but no Code-Review vote from an owner:'),
       createGroupTypeHeaderEl(
           'Files with owners but can be approved by anyone (*):'),
-      createGroupTypeHeaderEl('Files with +1 or +2 Code-Review vote from owners:'),
+      createGroupTypeHeaderEl('Files with required Code-Review vote from owners:'),
       createGroupTypeHeaderEl('Files without any named owner:'),
     ];
 
@@ -493,7 +493,7 @@ Gerrit.install(function(self) {
           if (onSubmit) {
             headerMessageDiv.appendChild(createOnSubmitHeader());
           }
-          headerMessageDiv.appendChild(createSelectReviewersEl());
+          headerMessageDiv.appendChild(createSelectReviewersEl(minVoteLevel));
         }
         header.appendChild(headerMessageDiv);
         header.style.display = 'inline';
