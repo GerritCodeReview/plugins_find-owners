@@ -33,6 +33,24 @@
       "revId": "715b4a9b87c285536070302be506f013de7b62f8",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6177e508_d6026e82",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1069404
+      },
+      "writtenOn": "2020-08-14T16:40:35Z",
+      "side": 1,
+      "message": "Thanks for taking a look Stephen.\nminOwnerVoteLevel is configurable, so I believe it would be correct for this string to respect that. In my project.config I have:\n```\n[plugin \"find-owners\"]\n\tminOwnerVoteLevel \u003d 2\n```\n\nIs there a way to access minOwnerVoteLevel from this code?",
+      "parentUuid": "0937872f_351fd90b",
+      "revId": "715b4a9b87c285536070302be506f013de7b62f8",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
     }
   ]
 }
