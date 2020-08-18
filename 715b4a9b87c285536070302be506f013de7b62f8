@@ -69,6 +69,47 @@
       "revId": "715b4a9b87c285536070302be506f013de7b62f8",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9f0fd381_36d94290",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2020-08-18T22:26:24Z",
+      "side": 1,
+      "message": "It should work, although this part of code has changed since my last touch and I have not tested it for a long time. Please test it with a local Gerrit server or as soon as it is pushed.",
+      "parentUuid": "be3fd8c9_1371ab54",
+      "revId": "715b4a9b87c285536070302be506f013de7b62f8",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "27e52e5a_618b03bb",
+        "filename": "src/main/resources/static/find-owners.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2020-08-18T22:26:24Z",
+      "side": 1,
+      "message": "nit on style format: there should be space before and after the \u0027+\u0027 operator.",
+      "range": {
+        "startLine": 96,
+        "startChar": 58,
+        "endLine": 96,
+        "endChar": 90
+      },
+      "revId": "715b4a9b87c285536070302be506f013de7b62f8",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
     }
   ]
 }
