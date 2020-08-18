@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7b209e33_69a02a33",
+        "filename": "src/main/resources/static/find-owners.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 496,
+      "author": {
+        "id": 1032487
+      },
+      "writtenOn": "2020-08-18T23:08:00Z",
+      "side": 1,
+      "message": "I haven\u0027t checked the latest server side code yet. But using minVoteLevel here should be safer. In line 347, minVoteLevel will have default value 1 if result.minOwnerVoteLevel does not exist for any reason. Maybe that won\u0027t happen if server side is right.",
+      "range": {
+        "startLine": 496,
+        "startChar": 63,
+        "endLine": 496,
+        "endChar": 87
+      },
+      "revId": "0e235a08633a929ab8efc4c533c7eb5ffdf1739e",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
+    }
+  ]
+}
