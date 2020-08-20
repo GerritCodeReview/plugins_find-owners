@@ -16,6 +16,23 @@
       "revId": "f5fe8283360396dda9a9e37d3d22ef4c83cc886a",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "371ef583_149381f7",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1024147
+      },
+      "writtenOn": "2020-08-20T08:01:50Z",
+      "side": 1,
+      "message": "I\u0027ll leave this to Edwin + Tao to decide.",
+      "revId": "f5fe8283360396dda9a9e37d3d22ef4c83cc886a",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
     }
   ]
 }
