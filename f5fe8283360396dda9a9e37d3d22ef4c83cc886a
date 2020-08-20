@@ -33,6 +33,46 @@
       "revId": "f5fe8283360396dda9a9e37d3d22ef4c83cc886a",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "346e9352_5deb6669",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1086906
+      },
+      "writtenOn": "2020-08-20T11:02:24Z",
+      "side": 1,
+      "message": "change looks fine for me for find-owners (we might want to consider similar things for code owners if thats also a concern for the new code owners plugin) @Edwin",
+      "revId": "f5fe8283360396dda9a9e37d3d22ef4c83cc886a",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c8df789b_9537d6c9",
+        "filename": "src/main/resources/static/find-owners.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1086906
+      },
+      "writtenOn": "2020-08-20T11:02:24Z",
+      "side": 1,
+      "message": "is this necessary ? if `minCRVote` is a number, then concat it with string directly is fine, tho its recommended to use `+${minCRVote}` for modern javascript, and if its a string, then it should work just fine :) \n\nassume here it has to be something \u003e\u003d 0 :)",
+      "range": {
+        "startLine": 96,
+        "startChar": 61,
+        "endLine": 96,
+        "endChar": 89
+      },
+      "revId": "f5fe8283360396dda9a9e37d3d22ef4c83cc886a",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153",
+      "unresolved": true
     }
   ]
 }
