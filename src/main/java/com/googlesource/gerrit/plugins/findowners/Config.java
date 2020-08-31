@@ -25,8 +25,8 @@ import com.google.gerrit.server.patch.PatchListCache;
 import com.google.gerrit.server.project.NoSuchProjectException;
 import com.google.gerrit.server.project.ProjectState;
 import com.google.gerrit.server.query.change.ChangeData;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /** find-owners configuration parameters */
 class Config {
@@ -80,7 +80,7 @@ class Config {
     this.accountCache = accountCache;
     this.patchListCache = patchListCache;
     this.emails = emails;
-    projectConfigMap = new HashMap<>();
+    projectConfigMap = new ConcurrentHashMap<>();
     if (configFactory == null && config == null) { // When called from integration tests.
       gerritConfig = null;
       return;
