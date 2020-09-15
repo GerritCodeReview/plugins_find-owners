@@ -13,17 +13,20 @@
 // limitations under the License.
 
 Gerrit.install(function(self) {
-  const ENABLED_EXPERIMENTS = window.ENABLED_EXPERIMENTS || [];
-  if (ENABLED_EXPERIMENTS.includes('UiFeature__plugin_code_owners')) {
-    // Disable if experiment UiFeature__plugin_code_owners is enabled
-    // Also hide previous 'Find Owners' button under 'MORE'.
-    function removeFindOwnerFromSecondaryActions() {
-      var changeActions = self.changeActions();
-      changeActions.setActionHidden('revision', 'find-owners~find-owners', true);
-    }
-    self.on('showchange', removeFindOwnerFromSecondaryActions);
-    return;
-  }
+  // TODO: ideally we want to turn off find owners when code owners enabled
+  // but since they are two plugins right now, we just keep find owners around
+  // for a while
+  // const ENABLED_EXPERIMENTS = window.ENABLED_EXPERIMENTS || [];
+  // if (ENABLED_EXPERIMENTS.includes('UiFeature__plugin_code_owners')) {
+  //   // Disable if experiment UiFeature__plugin_code_owners is enabled
+  //   // Also hide previous 'Find Owners' button under 'MORE'.
+  //   function removeFindOwnerFromSecondaryActions() {
+  //     var changeActions = self.changeActions();
+  //     changeActions.setActionHidden('revision', 'find-owners~find-owners', true);
+  //   }
+  //   self.on('showchange', removeFindOwnerFromSecondaryActions);
+  //   return;
+  // }
 
   // If context.popup API exists and popup content is small,
   // use the API and set useContextPopup,
