@@ -36,12 +36,12 @@ public class PerFileIT extends FindOwners {
     String ownerA = ownerJson("a@a");
     String ownerB = ownerJson("b@b");
     String ownerC = ownerJson("c@c");
-    String ownerABC = "owners:[ " + ownerA + ", " + ownerB + ", " + ownerC;
+    String ownerABC = "owners:[" + ownerA + "," + ownerB + "," + ownerC;
     String ownerX = ownerJson("x@x");
-    assertThat(getOwnersResponse(c2)).contains(ownerABC + ", " + ownerX + " ], files:[ t.c ]");
+    assertThat(getOwnersResponse(c2)).contains(ownerABC + "," + ownerX + "],files:[t.c]");
     // Add "t.txt" file, which has only global default owners.
     PushOneCommit.Result c3 = createChange("3", "t.txt", "Test!");
-    assertThat(getOwnersResponse(c3)).contains(ownerABC + " ], files:[ t.txt ]");
+    assertThat(getOwnersResponse(c3)).contains(ownerABC + "],files:[t.txt]");
   }
 
   @Test
@@ -54,8 +54,8 @@ public class PerFileIT extends FindOwners {
     PushOneCommit.Result c2 = createChange("c2", "t.c", "test");
     String c1Response = getOwnersDebugResponse(c1);
     String c2Response = getOwnersDebugResponse(c2);
-    assertThat(c1Response).contains("file2owners:{ ./x.c:[ a@a, x@x ] }");
-    assertThat(c2Response).contains("file2owners:{ ./t.c:[ *, a@a, m2@g, m@g, t1@g, x@x ] }");
+    assertThat(c1Response).contains("file2owners:{./x.c:[a@a,x@x]}");
+    assertThat(c2Response).contains("file2owners:{./t.c:[*,a@a,m2@g,m@g,t1@g,x@x]}");
   }
 
   @Test
@@ -66,11 +66,10 @@ public class PerFileIT extends FindOwners {
     PushOneCommit.Result c3 = addFile("3", "d2/d1/OWNERS", "d2d1@g\ninclude ../../d1/d1/OWNERS\n");
     PushOneCommit.Result c4 = addFile("4", "d2/OWNERS", "d2@g\nper-file OWNERS=d2o@g");
     // Files that match per-file globs now inherit global default owners.
-    assertThat(getOwnersResponse(c1))
-        .contains("{ ./d1/d1/OWNERS:[ d1@g, d1d1@g, d1d1o@g, d1o@g ] }");
-    assertThat(getOwnersResponse(c2)).contains("{ ./d1/OWNERS:[ d1@g, d1o@g ] }");
+    assertThat(getOwnersResponse(c1)).contains("{./d1/d1/OWNERS:[d1@g,d1d1@g,d1d1o@g,d1o@g]}");
+    assertThat(getOwnersResponse(c2)).contains("{./d1/OWNERS:[d1@g,d1o@g]}");
     assertThat(getOwnersResponse(c3))
-        .contains("{ ./d2/d1/OWNERS:[ d1d1@g, d1d1o@g, d2@g, d2d1@g, d2o@g ] }");
-    assertThat(getOwnersResponse(c4)).contains("{ ./d2/OWNERS:[ d2@g, d2o@g ] }");
+        .contains("{./d2/d1/OWNERS:[d1d1@g,d1d1o@g,d2@g,d2d1@g,d2o@g]}");
+    assertThat(getOwnersResponse(c4)).contains("{./d2/OWNERS:[d2@g,d2o@g]}");
   }
 }

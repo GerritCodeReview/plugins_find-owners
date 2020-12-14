@@ -46,10 +46,12 @@ public class ApiIT extends FindOwners {
     ChangeInfo info2 = newChangeInfo("test2 GetOwners");
     assertThat(info2._number).isEqualTo(info1._number + 1);
     String expected =
-        ")]}' { addDebugMsg:false, maxCacheAge:0, maxCacheSize:1000,"
-            + " minOwnerVoteLevel:1, ownersFileName:OWNERS, rejectErrorInOwners:false,"
-            + (" change:" + info1._number)
-            + ", patchset:1, file2owners:{}, reviewers:[], owners:[], files:[] }";
+        ")]}' {addDebugMsg:false,maxCacheAge:0,maxCacheSize:1000,"
+            + "minOwnerVoteLevel:1,ownersFileName:OWNERS,rejectErrorInOwners:false,"
+            + ("change:" + info1._number)
+            + ",patchset:1,"
+            + ("owner_revision:" + projectOperations.project(project).getHead(info1.branch).name())
+            + ",file2owners:{},reviewers:[],owners:[],files:[]}";
     Cache cache = getCache().init(0, 10); // reset, no Cache
     assertThat(cache.size()).isEqualTo(0L);
     // GetOwners GET API
@@ -67,11 +69,11 @@ public class ApiIT extends FindOwners {
   @Test
   public void requestErrorTest() throws Exception {
     PushOneCommit.Result c1 = createChange("1", "t.c", "##");
-    assertThat(getOwnersResponse(c1)).contains("owners:[], files:[ t.c ]");
+    assertThat(getOwnersResponse(c1)).contains("owners:[],files:[t.c]");
     int id = c1.getChange().getId().get();
     // Correct change id.
     String result = userRestSession.get("/changes/" + id + "/owners").getEntityContent();
-    assertThat(filteredJson(result)).contains("owners:[], files:[ t.c ]");
+    assertThat(filteredJson(result)).contains("owners:[],files:[t.c]");
     // Wrong change number, 404 not found.
     RestResponse response = userRestSession.get("/changes/" + (id + 1) + "/owners");
     assertThat(response.getStatusCode()).isEqualTo(404);
