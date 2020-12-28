@@ -64,15 +64,15 @@ public abstract class FindOwners extends LightweightPluginDaemonTest {
   }
 
   protected String oneOwnerList(String email) {
-    return "owners:[ " + ownerJson(email) + " ]";
+    return "owners:[" + ownerJson(email) + "]";
   }
 
   protected String ownerJson(String email) {
-    return "{ email:" + email + ", weights:[ 1, 0, 0 ] }";
+    return "{email:" + email + ",weights:[1,0,0]}";
   }
 
   protected String ownerJson(String email, int w1, int w2, int w3) {
-    return "{ email:" + email + ", weights:[ " + w1 + ", " + w2 + ", " + w3 + " ] }";
+    return "{email:" + email + ",weights:[" + w1 + "," + w2 + "," + w3 + "]}";
   }
 
   protected ChangeInfo newChangeInfo(String subject) throws Exception {
@@ -226,7 +226,7 @@ public abstract class FindOwners extends LightweightPluginDaemonTest {
 
   protected String idProject(String name) {
     // Expected string of "id": "name",,
-    return "\"id\": \"" + name + "\",";
+    return "\"id\":\"" + name + "\",";
   }
 
   protected static void verifyRestResult(

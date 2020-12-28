@@ -88,20 +88,20 @@ public class ConfigIT extends FindOwners {
     String cXResponse = getOwnersDebugResponse(cX);
     String cBResponse = getOwnersDebugResponse(cB);
     String cYResponse = getOwnersDebugResponse(cY);
-    assertThat(cAResponse).contains(ownerX + ", files:[ tA.c ]");
-    assertThat(cBResponse).contains(ownerY + ", files:[ tB.c ]");
-    assertThat(cXResponse).contains(", files:[ tX.c ]");
-    assertThat(cYResponse).contains(", files:[ tY.c ]");
+    assertThat(cAResponse).contains(ownerX + ",files:[tA.c]");
+    assertThat(cBResponse).contains(ownerY + ",files:[tB.c]");
+    assertThat(cXResponse).contains(",files:[tX.c]");
+    assertThat(cYResponse).contains(",files:[tY.c]");
     assertThat(cXResponse).doesNotContain(ownerX);
     assertThat(cYResponse).doesNotContain(ownerY);
     assertThat(cAResponse).contains("branch:refs/heads/master");
     assertThat(cBResponse).contains("branch:refs/heads/master");
     assertThat(cXResponse).contains("branch:refs/heads/BranchX");
     assertThat(cYResponse).contains("branch:refs/heads/BranchY");
-    assertThat(cAResponse).contains("ownersFileName:OWNERS, ");
-    assertThat(cBResponse).contains("ownersFileName:OWNERS, ");
-    assertThat(cXResponse).contains("ownersFileName:OWNERS, ");
-    assertThat(cYResponse).contains("ownersFileName:OWNERS, ");
+    assertThat(cAResponse).contains("ownersFileName:OWNERS,");
+    assertThat(cBResponse).contains("ownersFileName:OWNERS,");
+    assertThat(cXResponse).contains("ownersFileName:OWNERS,");
+    assertThat(cYResponse).contains("ownersFileName:OWNERS,");
 
     // pA and pB use default OWNERS file name.
     // cA and cB logs should not contain anything about Missing/Found root.
@@ -126,12 +126,12 @@ public class ConfigIT extends FindOwners {
     cBResponse = getOwnersDebugResponse(cB);
     cXResponse = getOwnersDebugResponse(cX);
     cYResponse = getOwnersDebugResponse(cY);
-    assertThat(cAResponse).contains("ownersFileName:OWNERS.alpha, ");
-    assertThat(cBResponse).contains("ownersFileName:OWNERS.beta, ");
-    assertThat(cXResponse).contains("ownersFileName:OWNERS.alpha, ");
-    assertThat(cYResponse).contains("ownersFileName:OWNERS.beta, ");
-    assertThat(cAResponse).contains(ownerA + ", files:[ tA.c ]");
-    assertThat(cBResponse).contains(ownerB + ", files:[ tB.c ]");
+    assertThat(cAResponse).contains("ownersFileName:OWNERS.alpha,");
+    assertThat(cBResponse).contains("ownersFileName:OWNERS.beta,");
+    assertThat(cXResponse).contains("ownersFileName:OWNERS.alpha,");
+    assertThat(cYResponse).contains("ownersFileName:OWNERS.beta,");
+    assertThat(cAResponse).contains(ownerA + ",files:[tA.c]");
+    assertThat(cBResponse).contains(ownerB + ",files:[tB.c]");
     // pA and pB now use non-default OWNERS file name.
     // cA and cB logs should contain "Found root ..."
     assertThat(cAResponse).contains("FoundrootOWNERS.alpha");
@@ -145,10 +145,10 @@ public class ConfigIT extends FindOwners {
     setProjectConfig("ownersFileName", "MAINTAINERS");
     cAResponse = getOwnersDebugResponse(cA);
     cXResponse = getOwnersDebugResponse(cX);
-    assertThat(cAResponse).contains("ownersFileName:MAINTAINERS, ");
-    assertThat(cXResponse).contains("ownersFileName:MAINTAINERS, ");
-    assertThat(cAResponse).contains("owners:[], ");
-    assertThat(cXResponse).contains("owners:[], ");
+    assertThat(cAResponse).contains("ownersFileName:MAINTAINERS,");
+    assertThat(cXResponse).contains("ownersFileName:MAINTAINERS,");
+    assertThat(cAResponse).contains("owners:[],");
+    assertThat(cXResponse).contains("owners:[],");
     assertThat(cAResponse).contains("MissingrootMAINTAINERS");
     // Gerrit server log file should contain: "Missing root MAINTAINERS for change "
     // cX is not on the master branch, so we do not check for the root owners file.
@@ -160,8 +160,8 @@ public class ConfigIT extends FindOwners {
     assertThat(projectOwnersFileName(pA)).isEqualTo("OWNERS");
     cAResponse = getOwnersDebugResponse(cA);
     cBResponse = getOwnersDebugResponse(cB);
-    assertThat(cAResponse).contains(ownerX + ", files:[ tA.c ]");
-    assertThat(cBResponse).contains(ownerB + ", files:[ tB.c ]");
+    assertThat(cAResponse).contains(ownerX + ",files:[tA.c]");
+    assertThat(cBResponse).contains(ownerB + ",files:[tB.c]");
 
     // Change back to OWNERS.alpha in Project_B, but there is no OWNERS.alpha
     switchProject(pB);
@@ -170,10 +170,10 @@ public class ConfigIT extends FindOwners {
     cAResponse = getOwnersDebugResponse(cA);
     cBResponse = getOwnersDebugResponse(cB);
     cYResponse = getOwnersDebugResponse(cY);
-    assertThat(cAResponse).contains("ownersFileName:OWNERS, ");
-    assertThat(cBResponse).contains("ownersFileName:OWNERS.alpha, ");
-    assertThat(cAResponse).contains(ownerX + ", files:[ tA.c ]");
-    assertThat(cBResponse).contains("owners:[], files:[ tB.c ]");
+    assertThat(cAResponse).contains("ownersFileName:OWNERS,");
+    assertThat(cBResponse).contains("ownersFileName:OWNERS.alpha,");
+    assertThat(cAResponse).contains(ownerX + ",files:[tA.c]");
+    assertThat(cBResponse).contains("owners:[],files:[tB.c]");
     assertThat(cBResponse).contains("MissingrootOWNERS.alpha");
     // Gerrit server log file should contain: "Missing root OWNERS.alpha for change "
     assertThat(cYResponse).doesNotContain("root");
@@ -192,8 +192,8 @@ public class ConfigIT extends FindOwners {
     RestResponse response = adminRestSession.get("/projects/?d");
     String content = response.getEntityContent();
     // Predefined projects: "All-Projects", "All-Users", project
-    assertThat(content).contains("\"id\": \"All-Projects\",");
-    assertThat(content).contains("\"id\": \"All-Users\",");
+    assertThat(content).contains("\"id\":\"All-Projects\",");
+    assertThat(content).contains("\"id\":\"All-Users\",");
     assertThat(content).contains(idProject("projectTest", "project"));
     assertThat(content).doesNotContain(idProject("projectTest", "ProjectA"));
     assertThat(content).doesNotContain(idProject("ProjectA"));
