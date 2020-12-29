@@ -16,6 +16,24 @@
       "message": "An alternative solution would be adding the \u0027pp\u003d1\u0027 query string, so that the tests are explicitly asking Gerrit to return a pretty-printed JSON. ",
       "revId": "1f02d31f659082b9081c9ce3cfade37145c7f03b",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d5c06636_8dda9813",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1011323
+      },
+      "writtenOn": "2020-12-29T07:37:09Z",
+      "side": 1,
+      "message": "Good point, however, this is a cherry-pick from master branch.",
+      "parentUuid": "ce84c56a_0be0f473",
+      "revId": "1f02d31f659082b9081c9ce3cfade37145c7f03b",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     }
   ]
 }
