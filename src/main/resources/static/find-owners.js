@@ -37,6 +37,33 @@ Gerrit.install(function(self) {
   function hideFindOwnersPage() {
     pageDiv.style.visibility = 'hidden';
   }
+
+  // Temporary functions - checks if code owners are enabled for a change
+  function getIsCodeOwnerPluginEnabledForChange(change) {
+    const codeOwners = window.__gerrit_code_owners_plugin;
+    if (!codeOwners) {
+      // Code-owners plugin is not installed
+      return Promise.resolve(false);
+    }
+    return new Promise(resolve => {
+
+      const stateChangedListener = () => {
+        if (codeOwners.state.change?.id === change.id) {
+          // The code-owners plugin might have a delay with updating its
+          // state. Ensure that it contains state for the requested change.
+          codeOwners.stateChanged.removeEventListener('state-changed',
+              stateChangedListener);
+          return void resolve(codeOwners.state.branchState !== 'DISABLED');
+        }
+      }
+      codeOwners.stateChanged.addEventListener('state-changed',
+          stateChangedListener);
+      // If state has been already updated, the 'state-changed' event is not
+      // fired. Call stateChangedListener to check curent state.
+      stateChangedListener();
+    });
+  }
+
   function popupFindOwnersPage(context, change, revision, onSubmit) {
     const PADDING = 5;
     const LARGE_PAGE_STYLE = Gerrit.css(
@@ -633,17 +660,53 @@ Gerrit.install(function(self) {
 
     callServer(showFindOwnersResults);
   }
+  // Stores information about the last change passed to onShowChangePolyGerrit
+  let lastChangeInfo = null;
   function onSubmit(change, revision) {
+    // onShowChangePolyGerrit is always called after all plugins are loaded.
+    // However, onSubmit can be called earlier (thought it is unlikely) and
+    // lastChangeInfo can be null.
+    if(lastChangeInfo && lastChangeInfo.ownerPlugin === 'code-owners') {
+      return true;
+    }
     const OWNER_REVIEW_LABEL = 'Owner-Review-Vote';
     if (change.labels.hasOwnProperty(OWNER_REVIEW_LABEL)) {
-      // Pop up Find Owners page; do not submit.
-      popupFindOwnersPage(null, change, revision, true);
+      if(lastChangeInfo && lastChangeInfo.ownerPlugin === 'find-owners') {
+        popupFindOwnersPage(null, change, revision, true);
+      } else {
+        // Usually, the api returns required config very fast, so this is
+        // a very rare when user will see this message.
+        document.dispatchEvent(
+            new CustomEvent('show-error', {
+              detail: {
+                message:
+                  'Some requests to code-owners are still in progress, ' +
+                  'please try to submit again in a few seconds.\n' +
+                  'The host has both find-owners and code-owners plugin enabled.' +
+                  'The Submit is not possible until requests are completed. ',
+                composed: true,
+                bubbles: true,
+              }
+            }
+          )
+        );
+      }
       return false;
     }
     return true;  // Okay to submit.
   }
   var actionKey = null;
   function onShowChangePolyGerrit(change, revision) {
+    if (lastChangeInfo) {
+      // If previous request was too slow, user can have enough time for
+      // switching to another view. Cancel previos request.
+      lastChangeInfo.cancelled = true;
+    }
+    const changeInfo = {
+      change,
+      cancelled: false,
+    }
+    lastChangeInfo = changeInfo;
     var changeActions = self.changeActions();
     // Hide previous 'Find Owners' button under 'MORE'.
     changeActions.setActionHidden('revision', 'find-owners~find-owners', true);
@@ -651,14 +714,20 @@ Gerrit.install(function(self) {
       changeActions.removeTapListener(actionKey);
       changeActions.remove(actionKey);
     }
-    actionKey = changeActions.add('revision', '[FIND OWNERS]');
-    changeActions.setIcon(actionKey, 'robot');
-    changeActions.setTitle(actionKey, 'Find owners of changed files');
-    changeActions.addTapListener(actionKey, (e) => {
-      if (e) e.stopPropagation();
+    getIsCodeOwnerPluginEnabledForChange(change).then((codeOwnersEnabled) => {
+      changeInfo.ownerPlugin = codeOwnersEnabled ? 'code-owners' : 'find-owners';
+      if (changeInfo.cancelled || changeInfo.ownerPlugin === 'code-owners') {
+        return;
+      }
+      actionKey = changeActions.add('revision', '[FIND OWNERS]');
+      changeActions.setIcon(actionKey, 'robot');
+      changeActions.setTitle(actionKey, 'Find owners of changed files');
+      changeActions.addTapListener(actionKey, (e) => {
+        if (e) e.stopPropagation();
 
-      popupFindOwnersPage(null, change, revision, false);
-    });
+        popupFindOwnersPage(null, change, revision, false);
+      });
+    }, 5000);
   }
   function onClick(event) {
     if (pageDiv.style.visibility != 'hidden' && !useContextPopup) {
