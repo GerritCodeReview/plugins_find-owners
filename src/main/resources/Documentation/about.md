@@ -1,3 +1,7 @@
+**NOTE:** The find-owners plugin has been deprecated in favour of the
+[code-owners](https://gerrit.googlesource.com/plugins/code-owners/+/HEAD/resources/Documentation/about.md)
+plugin.
+
 This plugin works with Gerrit projects that
 use Android or Chromium compatible **OWNERS** files.
 The **OWNERS** files specify *owners*, or active maintainers,

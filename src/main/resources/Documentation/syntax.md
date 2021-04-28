@@ -1,3 +1,10 @@
+**NOTE:** The find-owners plugin has been deprecated in favour of the
+[code-owners](https://gerrit.googlesource.com/plugins/code-owners/+/HEAD/resources/Documentation/about.md)
+plugin. For the code-owners plugin the syntax is documented
+[here](https://gerrit.googlesource.com/plugins/code-owners/+/HEAD/resources/Documentation/backend-find-owners.md)
+and OWNERS examples can be found in the
+[cookbook](https://gerrit.googlesource.com/plugins/code-owners/+/HEAD/resources/Documentation/backend-find-owners-cookbook.md).
+
 OWNERS File Syntax
 ==================
 
