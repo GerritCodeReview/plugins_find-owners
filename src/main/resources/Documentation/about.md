@@ -1,5 +1,5 @@
 **NOTE:** The find-owners plugin has been deprecated in favour of the
-[code-owners](https://gerrit.googlesource.com/plugins/code-owners/+/HEAD/resources/Documentation/about.md)
+[code-owners](https://android-review.googlesource.com/plugins/code-owners/Documentation/index.html)
 plugin.
 
 This plugin works with Gerrit projects that

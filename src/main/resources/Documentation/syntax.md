@@ -1,9 +1,9 @@
 **NOTE:** The find-owners plugin has been deprecated in favour of the
-[code-owners](https://gerrit.googlesource.com/plugins/code-owners/+/HEAD/resources/Documentation/about.md)
+[code-owners](https://android-review.googlesource.com/plugins/code-owners/Documentation/index.html)
 plugin. For the code-owners plugin the syntax is documented
-[here](https://gerrit.googlesource.com/plugins/code-owners/+/HEAD/resources/Documentation/backend-find-owners.md)
+[here](https://android-review.googlesource.com/plugins/code-owners/Documentation/backend-find-owners.html#syntax)
 and OWNERS examples can be found in the
-[cookbook](https://gerrit.googlesource.com/plugins/code-owners/+/HEAD/resources/Documentation/backend-find-owners-cookbook.md).
+[cookbook](https://android-review.googlesource.com/plugins/code-owners/Documentation/backend-find-owners-cookbook.html).
 
 OWNERS File Syntax
 ==================
