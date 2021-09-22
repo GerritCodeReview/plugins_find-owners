@@ -35,7 +35,6 @@ import com.google.gerrit.server.git.GitRepositoryManager;
 import com.google.gerrit.server.git.validators.CommitValidationException;
 import com.google.gerrit.server.git.validators.CommitValidationListener;
 import com.google.gerrit.server.git.validators.CommitValidationMessage;
-import com.google.gerrit.server.patch.PatchListCache;
 import com.google.inject.AbstractModule;
 import com.google.inject.Inject;
 import java.io.BufferedReader;
@@ -96,30 +95,27 @@ public class OwnersValidator implements CommitValidationListener {
   OwnersValidator(
       PluginConfigFactory cfgFactory,
       AccountCache accountCache,
-      PatchListCache patchListCache,
       GitRepositoryManager repoManager,
       Emails emails) {
-    this(cfgFactory, null, accountCache, patchListCache, repoManager, emails);
+    this(cfgFactory, null, accountCache, repoManager, emails);
   }
 
   @VisibleForTesting
   OwnersValidator(
       PluginConfig config,
       AccountCache accountCache,
-      PatchListCache patchListCache,
       GitRepositoryManager repoManager,
       Emails emails) {
-    this(null, config, accountCache, patchListCache, repoManager, emails);
+    this(null, config, accountCache, repoManager, emails);
   }
 
   private OwnersValidator(
       PluginConfigFactory cfgFactory,
       PluginConfig config,
       AccountCache accountCache,
-      PatchListCache patchListCache,
       GitRepositoryManager repoManager,
       Emails emails) {
-    this.config = new Config(cfgFactory, config, accountCache, patchListCache, emails);
+    this.config = new Config(cfgFactory, config, accountCache, emails);
     this.repoManager = repoManager;
     this.emails = emails;
   }

@@ -35,7 +35,6 @@ import com.google.gerrit.extensions.client.ChangeStatus;
 import com.google.gerrit.extensions.common.ChangeInfo;
 import com.google.gerrit.extensions.common.ChangeInput;
 import com.google.gerrit.server.account.Emails;
-import com.google.gerrit.server.patch.PatchListCache;
 import com.google.gerrit.server.permissions.PermissionBackend;
 import com.google.inject.Inject;
 import org.eclipse.jgit.lib.ObjectLoader;
@@ -53,14 +52,13 @@ public abstract class FindOwners extends LightweightPluginDaemonTest {
   @Inject protected Emails emails;
   @Inject protected PermissionBackend permissionBackend;
   @Inject protected ProjectOperations projectOperations;
-  @Inject protected PatchListCache patchListCache;
 
   protected static final String PLUGIN_NAME = "find-owners";
   protected Config config;
 
   @Before
   public void setConfig() {
-    config = new Config(pluginConfig, null, null, null, null);
+    config = new Config(pluginConfig, null, null, null);
   }
 
   protected String oneOwnerList(String email) {
@@ -183,15 +181,7 @@ public abstract class FindOwners extends LightweightPluginDaemonTest {
             r.getChange(),
             1);
     Checker c =
-        new Checker(
-            accountCache,
-            patchListCache,
-            repoManager,
-            emails,
-            pluginConfig,
-            null,
-            r.getChange(),
-            1);
+        new Checker(accountCache, repoManager, emails, pluginConfig, null, r.getChange(), 1);
     return c.findApproval(db);
   }
 

@@ -129,7 +129,7 @@ public class OwnersValidatorIT extends FindOwners {
   private static final PluginConfig DISABLED_CONFIG = createDisabledConfig();
 
   private OwnersValidator newOwnersValidator(PluginConfig cfg) {
-    return new OwnersValidator(cfg, accountCache, patchListCache, repoManager, new MockedEmails());
+    return new OwnersValidator(cfg, accountCache, repoManager, new MockedEmails());
   }
 
   @Test

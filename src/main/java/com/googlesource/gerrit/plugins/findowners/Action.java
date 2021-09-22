@@ -34,7 +34,6 @@ import com.google.gerrit.server.change.ChangeResource;
 import com.google.gerrit.server.change.RevisionResource;
 import com.google.gerrit.server.config.PluginConfigFactory;
 import com.google.gerrit.server.git.GitRepositoryManager;
-import com.google.gerrit.server.patch.PatchListCache;
 import com.google.gerrit.server.permissions.PermissionBackend;
 import com.google.gerrit.server.project.ProjectCache;
 import com.google.gerrit.server.project.ProjectState;
@@ -77,7 +76,6 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
       Provider<CurrentUser> userProvider,
       ChangeData.Factory changeDataFactory,
       AccountCache accountCache,
-      PatchListCache patchListCache,
       Emails emails,
       GitRepositoryManager repoManager,
       ProjectCache projectCache) {
@@ -88,7 +86,7 @@ class Action implements RestReadView<RevisionResource>, UiAction<RevisionResourc
     this.emails = emails;
     this.repoManager = repoManager;
     this.projectCache = projectCache;
-    this.config = new Config(configFactory, null, accountCache, patchListCache, emails);
+    this.config = new Config(configFactory, null, accountCache, emails);
   }
 
   private String getUserName() {
