@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "530a1ebd_aff62a95",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1091982
+      },
+      "writtenOn": "2021-09-22T14:31:09Z",
+      "side": 1,
+      "message": "I verified the tests are passing locally.\n\n//plugins/find-owners:findowners_IT_tests                                PASSED in 166.4s\n//plugins/find-owners:findowners_junit_tests                             PASSED in 0.8s",
+      "revId": "92116ec8cbdace459878acd3f3e715c7b767be9c",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    }
+  ]
+}
