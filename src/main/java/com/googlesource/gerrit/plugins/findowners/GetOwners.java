@@ -24,7 +24,6 @@ import com.google.gerrit.server.account.Emails;
 import com.google.gerrit.server.change.ChangeResource;
 import com.google.gerrit.server.config.PluginConfigFactory;
 import com.google.gerrit.server.git.GitRepositoryManager;
-import com.google.gerrit.server.patch.PatchListCache;
 import com.google.gerrit.server.permissions.PermissionBackend;
 import com.google.gerrit.server.project.ProjectCache;
 import com.google.gerrit.server.query.change.ChangeData;
@@ -58,7 +57,6 @@ public class GetOwners implements RestReadView<ChangeResource> {
       Provider<CurrentUser> userProvider,
       ChangeData.Factory dataFactory,
       AccountCache accountCache,
-      PatchListCache patchListCache,
       Emails emails,
       GitRepositoryManager repoManager,
       ProjectCache projectCache) {
@@ -69,7 +67,6 @@ public class GetOwners implements RestReadView<ChangeResource> {
             userProvider,
             dataFactory,
             accountCache,
-            patchListCache,
             emails,
             repoManager,
             projectCache);

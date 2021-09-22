@@ -22,10 +22,8 @@ import com.google.gerrit.server.account.AccountCache;
 import com.google.gerrit.server.account.Emails;
 import com.google.gerrit.server.config.PluginConfigFactory;
 import com.google.gerrit.server.git.GitRepositoryManager;
-import com.google.gerrit.server.patch.PatchListCache;
 import com.google.gerrit.server.project.ProjectState;
 import com.google.gerrit.server.query.change.ChangeData;
-import com.google.gerrit.server.rules.PrologEnvironment;
 import com.google.gerrit.server.rules.StoredValues;
 import com.googlecode.prolog_cafe.lang.Prolog;
 import java.util.HashMap;
@@ -51,7 +49,6 @@ public class Checker {
 
   Checker(
       AccountCache accountCache,
-      PatchListCache patchListCache,
       GitRepositoryManager repoManager,
       Emails emails,
       PluginConfigFactory configFactory,
@@ -63,7 +60,7 @@ public class Checker {
     this.emails = emails;
     this.projectState = projectState;
     this.changeData = changeData;
-    this.config = new Config(configFactory, null, accountCache, patchListCache, emails);
+    this.config = new Config(configFactory, null);
     minVoteLevel = v;
   }
 
@@ -135,11 +132,9 @@ public class Checker {
     ChangeData changeData = null;
     try {
       changeData = StoredValues.CHANGE_DATA.get(engine);
-      PrologEnvironment env = (PrologEnvironment) engine.control;
       Checker checker =
           new Checker(
               StoredValues.ACCOUNT_CACHE.get(engine),
-              env.getArgs().getPatchListCache(),
               StoredValues.REPO_MANAGER.get(engine),
               StoredValues.EMAILS.get(engine),
               StoredValues.PLUGIN_CONFIG_FACTORY.get(engine),

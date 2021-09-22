@@ -14,14 +14,10 @@
 
 package com.googlesource.gerrit.plugins.findowners;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.flogger.FluentLogger;
 import com.google.gerrit.entities.Project;
-import com.google.gerrit.server.account.AccountCache;
-import com.google.gerrit.server.account.Emails;
 import com.google.gerrit.server.config.PluginConfig;
 import com.google.gerrit.server.config.PluginConfigFactory;
-import com.google.gerrit.server.patch.PatchListCache;
 import com.google.gerrit.server.project.NoSuchProjectException;
 import com.google.gerrit.server.project.ProjectState;
 import com.google.gerrit.server.query.change.ChangeData;
@@ -63,23 +59,13 @@ class Config {
   private int maxCacheSize = 1000;
   private boolean reportSyntaxError = false;
 
-  // Gerrit server objects to set up JS initcode for JSEConfig.
-  private final AccountCache accountCache;
-  private final PatchListCache patchListCache;
-  private final Emails emails;
-
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   Config(
       PluginConfigFactory configFactory, // null when called from unit tests
-      PluginConfig config, // null when called by Action and Checker
-      AccountCache accountCache,
-      PatchListCache patchListCache,
-      Emails emails) {
+      PluginConfig config // null when called by Action and Checker
+      ) {
     this.configFactory = configFactory;
-    this.accountCache = accountCache;
-    this.patchListCache = patchListCache;
-    this.emails = emails;
     projectConfigMap = new ConcurrentHashMap<>();
     if (configFactory == null && config == null) { // When called from integration tests.
       gerritConfig = null;
@@ -97,18 +83,6 @@ class Config {
     maxCacheAge = gerritConfig.getInt(MAX_CACHE_AGE, 0);
     maxCacheSize = gerritConfig.getInt(MAX_CACHE_SIZE, 1000);
     reportSyntaxError = gerritConfig.getBoolean(REPORT_SYNTAX_ERROR, false);
-  }
-
-  AccountCache accountCache() {
-    return accountCache;
-  }
-
-  Emails emails() {
-    return emails;
-  }
-
-  PatchListCache patchListCache() {
-    return patchListCache;
   }
 
   private static BaseConfig newConfig(
@@ -182,12 +156,6 @@ class Config {
 
   boolean getReportSyntaxError() {
     return reportSyntaxError;
-  }
-
-  static String getProjectName(ProjectState state, Project project) {
-    return state != null
-        ? state.getProject().getName()
-        : (project != null ? project.getName() : "(unknown project)");
   }
 
   static String getChangeId(ChangeData data) {
@@ -267,11 +235,6 @@ class Config {
           "Exception in getOwnersFileName for %s", project.getName());
       return defaultName;
     }
-  }
-
-  @VisibleForTesting
-  void setReportSyntaxError(boolean value) {
-    reportSyntaxError = value;
   }
 
   int getMinOwnerVoteLevel(ProjectState projectState, ChangeData c) {
