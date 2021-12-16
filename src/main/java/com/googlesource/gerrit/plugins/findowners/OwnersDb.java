@@ -299,8 +299,8 @@ class OwnersDb {
       add2dir2Globs(Util.getDirName(glob) + "/", glob);
     }
     if (config.getReportSyntaxError()) {
-      Ordering.natural().sortedCopy(result.errors).forEach(e -> logger.atSevere().log(e));
-      Ordering.natural().sortedCopy(result.warnings).forEach(w -> logger.atWarning().log(w));
+      Ordering.natural().sortedCopy(result.errors).forEach(e -> logger.atSevere().log("%s", e));
+      Ordering.natural().sortedCopy(result.warnings).forEach(w -> logger.atWarning().log("%s", w));
     }
   }
 

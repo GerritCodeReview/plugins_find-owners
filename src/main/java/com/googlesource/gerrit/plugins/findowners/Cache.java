@@ -167,7 +167,7 @@ class Cache {
       logger.atFiner().log(
           "Get from cache %s, key=%s, cache size=%d", dbCache, key, dbCache.size());
       logger.atFine().atMostEvery(30, TimeUnit.SECONDS).log(
-          "FindOwnersCacheStats: " + dbCache.stats());
+          "FindOwnersCacheStats: %s", dbCache.stats());
       return dbCache.get(
           key,
           new Callable<OwnersDb>() {

@@ -28,11 +28,11 @@ class Watcher extends TestWatcher {
 
   @Override
   public void starting(final Description method) {
-    logger.atInfo().log("Test starting: " + method);
+    logger.atInfo().log("Test starting: %s", method);
   }
 
   @Override
   public void finished(final Description method) {
-    logger.atInfo().log("Test finished: " + method);
+    logger.atInfo().log("Test finished: %s", method);
   }
 }

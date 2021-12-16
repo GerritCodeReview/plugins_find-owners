@@ -83,7 +83,7 @@ public class GetOwners implements RestReadView<ChangeResource> {
     } catch (BadRequestException e) {
       // Catch this exception to avoid too many call stack dumps
       // from bad wrong client requests.
-      logger.atSevere().log("Exception: " + e);
+      logger.atSevere().log("Exception: %s", e);
       return Response.none();
     }
   }

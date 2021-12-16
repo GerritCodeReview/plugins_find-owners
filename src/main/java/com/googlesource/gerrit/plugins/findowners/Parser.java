@@ -310,7 +310,7 @@ class Parser {
       return Util.normalizedRepoDirFilePath(dir, path);
     } catch (IOException e) {
       String msg = "Fail to normalized path " + dir + " / " + path;
-      logger.atSevere().withCause(e).log(msg);
+      logger.atSevere().withCause(e).log("%s", msg);
       logs.add(msg + ":" + e.getMessage());
       return dir + "/" + path;
     }
