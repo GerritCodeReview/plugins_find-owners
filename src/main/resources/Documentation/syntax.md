@@ -40,8 +40,8 @@ EOL         := end of line characters
 SPACE       := any white space character
 ```
 
-* An OWNERS file can include another file with the `include filePath`
-  or `include project:filePath` line.
+* An OWNERS file can include another file with the `include filePath`,
+  `include project:filePath`, or `include project:branch:filePath` line.
   When the `project:` is not specified, the OWNERS file's project is used.
   The included file is given with the `filePath`.
 
