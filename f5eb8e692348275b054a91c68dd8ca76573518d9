@@ -16,6 +16,23 @@
       "message": "[Context](https://chromium-review.googlesource.com/c/chromiumos/platform/ec/+/3441166/comments/8745e981_f0a1cb70)",
       "revId": "f5eb8e692348275b054a91c68dd8ca76573518d9",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "65f724d8_35641cfd",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1003935
+      },
+      "writtenOn": "2022-02-07T07:39:39Z",
+      "side": 1,
+      "message": "Thanks for the fix, but I think there is a misunderstanding.\nAFAIK the find-owners plugin doesn\u0027t support specifying a branch in the include syntax. Do you maybe use the code-owners plugin, which does support this syntax?\nFor the code-owners plugin it\u0027s already mentioned in the syntax documentation that branches can be specified [1].\n\n[1] https://android-review.googlesource.com/plugins/code-owners/Documentation/backend-find-owners.html#file-keyword",
+      "revId": "f5eb8e692348275b054a91c68dd8ca76573518d9",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     }
   ]
 }
