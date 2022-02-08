@@ -69,6 +69,24 @@
       "parentUuid": "a36762fe_357c3fb6",
       "revId": "f5eb8e692348275b054a91c68dd8ca76573518d9",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5231c102_27691b2f",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1132260
+      },
+      "writtenOn": "2022-02-08T16:25:02Z",
+      "side": 1,
+      "message": "Thanks. The UI does seem to look like that, so I\u0027ll abandon this change.",
+      "parentUuid": "b3b48653_c9c0b870",
+      "revId": "f5eb8e692348275b054a91c68dd8ca76573518d9",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     }
   ]
 }
