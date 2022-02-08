@@ -51,6 +51,24 @@
       "parentUuid": "65f724d8_35641cfd",
       "revId": "f5eb8e692348275b054a91c68dd8ca76573518d9",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b3b48653_c9c0b870",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1003935
+      },
+      "writtenOn": "2022-02-08T07:26:34Z",
+      "side": 1,
+      "message": "Yes, the Chromium gerrit instance is using the code-owners plugin since quite some time now.\n\nThe installed plugins are shown at [1], but as you say I think this is only accessible by the host admins. I think non-admins currently cannot see the installed plugins. \n\nFor the code-owners plugin you could verify if the UI on the change screen looks like the screenshots in [2]. If yes, it\u0027s the code-owners plugin.\n\n[1] https://chromium-review.googlesource.com/admin/plugins\n[2] https://chromium-review.googlesource.com/plugins/code-owners/Documentation/how-to-use.html",
+      "parentUuid": "a36762fe_357c3fb6",
+      "revId": "f5eb8e692348275b054a91c68dd8ca76573518d9",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     }
   ]
 }
