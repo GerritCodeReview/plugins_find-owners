@@ -148,7 +148,7 @@ public class ApiIT extends FindOwners {
     String[] emails2 = {"abc@goog.com", "abc+xyz2@g.com", "xyz-team@goog.com"};
     // Create accounts with given user name, first and second email addresses.
     for (int i = 0; i < users.length; i++) {
-      accountCreator.create(users[i], emails1[i], "FullName " + users[i], null).id();
+      accountCreator.create(users[i], emails1[i], "FullName " + users[i], null);
       EmailInput input = new EmailInput();
       input.email = emails2[i];
       input.noConfirmation = true;
