@@ -25,6 +25,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.flogger.FluentLogger;
+import com.google.common.io.Files;
 import com.google.gerrit.acceptance.PushOneCommit;
 import com.google.gerrit.acceptance.TestPlugin;
 import com.google.gerrit.entities.Account;
@@ -416,6 +417,7 @@ public class OwnersValidatorIT extends FindOwners {
     AddCommand ac = git.add();
     for (File f : files.keySet()) {
       if (!f.exists()) {
+        Files.createParentDirs(f);
         FileUtils.touch(f);
       }
       if (files.get(f) != null) {
