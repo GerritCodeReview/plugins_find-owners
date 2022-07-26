@@ -16,6 +16,24 @@
       "message": "this is a bit different than how you handled it in https://gerrit-review.googlesource.com/c/plugins/uploadvalidator/+/341716.\n\nMentioning just to make sure you intended to do it this way.",
       "revId": "89a3d82795f5e3bf518250c8892323983b73ff34",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b14ce6c2_b344442b",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1003935
+      },
+      "writtenOn": "2022-07-26T08:57:29Z",
+      "side": 1,
+      "message": "Hah, I had the same question about this fix. Yes, this is intended. If you\u0027re interested in the full context you may have a look at cl/462390045. Summary: Just adding Files.createParentDirs(f) didn\u0027t work for the uploadvalidator (supposedly because of some issue with symlinks) which is why we had to replace FileUtils#touch completely there.",
+      "parentUuid": "ffc33928_9da57ade",
+      "revId": "89a3d82795f5e3bf518250c8892323983b73ff34",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     }
   ]
 }
