@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ffc33928_9da57ade",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1091982
+      },
+      "writtenOn": "2022-07-26T08:29:40Z",
+      "side": 1,
+      "message": "this is a bit different than how you handled it in https://gerrit-review.googlesource.com/c/plugins/uploadvalidator/+/341716.\n\nMentioning just to make sure you intended to do it this way.",
+      "revId": "89a3d82795f5e3bf518250c8892323983b73ff34",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    }
+  ]
+}
